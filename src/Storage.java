@@ -5,6 +5,13 @@ import org.json.JSONException;
 
 import com.google.gson.Gson;
 
+/*
+ * Currently supported methods:
+ * insert
+ * delete
+ * getLists
+ */
+
 public class Storage {
 	private ArrayList<Task> al_task;
 	private ArrayList<Task> al_task_floating;
@@ -14,11 +21,13 @@ public class Storage {
 
 	private BufferedReader bufferedReader;
 	private PrintWriter printWriter;
-	private static final String FLOATING_TASK_FILENAME = "C:\\Users\\Daryl\\git\\2103Proj\\src\\FloatingTask.txt";
-	private static final String COMPLETED_TASK_FILENAME = "C:\\Users\\Daryl\\git\\2103Proj\\src\\CompletedTask.txt";
-	private static final String OVERDUE_TASK_FILENAME = "C:\\Users\\Daryl\\git\\2103Proj\\src\\OverdueTask.txt";
-	private static final String TASK_FILENAME = "C:\\Users\\Daryl\\git\\2103Proj\\src\\Task.txt";
-	private static final String COUNT_TASK_FILENAME = "C:\\Users\\Daryl\\git\\2103Proj\\src\\TaskCount.txt";
+	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+	private static final String TASK_FILENAME = "Task.txt";
+	private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
+	
+	private static final String STRING_EMPTY = "";
 
 	// Index for if the task does not exist in the ArrayList.
 	private static final int DOES_NOT_EXIST = -1;
@@ -74,6 +83,56 @@ public class Storage {
 
 	public ArrayList<Task> getOverdueTasksFile() {
 		return this.al_task_overdue;
+	}
+	
+	/*
+	 * Driver search method. Search for all tasks with the specified parameters
+	 * Current limitations:
+	 * -Can only search 1 keyword and 1 tag
+	 * -Can only search a date range
+	 * -Missing default start and end date
+	 */
+	public ArrayList<Task> search(String keyword, String tag, Date start_date, Date end_date) {
+		ArrayList<Task> search_results = new ArrayList<Task>();
+		
+		//deal with null search parameters
+		if (keyword==null) {
+			keyword = STRING_EMPTY;
+		}
+		
+		if (tag == null) {
+			tag = STRING_EMPTY;
+		}
+		
+		if (start_date == null) {
+			//start_date = DATE_START_DEFAULT;
+		}
+		
+		if (end_date == null) {
+			//end_date = DATE_END_DEFAULT;
+		}
+		
+		searchList(search_results, al_task, keyword, tag, start_date, end_date);
+		searchList(search_results, al_task_floating, keyword, tag, start_date, end_date);
+		searchList(search_results, al_task_overdue, keyword, tag, start_date, end_date);
+		
+		return search_results;
+	}
+	
+	/*
+	 * Search function which only searches within a specified list and adds it
+	 * to an input search list. Assumes all parameters are given
+	 */
+	private void searchList(ArrayList<Task> search_result, ArrayList<Task> list,
+			String keyword, String tag, Date start_date, Date end_date) {
+		
+		for (Task task : list) {
+			if (task.isTaskFloating() || task.withinDateRange(start_date, end_date)) {
+				if ( task.containsKeyword(keyword) && task.containsTag(tag) ) {
+					search_result.add(task);
+				}
+			}
+		}
 	}
 	
 	//Methods Not Accessible to Storage instance.****************************

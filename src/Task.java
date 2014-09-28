@@ -120,4 +120,24 @@ public class Task {
 		return this.taskTag;
 	}
 	
+	// Additional methods*****************************************
+	
+	// Search function********************
+	
+	public boolean containsKeyword(String keyword) {
+		return taskName.contains(keyword);
+	}
+	
+	public boolean containsTag(String tag) {
+		return taskTag.contains(tag);
+	}
+	
+	public boolean withinDateRange(Date start_date, Date end_date) {
+		for (Date date : taskDatesTimes) {
+			if (date.after(start_date) && date.before(end_date)) {
+				return true;
+			}
+		}
+		return false;
+	}
 }
