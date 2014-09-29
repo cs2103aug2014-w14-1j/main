@@ -11,7 +11,10 @@ public class Task {
 	private String taskRecur;
 	private boolean taskCompleted;
 	private ArrayList<String> taskTag;
-		
+	
+	/*
+	 * No input constructor
+	 */
 	public Task() {
 		taskId = "";
 		taskName = "";
@@ -21,6 +24,19 @@ public class Task {
 		taskRecur = "";
 		taskCompleted = false;
 		taskTag = new ArrayList<String>();
+	}
+	
+	public Task(String taskId, String taskName, ArrayList<Date> taskDatesTimes,
+			ArrayList<Date> taskReminderDatesTimes, boolean taskFloating,
+			String taskRecur, boolean taskCompleted, ArrayList<String> taskTag) {
+		this.taskId = taskId;
+		this.taskName = taskName;
+		this.taskDatesTimes = taskDatesTimes;
+		this.taskReminderDatesTimes = taskReminderDatesTimes;
+		this.taskFloating = taskFloating;
+		this.taskRecur = taskRecur;
+		this.taskCompleted = taskCompleted;
+		this.taskTag = taskTag;
 	}
 
 	// Task ID************************************
