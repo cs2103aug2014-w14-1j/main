@@ -127,7 +127,7 @@ public class Storage {
 			String keyword, String tag, Date start_date, Date end_date) {
 		
 		for (Task task : list) {
-			if (task.isTaskFloating() || task.withinDateRange(start_date, end_date)) {
+			if (task.withinDateRange(start_date, end_date)) {
 				if ( task.containsKeyword(keyword) && task.containsTag(tag) ) {
 					search_result.add(task);
 				}
