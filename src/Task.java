@@ -151,8 +151,10 @@ public class Task {
 	public boolean withinDateRange(Date start_date, Date end_date) {
 		if (taskFloating) return true;		//autopass
 		for (Date date : taskDatesTimes) {
-			if (date.after(start_date) && date.before(end_date)) {
-				return true;
+			if (start_date == null || date.after(start_date)) {
+				if (end_date == null || date.before(end_date)) {
+					return true;
+				}
 			}
 		}
 		return false;
