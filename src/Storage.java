@@ -26,8 +26,6 @@ public class Storage {
 	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 	private static final String TASK_FILENAME = "Task.txt";
 	private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
-	
-	private static final String STRING_EMPTY = "";
 
 	// Index for if the task does not exist in the ArrayList.
 	private static final int DOES_NOT_EXIST = -1;
@@ -92,29 +90,12 @@ public class Storage {
 	 * -Can only search a date range
 	 * -Missing default start and end date
 	 */
-	public ArrayList<Task> search(String keyword, String tag, Date start_date, Date end_date) {
+	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Date start_date, Date end_date) {
 		ArrayList<Task> search_results = new ArrayList<Task>();
-		
-		//deal with null search parameters
-		if (keyword==null) {
-			keyword = STRING_EMPTY;
-		}
-		
-		if (tag == null) {
-			tag = STRING_EMPTY;
-		}
-		
-		if (start_date == null) {
-			//start_date = DATE_START_DEFAULT;
-		}
-		
-		if (end_date == null) {
-			//end_date = DATE_END_DEFAULT;
-		}
-		
-		searchList(search_results, al_task, keyword, tag, start_date, end_date);
-		searchList(search_results, al_task_floating, keyword, tag, start_date, end_date);
-		searchList(search_results, al_task_overdue, keyword, tag, start_date, end_date);
+				
+		searchList(search_results, al_task, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
 		
 		return search_results;
 	}
@@ -124,11 +105,11 @@ public class Storage {
 	 * to an input search list. Assumes all parameters are given
 	 */
 	private void searchList(ArrayList<Task> search_result, ArrayList<Task> list,
-			String keyword, String tag, Date start_date, Date end_date) {
+			ArrayList<String> keywords, ArrayList<String> tags, Date start_date, Date end_date) {
 		
 		for (Task task : list) {
 			if (task.withinDateRange(start_date, end_date)) {
-				if ( task.containsKeyword(keyword) && task.containsTag(tag) ) {
+				if ( task.containsKeywords(keywords) && task.containsTags(tags) ) {
 					search_result.add(task);
 				}
 			}
@@ -154,7 +135,11 @@ public class Storage {
 
 	// Interfaces with the textFiles(databases)*************************
 	private String getTaskCounter() throws IOException {
-		bufferedReader = new BufferedReader(new FileReader(COUNT_TASK_FILENAME));
+		File countFile = new File(COUNT_TASK_FILENAME);
+		if (!countFile.exists()) {
+			countFile.createNewFile();
+		}
+		bufferedReader = new BufferedReader(new FileReader(countFile));
 		
 		String result = bufferedReader.readLine();
 		if(result == null){
@@ -165,21 +150,29 @@ public class Storage {
 		}
 	}
 
-	private void writeTaskCounter(int count) throws FileNotFoundException {
-		printWriter = new PrintWriter(new FileOutputStream(COUNT_TASK_FILENAME));
+	private void writeTaskCounter(int count) throws FileNotFoundException, IOException {
+		File countFile = new File(COUNT_TASK_FILENAME);
+		if (!countFile.exists()) {
+			countFile.createNewFile();
+		}
+		printWriter = new PrintWriter(new FileOutputStream(countFile));
 		printWriter.println("" + count);
 		printWriter.close();
 	}
 
-	private void readFile(ArrayList<Task> file) throws IOException {
-		String fileName = determineFileName(file);
-		bufferedReader = new BufferedReader(new FileReader(fileName));
+	private void readFile(ArrayList<Task> filelist) throws IOException {
+		String fileName = determineFileName(filelist);
+		File file = new File(fileName);
+		if (!file.exists()) {
+			file.createNewFile();
+		}
+		bufferedReader = new BufferedReader(new FileReader(file));
 		Gson gson = new Gson();
 		String line = null;
-		file.removeAll(file);
+		filelist.removeAll(filelist);
 		while ((line = bufferedReader.readLine()) != null) {
 			Task task = gson.fromJson(line, Task.class);
-			file.add(task);
+			filelist.add(task);
 		}
 
 	}

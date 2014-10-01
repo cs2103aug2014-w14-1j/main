@@ -140,12 +140,30 @@ public class Task {
 	
 	// Search function********************
 	
-	public boolean containsKeyword(String keyword) {
+	private boolean containsKeyword(String keyword) {
 		return taskName.contains(keyword);
 	}
 	
-	public boolean containsTag(String tag) {
+	private boolean containsTag(String tag) {
 		return taskTag.contains(tag);
+	}
+	
+	public boolean containsKeywords(ArrayList<String> keywords) {
+		for (String keyword : keywords) {
+			if (!containsKeyword(keyword)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean containsTags(ArrayList<String> tags) {
+		for (String tag : tags) {
+			if (!containsTag(tag)) {
+				return false;
+			}
+		}
+		return true;
 	}
 	
 	public boolean withinDateRange(Date start_date, Date end_date) {
