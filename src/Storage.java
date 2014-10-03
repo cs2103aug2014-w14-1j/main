@@ -40,8 +40,8 @@ public class Storage {
 	// if exists, replace task. Else add task.
 	private void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
-		int taskIndex = getIndex(file, task);
 		filehandler.readFile(file);
+		int taskIndex = getIndex(file, task);
 		// add
 		if (taskIndex == DOES_NOT_EXIST) {
 			counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
@@ -209,7 +209,6 @@ public class Storage {
 
 		private void writeFile(ArrayList<Task> fileToWrite)
 				throws FileNotFoundException {
-
 			String filename = determineFileName(fileToWrite);
 			// Start writing
 			printWriter = new PrintWriter(new FileOutputStream(filename));
@@ -224,13 +223,13 @@ public class Storage {
 		// Interfaces with the textFiles(databases)*************************
 		private String determineFileName(ArrayList<Task> fileToWrite) {
 			String filename = "";
-			if (fileToWrite.equals(al_task)) {
+			if (fileToWrite == al_task) {
 				filename = TASK_FILENAME;
-			} else if (fileToWrite.equals(al_task_floating)) {
+			} else if (fileToWrite == al_task_floating) {
 				filename = FLOATING_TASK_FILENAME;
-			} else if (fileToWrite.equals(al_task_completed)) {
+			} else if (fileToWrite == al_task_completed) {
 				filename = COMPLETED_TASK_FILENAME;
-			} else if (fileToWrite.equals(al_task_overdue)) {
+			} else if (fileToWrite == al_task_overdue) {
 				filename = OVERDUE_TASK_FILENAME;
 			} else {
 				throw new Error("Invalid file to write to");
