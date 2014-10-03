@@ -29,7 +29,6 @@ public class Storage {
 	// if exists, replace task. Else add task.
 	public void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
-		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 
 		// add
@@ -43,7 +42,6 @@ public class Storage {
 		else {
 			file.set(taskIndex, task);
 		}
-		filehandler.writeFile(file);
 	}
 
 	public void delete(Task task, ArrayList<Task> file) throws IOException {
