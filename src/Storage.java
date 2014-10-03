@@ -5,12 +5,6 @@ import org.json.JSONException;
 
 import com.google.gson.Gson;
 
-/*
- * Currently supported methods:
- * insert
- * delete
- * getLists
- */
 
 public class Storage {
 	private ArrayList<Task> al_task;
@@ -90,7 +84,7 @@ public class Storage {
 	 * -Can only search a date range
 	 * -Missing default start and end date
 	 */
-	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Date start_date, Date end_date) {
+	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		ArrayList<Task> search_results = new ArrayList<Task>();
 				
 		searchList(search_results, al_task, keywords, tags, start_date, end_date);
@@ -105,7 +99,7 @@ public class Storage {
 	 * to an input search list. Assumes all parameters are given
 	 */
 	private void searchList(ArrayList<Task> search_result, ArrayList<Task> list,
-			ArrayList<String> keywords, ArrayList<String> tags, Date start_date, Date end_date) {
+			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		
 		for (Task task : list) {
 			if (task.withinDateRange(start_date, end_date)) {

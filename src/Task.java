@@ -1,12 +1,12 @@
 
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Calendar;
 
 public class Task {
 	private String taskName;
 	private String taskId;
-	private ArrayList<Date> taskDatesTimes;
-	private ArrayList<Date> taskReminderDatesTimes;
+	private ArrayList<Calendar> taskDatesTimes;
+	private ArrayList<Calendar> taskReminderDatesTimes;
 	private boolean taskFloating;
 	private String taskRecur;
 	private boolean taskCompleted;
@@ -18,16 +18,16 @@ public class Task {
 	public Task() {
 		taskId = "";
 		taskName = "";
-		taskDatesTimes = new ArrayList<Date>();
-		taskReminderDatesTimes = new ArrayList<Date>();
+		taskDatesTimes = new ArrayList<Calendar>();
+		taskReminderDatesTimes = new ArrayList<Calendar>();
 		taskFloating = false;
 		taskRecur = "";
 		taskCompleted = false;
 		taskTag = new ArrayList<String>();
 	}
 	
-	public Task(String taskId, String taskName, ArrayList<Date> taskDatesTimes,
-			ArrayList<Date> taskReminderDatesTimes, boolean taskFloating,
+	public Task(String taskId, String taskName, ArrayList<Calendar> taskDatesTimes,
+			ArrayList<Calendar> taskReminderDatesTimes, boolean taskFloating,
 			String taskRecur, boolean taskCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
 		this.taskName = taskName;
@@ -62,33 +62,33 @@ public class Task {
 	// Task Name ************************************
 
 	// Task Dates and Times ********************************
-	public void setTaskDatesTimes(ArrayList<Date> al){
+	public void setTaskDatesTimes(ArrayList<Calendar> al){
 		this.taskDatesTimes = al;
 	}
-	public void removeTaskDatesTimes(Date date){
+	public void removeTaskDatesTimes(Calendar date){
 		this.taskDatesTimes.remove(date);
 	}
-	public void addTaskDatesTimes(Date date) {
+	public void addTaskDatesTimes(Calendar date) {
 		this.taskDatesTimes.add(date);
 	}
 
-	public ArrayList<Date> getTaskDatesTimes() {
+	public ArrayList<Calendar> getTaskDatesTimes() {
 		return this.taskDatesTimes;
 	}
 	// Task Dates and Times ********************************
 
 	// Task Reminder Dates Times***********************************
-	public void setTaskReminderDatesTimes(ArrayList<Date> al){
+	public void setTaskReminderDatesTimes(ArrayList<Calendar> al){
 		this.taskReminderDatesTimes = al;
 	}
-	public void removeTaskReminderDatesTimes(Date date){
+	public void removeTaskReminderDatesTimes(Calendar date){
 		this.taskReminderDatesTimes.remove(date);
 	}
-	public void addTaskReminderDatesTimes(Date date) {
+	public void addTaskReminderDatesTimes(Calendar date) {
 		this.taskReminderDatesTimes.add(date);
 	}
 
-	public ArrayList<Date> getTaskReminderDatesTimes() {
+	public ArrayList<Calendar> getTaskReminderDatesTimes() {
 		return this.taskReminderDatesTimes;
 	}
 
@@ -166,9 +166,9 @@ public class Task {
 		return true;
 	}
 	
-	public boolean withinDateRange(Date start_date, Date end_date) {
+	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
 		if (taskFloating) return true;		//autopass
-		for (Date date : taskDatesTimes) {
+		for (Calendar date : taskDatesTimes) {
 			if (start_date == null || date.after(start_date)) {
 				if (end_date == null || date.before(end_date)) {
 					return true;
