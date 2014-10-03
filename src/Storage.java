@@ -109,7 +109,6 @@ public class Storage {
 			if (task.withinDateRange(start_date, end_date)) {
 				if ( task.containsKeywords(keywords) && task.containsTags(tags) ) {
 					search_result.add(task);
-					System.out.println(task.getTaskName());
 				}
 			}
 		}
