@@ -25,9 +25,20 @@ public class Storage {
 		filehandler = new FileHandler();
 		initFiles();
 	}
+	
+	public void add(Task task) throws JSONException, IOException {
+		if (task.getTaskDatesTimes().isEmpty()) {
+			insert(task, al_task_floating);
+		}
+		//recurring
+		else {
+			insert(task, al_task);
+		}
+		//overdue
+	}
 
 	// if exists, replace task. Else add task.
-	public void insert(Task task, ArrayList<Task> file) throws JSONException,
+	private void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
 		int taskIndex = getIndex(file, task);
 
