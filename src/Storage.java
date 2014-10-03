@@ -31,17 +31,17 @@ public class Storage {
 			insert(task, al_task_floating);
 		}
 		//recurring
+		//overdue
 		else {
 			insert(task, al_task);
 		}
-		//overdue
 	}
 
 	// if exists, replace task. Else add task.
 	private void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
 		int taskIndex = getIndex(file, task);
-
+		filehandler.readFile(file);
 		// add
 		if (taskIndex == DOES_NOT_EXIST) {
 			counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
@@ -53,15 +53,14 @@ public class Storage {
 		else {
 			file.set(taskIndex, task);
 		}
+		filehandler.writeFile(file);
 	}
 
 	public void delete(Task task, ArrayList<Task> file) throws IOException {
-		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 		if (taskIndex != DOES_NOT_EXIST) {
 			file.remove(taskIndex);
 		}
-		filehandler.writeFile(file);
 	}
 
 	public ArrayList<Task> getTasksFile() {
@@ -79,6 +78,8 @@ public class Storage {
 	public ArrayList<Task> getOverdueTasksFile() {
 		return this.al_task_overdue;
 	}
+	
+	//Search method**********************************
 	
 	/*
 	 * Driver search method. Search for all tasks with the specified parameters
@@ -114,14 +115,23 @@ public class Storage {
 		}
 	}
 	
-	public void clearAll() {
+	//Clear method**********************************
+	
+	public void clearAll() throws FileNotFoundException {
 		clear(al_task);
 		clear(al_task_floating);
 		clear(al_task_overdue);
+		save();
 	}
 	
 	private void clear(ArrayList<Task> filelist) {
 		filelist.clear();
+	}
+	
+	public void save() throws FileNotFoundException {
+		filehandler.writeFile(al_task);
+		filehandler.writeFile(al_task_floating);
+		filehandler.writeFile(al_task_overdue);
 	}
 	
 	//Methods Not Accessible to Storage instance.****************************
