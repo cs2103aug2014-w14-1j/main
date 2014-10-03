@@ -11,15 +11,8 @@ public class Storage {
 	private ArrayList<Task> al_task_floating;
 	private ArrayList<Task> al_task_overdue;
 	private ArrayList<Task> al_task_completed;
+	private FileHandler filehandler;
 	private int counter;
-
-	private BufferedReader bufferedReader;
-	private PrintWriter printWriter;
-	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
-	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
-	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
-	private static final String TASK_FILENAME = "Task.txt";
-	private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 
 	// Index for if the task does not exist in the ArrayList.
 	private static final int DOES_NOT_EXIST = -1;
@@ -29,36 +22,37 @@ public class Storage {
 		al_task_floating = new ArrayList<Task>();
 		al_task_overdue = new ArrayList<Task>();
 		al_task_completed = new ArrayList<Task>();
+		filehandler = new FileHandler();
 		initFiles();
 	}
 
 	// if exists, replace task. Else add task.
 	public void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
-		readFile(file);
+		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 
 		// add
 		if (taskIndex == DOES_NOT_EXIST) {
-			counter = Integer.parseInt(getTaskCounter()) + 1;
+			counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
 			task.setTaskId(counter);
 			file.add(task);
-			writeTaskCounter(counter);
+			filehandler.writeTaskCounter(counter);
 		}
 		// insert
 		else {
 			file.set(taskIndex, task);
 		}
-		writeFile(file);
+		filehandler.writeFile(file);
 	}
 
 	public void delete(Task task, ArrayList<Task> file) throws IOException {
-		readFile(file);
+		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 		if (taskIndex != DOES_NOT_EXIST) {
 			file.remove(taskIndex);
 		}
-		writeFile(file);
+		filehandler.writeFile(file);
 	}
 
 	public ArrayList<Task> getTasksFile() {
@@ -105,17 +99,28 @@ public class Storage {
 			if (task.withinDateRange(start_date, end_date)) {
 				if ( task.containsKeywords(keywords) && task.containsTags(tags) ) {
 					search_result.add(task);
+					System.out.println(task.getTaskName());
 				}
 			}
 		}
 	}
 	
+	public void clearAll() {
+		clear(al_task);
+		clear(al_task_floating);
+		clear(al_task_overdue);
+	}
+	
+	private void clear(ArrayList<Task> filelist) {
+		filelist.clear();
+	}
+	
 	//Methods Not Accessible to Storage instance.****************************
 	private void initFiles() throws IOException {
-		readFile(al_task);
-		readFile(al_task_floating);
-		readFile(al_task_completed);
-		readFile(al_task_overdue);
+		filehandler.readFile(al_task);
+		filehandler.readFile(al_task_floating);
+		filehandler.readFile(al_task_completed);
+		filehandler.readFile(al_task_overdue);
 	}
 
 	private int getIndex(ArrayList<Task> file, Task task) {
@@ -127,78 +132,93 @@ public class Storage {
 		return DOES_NOT_EXIST;
 	}
 
-	// Interfaces with the textFiles(databases)*************************
-	private String getTaskCounter() throws IOException {
-		File countFile = new File(COUNT_TASK_FILENAME);
-		if (!countFile.exists()) {
-			countFile.createNewFile();
-		}
-		bufferedReader = new BufferedReader(new FileReader(countFile));
+
+	
+	
+	class FileHandler {
 		
-		String result = bufferedReader.readLine();
-		if(result == null){
-			return "0";
+		private BufferedReader bufferedReader;
+		private PrintWriter printWriter;
+		private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+		private static final String TASK_FILENAME = "Task.txt";
+		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
+		
+		// Interfaces with the textFiles(databases)*************************
+		private String getTaskCounter() throws IOException {
+			File countFile = new File(COUNT_TASK_FILENAME);
+			if (!countFile.exists()) {
+				countFile.createNewFile();
+			}
+			bufferedReader = new BufferedReader(new FileReader(countFile));
+			
+			String result = bufferedReader.readLine();
+			if(result == null){
+				return "0";
+			}
+			else{
+				return result;
+			}
 		}
-		else{
-			return result;
+
+		private void writeTaskCounter(int count) throws FileNotFoundException, IOException {
+			File countFile = new File(COUNT_TASK_FILENAME);
+			if (!countFile.exists()) {
+				countFile.createNewFile();
+			}
+			printWriter = new PrintWriter(new FileOutputStream(countFile));
+			printWriter.println("" + count);
+			printWriter.close();
+		}
+
+		private void readFile(ArrayList<Task> filelist) throws IOException {
+			String fileName = determineFileName(filelist);
+			File file = new File(fileName);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
+			bufferedReader = new BufferedReader(new FileReader(file));
+			Gson gson = new Gson();
+			String line = null;
+			filelist.removeAll(filelist);
+			while ((line = bufferedReader.readLine()) != null) {
+				Task task = gson.fromJson(line, Task.class);
+				filelist.add(task);
+			}
+
+		}
+
+		private void writeFile(ArrayList<Task> fileToWrite)
+				throws FileNotFoundException {
+
+			String filename = determineFileName(fileToWrite);
+			// Start writing
+			printWriter = new PrintWriter(new FileOutputStream(filename));
+			Gson gson = new Gson();
+			for (Task task : fileToWrite) {
+				String write = gson.toJson(task);
+				printWriter.println(write);
+			}
+			printWriter.close();
+		}
+
+		// Interfaces with the textFiles(databases)*************************
+		private String determineFileName(ArrayList<Task> fileToWrite) {
+			String filename = "";
+			if (fileToWrite.equals(al_task)) {
+				filename = TASK_FILENAME;
+			} else if (fileToWrite.equals(al_task_floating)) {
+				filename = FLOATING_TASK_FILENAME;
+			} else if (fileToWrite.equals(al_task_completed)) {
+				filename = COMPLETED_TASK_FILENAME;
+			} else if (fileToWrite.equals(al_task_overdue)) {
+				filename = OVERDUE_TASK_FILENAME;
+			} else {
+				throw new Error("Invalid file to write to");
+			}
+			return filename;
 		}
 	}
-
-	private void writeTaskCounter(int count) throws FileNotFoundException, IOException {
-		File countFile = new File(COUNT_TASK_FILENAME);
-		if (!countFile.exists()) {
-			countFile.createNewFile();
-		}
-		printWriter = new PrintWriter(new FileOutputStream(countFile));
-		printWriter.println("" + count);
-		printWriter.close();
-	}
-
-	private void readFile(ArrayList<Task> filelist) throws IOException {
-		String fileName = determineFileName(filelist);
-		File file = new File(fileName);
-		if (!file.exists()) {
-			file.createNewFile();
-		}
-		bufferedReader = new BufferedReader(new FileReader(file));
-		Gson gson = new Gson();
-		String line = null;
-		filelist.removeAll(filelist);
-		while ((line = bufferedReader.readLine()) != null) {
-			Task task = gson.fromJson(line, Task.class);
-			filelist.add(task);
-		}
-
-	}
-
-	private void writeFile(ArrayList<Task> fileToWrite)
-			throws FileNotFoundException {
-
-		String filename = determineFileName(fileToWrite);
-		// Start writing
-		printWriter = new PrintWriter(new FileOutputStream(filename));
-		Gson gson = new Gson();
-		for (Task task : fileToWrite) {
-			String write = gson.toJson(task);
-			printWriter.println(write);
-		}
-		printWriter.close();
-	}
-
-	// Interfaces with the textFiles(databases)*************************
-	private String determineFileName(ArrayList<Task> fileToWrite) {
-		String filename = "";
-		if (fileToWrite.equals(al_task)) {
-			filename = TASK_FILENAME;
-		} else if (fileToWrite.equals(al_task_floating)) {
-			filename = FLOATING_TASK_FILENAME;
-		} else if (fileToWrite.equals(al_task_completed)) {
-			filename = COMPLETED_TASK_FILENAME;
-		} else if (fileToWrite.equals(al_task_overdue)) {
-			filename = OVERDUE_TASK_FILENAME;
-		} else {
-			throw new Error("Invalid file to write to");
-		}
-		return filename;
-	}
+	
 }
