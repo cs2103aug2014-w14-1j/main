@@ -1,7 +1,3 @@
-import java.lang.String;
-import java.util.Calendar;
-import java.util.LinkedList;
-
 public class Parser {
 
 	private String command;
