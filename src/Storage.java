@@ -30,6 +30,7 @@ public class Storage {
 	
 	public void insert(Task task) throws JSONException, IOException {
 		if (task.getTaskDatesTimes().isEmpty()) {
+			task.setTaskFloating(true);
 			insert(task, al_task_floating);
 		}
 		//recurring
