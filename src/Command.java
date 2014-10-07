@@ -10,6 +10,7 @@ public class Command {
 	private String taskID;
 	private String taskName;
 	private Date taskDueDate;
+	private String[] taskIDsToDelete;
 	private LinkedList<String> taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
@@ -42,5 +43,13 @@ public class Command {
 
 	public Date getTaskDueDate() {
 		return taskDueDate;
+	}
+
+	public void setTaskIDsToDelete(String[] IDs) {
+		taskIDsToDelete = IDs;
+	}
+
+	public String[] getTaskIDsToDelete() {
+		return taskIDsToDelete;
 	}
 }

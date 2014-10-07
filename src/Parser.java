@@ -93,6 +93,9 @@ public class Parser {
 			case EDIT:
 				generateEditCommandObj(commandDetails);
 				break;
+			case DELETE:
+				generateDeleteCommandObj(commandDetails);
+				break;
 		}
 	}
 
@@ -109,6 +112,10 @@ public class Parser {
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(parseTaskName(commandDetails));
+	}
+
+	private void generateDeleteCommandObj(String commandDetails) {
+		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
 	}
 
 	private Date parseLatestDate(String commandDetails) {
