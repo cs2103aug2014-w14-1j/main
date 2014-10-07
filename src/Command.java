@@ -1,3 +1,4 @@
+import java.util.Date;
 import java.util.LinkedList;
 
 public class Command {
@@ -8,8 +9,7 @@ public class Command {
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
-	private String taskStartDate;
-	private String taskEndDate;
+	private Date taskDueDate;
 	private LinkedList<String> taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
@@ -18,5 +18,21 @@ public class Command {
 
 	public COMMAND_TYPE getCommandType() {
 		return commandType;
+	}
+
+	public void setTaskName(String name) {
+		taskName = name;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
+
+	public void setTaskDueDate(Date date) {
+		taskDueDate = date;
+	}
+
+	public Date getTaskDueDate() {
+		return taskDueDate;
 	}
 }

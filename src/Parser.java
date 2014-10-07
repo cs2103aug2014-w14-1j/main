@@ -1,4 +1,6 @@
-import java.util.Arrays;
+import java.util.*;
+
+import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 
 public class Parser {
 
@@ -24,6 +26,10 @@ public class Parser {
 
 	public boolean isValidCommand() {
 		return commandType != Command.COMMAND_TYPE.INVALID;
+	}
+	
+	public Command getCommandObj() {
+		return commandObj;
 	}
 	
 	private String getFirstWord(String input) {
@@ -78,5 +84,66 @@ public class Parser {
 
 	private void generateCommandObj() {
 		commandObj.setCommandType(commandType);
+		String commandDetails = command.replaceFirst("^(\\w+)\\s+","");
+		switch (commandType) {
+			case ADD:
+				generateAddCommandObj(commandDetails);
+				break;
+		}
+	}
+
+	private String[] dateIdentifiers = {"to","until","til","till","by","due"};
+
+	private void generateAddCommandObj(String commandDetails) {
+		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
+		commandObj.setTaskName(parseTaskName(commandDetails));
+	}
+
+	private Date parseLatestDate(String commandDetails) {
+		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
+		Comparator<Date> dateComparator = new Comparator<Date>() {
+			@Override
+			public int compare(Date o1, Date o2) {
+				return o2.compareTo(o1);
+			}
+		};
+		dates.sort(dateComparator);
+		return dates.get(0);
+	}
+
+	private String parseTaskName(String commandDetails) {
+		String taskName = commandDetails;
+		String[] commandArray = commandDetails.split("\\s+");
+		int dateIndex = -1;
+		for (int i = 0; i < commandArray.length; i++) {
+			if (Arrays.asList(dateIdentifiers).contains(commandArray[i])) {
+				if (i+1 < commandArray.length) {
+					List<Date> parse = new PrettyTimeParser().parse(commandArray[i+1]);
+					if (parse.size() > 0) {
+						dateIndex = i;
+						break;
+					}
+				}
+			} else {
+				List<Date> parse = new PrettyTimeParser().parse(commandArray[i]);
+				if (parse.size() > 0) {
+					dateIndex = i;
+					break;
+		}
+	}
+	}
+		if (dateIndex > 0) {
+			taskName = "";
+			for (int i = 0; i < dateIndex; i++) {
+				taskName += commandArray[i];
+				taskName += i < dateIndex ? " " : "";
+			}
+		}
+		return taskName;
+	}
+
+	public static void main(String[] args) {
+		Parser a = new Parser();
+		a.parseCommand("add meet up with john until tomorrow 0900");
 	}
 }
