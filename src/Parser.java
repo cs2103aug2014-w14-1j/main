@@ -132,7 +132,7 @@ public class Parser {
 		}
 	}
 	}
-		if (dateIndex > 0) {
+		if (dateIndex > -1) {
 			taskName = "";
 			for (int i = 0; i < dateIndex; i++) {
 				taskName += commandArray[i];
