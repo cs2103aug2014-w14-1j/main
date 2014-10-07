@@ -1,6 +1,7 @@
 import java.util.*;
 
 import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
+import static org.mentaregex.Regex.*;
 
 public class Parser {
 
