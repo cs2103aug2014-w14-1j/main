@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -10,22 +11,36 @@ public class Display {
 		scan = new Scanner(System.in);
 	}
 	
+	public boolean hasNextLine() {
+		return scan.hasNextLine();
+	}
+	
 	public String get() {
 		return scan.nextLine();
 	}
 	
 	public void toDisplay(ArrayList<Task> tasklist) {
+		int index = 1;
 		for (Task task : tasklist) {
-			print(task.getTaskId());
-			print(task.getTaskName());
-			ArrayList<Calendar> dates = task.getTaskDatesTimes();
+			println("Task index: " + Integer.toString(index));
+			index++;
+			
+			println("-- Task name: " + task.getTaskName());
+			
+			println("-- Task date: ");
+			LinkedList<Calendar> dates = task.getTaskDatesTimes();
 			for (Calendar date : dates) {
-				print(date.toString());
+				println("-" + date.toString());
 			}
+			println("");
 		}
 	}
 	
-	private void print(String string) {
+	public void print(String string) {
+		System.out.print(string);
+	}
+	
+	public void println(String string) {
 		System.out.println(string);
 	}
 }
