@@ -103,7 +103,7 @@ public class Parser {
 
 	private void generateAddCommandObj(String commandDetails) {
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(parseTaskName(commandDetails));
+		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateEditCommandObj(String commandDetails) {
@@ -111,7 +111,7 @@ public class Parser {
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(parseTaskName(commandDetails));
+		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateDeleteCommandObj(String commandDetails) {
@@ -177,5 +177,9 @@ public class Parser {
 
 	private String removeTaskID(String commandDetails) {
 		return commandDetails.split("\\s+", 2)[1];
+	}
+
+	private String removeLeadingAndClosingPunctuation(String input) {
+		return input.replaceFirst("^[^a-zA-Z]+", "").replaceAll("[^a-zA-Z]+$", "");
 	}
 }
