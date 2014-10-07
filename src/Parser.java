@@ -6,10 +6,6 @@ public class Parser {
 
 	private Command.COMMAND_TYPE commandType;
 
-	public enum RECURRING_TYPE {
-		INTERVAL, DAY_OF_MONTH, WEEK_OF_MONTH, ANNUAL
-	}
-
 	private String[] addCommands = {"add"};
 	private String[] editCommands = {"edit"};
 	private String[] deleteCommands = {"delete"};
