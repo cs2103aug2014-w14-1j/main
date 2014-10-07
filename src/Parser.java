@@ -3,7 +3,7 @@ import java.util.Arrays;
 public class Parser {
 
 	private String command;
-
+	private Command commandObj = new Command();
 	private Command.COMMAND_TYPE commandType;
 
 	private String[] addCommands = {"add"};
