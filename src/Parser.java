@@ -99,7 +99,7 @@ public class Parser {
 		}
 	}
 
-	private String[] dateIdentifiers = {"to","until","til","till","by","due"};
+	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
 
 	private void generateAddCommandObj(String commandDetails) {
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
