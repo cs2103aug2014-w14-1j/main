@@ -27,4 +27,12 @@ public class Command {
 	public String getTaskName() {
 		return taskName;
 	}
+
+	public void setTaskDueDate(Date date) {
+		taskDueDate = date;
+	}
+
+	public Date getTaskDueDate() {
+		return taskDueDate;
+	}
 }
