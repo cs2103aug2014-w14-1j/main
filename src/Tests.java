@@ -34,7 +34,6 @@ public class Tests {
 			Task task3 = new Task();
 			task3.setTaskName("ia ia");
 			task3.addTaskTags("cthulhu");
-			task3.setTaskFloating(true);
 			
 			Task task4 = new Task();
 			task4.setTaskName("ST2132 lecture");
