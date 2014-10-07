@@ -19,4 +19,12 @@ public class Command {
 	public COMMAND_TYPE getCommandType() {
 		return commandType;
 	}
+
+	public void setTaskName(String name) {
+		taskName = name;
+	}
+
+	public String getTaskName() {
+		return taskName;
+	}
 }
