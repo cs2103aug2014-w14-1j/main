@@ -1,81 +1,56 @@
 
 
-
 public class Controller {
 	
 	private static String inputCommand_;
 	private static Command currentCommand_;
 	private static Command lastCommand_;
 	private static int taskID_;
+	private static Display UI_;
 	
 	public static void init() {
 		currentCommand_ =  null;
 		lastCommand_ = null;
+		UI_ = new Display();
 	}
 	
-	public static void wakeUp() {
-		//getInputString()
-		//getCommand()
-		//handleCommand()
+	public static void main(String args[]) {
+		init();
+		while (UI_.hasNextLine()) {
+			inputCommand_= UI_.get();
+			proceedCommand();
+			display(inputCommand_);
+		}
 	}
 	
-	private static void getInputString(String input) {
-		inputCommand_ = input;
+	private static void proceedCommand() {
+		currentCommand_ = new Command();
 	}
 	
-	private static Command getCommand() {
+	private static void display(String result) {
+		UI_.print(result);
+	}
 		
-	}
- 
+	/*
 	private static void handleCommand() {
+		COMMAND_TYPE commandType = currentCommand_.getCommandType();
+		switch (commandType) {
+		case COMMAND_TYPE.ADD: {
+			genericAdd();
+			}
+		case COMMAND_TYPE
+			delete();
 		
-	}
 
-	private static void genericAdd() {
-		Task newTask = new Task();
-		
+		}
 	}
-	
+	*/
+
+	/*
 	private static void addNormal(Task newTask) {
 		
 		newTask.setTaskId(taskID_++);
 		newTask.setTaskName(currentCommand_.getTaskName());
 	}
-	
-	private static void addRecurring() {
-		
-	}
-	
-	private static void addFloating() {
-		
-	}
-
-	private static void search() {
-		//genericSearch(paras)
-	}
-	
-	private static void list() {
-		//genericSearch(paras)
-	}
-	
-	private static void genericSearch() {
-		
-	} 
-	
-	private static Task select() {
-		
-	}
-	
-	private static Command revertLastAction() {
-		
-	}
-	
-	private static void undo() {
-		
-	}
-	
-	public static main(String[] args) {
-		
-	}
-
+	*/
 }
