@@ -20,6 +20,14 @@ public class Command {
 		return commandType;
 	}
 
+	public void setTaskID(String ID) {
+		taskID = ID;
+	}
+
+	public String getTaskID() {
+		return taskID;
+	}
+
 	public void setTaskName(String name) {
 		taskName = name;
 	}
