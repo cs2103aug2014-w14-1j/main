@@ -8,6 +8,7 @@ public class Parser {
 	private String command;
 	private Command commandObj = new Command();
 	private Command.COMMAND_TYPE commandType;
+	private final int TYPO_DISTANCE = 1;
 
 	private String[] addCommands = {"add","insert"};
 	private String[] editCommands = {"edit","update","change","modify"};
@@ -18,7 +19,7 @@ public class Parser {
 
 	public void parseCommand(String userCommand) {
 		command = userCommand;
-		String commandTypeString = getFirstWord(command);
+		String commandTypeString = getFirstWord(command).toLowerCase();
 		commandType = parserCommandType(commandTypeString);
 		if (isValidCommand()) {
 			generateCommandObj();
@@ -80,7 +81,13 @@ public class Parser {
 	}
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
-		return Arrays.asList(commands).contains(commandTypeString.toLowerCase());
+		boolean result = false;
+		for (String command: commands) {
+			if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
+				result = true;
+			}
+		}
+		return result;
 	}
 
 	private void generateCommandObj() {
