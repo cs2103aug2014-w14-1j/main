@@ -142,8 +142,4 @@ public class Parser {
 		return taskName;
 	}
 
-	public static void main(String[] args) {
-		Parser a = new Parser();
-		a.parseCommand("add meet up with john until tomorrow 0900");
-	}
 }
