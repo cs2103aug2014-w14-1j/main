@@ -17,7 +17,9 @@ public class Parser {
 		command = userCommand;
 		String commandTypeString = getFirstWord(command);
 		commandType = parserCommandType(commandTypeString);
-		System.out.println(isValidCommand());
+		if (isValidCommand()) {
+			generateCommandObj();
+		}
 	}
 
 	public boolean isValidCommand() {
@@ -72,5 +74,9 @@ public class Parser {
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		return Arrays.asList(commands).contains(commandTypeString.toLowerCase());
+	}
+
+	private void generateCommandObj() {
+		commandObj.setCommandType(commandType);
 	}
 }
