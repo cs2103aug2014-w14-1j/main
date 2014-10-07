@@ -18,30 +18,14 @@ public class Controller {
 	private static Parser parser_;
 	private static Storage storage_;
 	
-	public static void main(String args[]) throws Exception {
-		
-		init();
-		
-		viewToday();
-		
-		UI_.print("Please insert command: ");
-		
-		while (UI_.hasNextLine()) {
-			
-			inputCommand_= UI_.get();
-			parser_.parseCommand(inputCommand_);
-			
-			if (!parser_.isValidCommand()) {
-				UI_.println("Invalid command.");
-			} else {
-				currentCommand_ = parser_.getCommandObj();
-				proceedCommand();
-			}
-			
-			UI_.print("Please insert command: ");
-		}
+	public static void init() throws Exception {
+		currentCommand_ =  null;
+		lastCommand_ = null;
+		UI_ = new Display();
+		parser_ = new Parser();
+		storage_ = new Storage();
 	}
-	
+
 	public static void proceedCommand() throws Exception {
 		Command.COMMAND_TYPE commandType = currentCommand_.getCommandType();
 		
@@ -58,14 +42,6 @@ public class Controller {
 		}	
 	}
 
-	public static void init() throws Exception {
-		currentCommand_ =  null;
-		lastCommand_ = null;
-		UI_ = new Display();
-		parser_ = new Parser();
-		storage_ = new Storage();
-	}
-	
 	private static void display(String result) {
 		UI_.println(result);
 	}
@@ -137,6 +113,30 @@ public class Controller {
 		Calendar end_date = null;
 	
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
+	}
+
+	public static void main(String args[]) throws Exception {
+		
+		init();
+		
+		viewToday();
+		
+		UI_.print("Please insert command: ");
+		
+		while (UI_.hasNextLine()) {
+			
+			inputCommand_= UI_.get();
+			parser_.parseCommand(inputCommand_);
+			
+			if (!parser_.isValidCommand()) {
+				UI_.println("Invalid command.");
+			} else {
+				currentCommand_ = parser_.getCommandObj();
+				proceedCommand();
+			}
+			
+			UI_.print("Please insert command: ");
+		}
 	}
 	
 	/*

@@ -1,3 +1,4 @@
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.ArrayList;
@@ -6,9 +7,11 @@ import java.util.Calendar;
 public class Display {
 	
 	Scanner scan;
+	SimpleDateFormat sdf;
 	
 	public Display() {
 		scan = new Scanner(System.in);
+		sdf = new SimpleDateFormat("dd-MM-YYYY HH:mm");
 	}
 	
 	public boolean hasNextLine() {
@@ -39,7 +42,7 @@ public class Display {
 		println("-- Task date(s): ");
 		LinkedList<Calendar> dates = task.getTaskDatesTimes();
 		for (Calendar date : dates) {
-			println(date.toString());
+			printDate(date);
 			}
 		println("");
 
@@ -52,4 +55,9 @@ public class Display {
 	public void println(String string) {
 		System.out.println(string);
 	}
+	
+	public void printDate(Calendar date) {
+		println(sdf.format(date.getTime()));
+	}
+
 }
