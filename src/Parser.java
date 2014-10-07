@@ -28,6 +28,10 @@ public class Parser {
 		return commandType != Command.COMMAND_TYPE.INVALID;
 	}
 	
+	public Command getCommandObj() {
+		return commandObj;
+	}
+	
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
 	}
