@@ -1,15 +1,16 @@
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.LinkedList;
 
 public class Task {
 	private String taskName;
 	private String taskId;
-	private ArrayList<Calendar> taskDatesTimes;
-	private ArrayList<Calendar> taskReminderDatesTimes;
+	private LinkedList<Calendar> taskDatesTimes;
+	private LinkedList<Calendar> taskReminderDatesTimes;
 	private boolean taskFloating;
 	private String taskRecur;
-	private boolean taskCompleted;
+	private Calendar taskDateCompleted;
 	private ArrayList<String> taskTag;
 	
 	/*
@@ -18,24 +19,24 @@ public class Task {
 	public Task() {
 		taskId = "";
 		taskName = "";
-		taskDatesTimes = new ArrayList<Calendar>();
-		taskReminderDatesTimes = new ArrayList<Calendar>();
+		taskDatesTimes = new LinkedList<Calendar>();
+		taskReminderDatesTimes = new LinkedList<Calendar>();
 		taskFloating = false;
 		taskRecur = "";
-		taskCompleted = false;
+		taskDateCompleted = null;
 		taskTag = new ArrayList<String>();
 	}
 	
-	public Task(String taskId, String taskName, ArrayList<Calendar> taskDatesTimes,
-			ArrayList<Calendar> taskReminderDatesTimes, boolean taskFloating,
-			String taskRecur, boolean taskCompleted, ArrayList<String> taskTag) {
+	public Task(String taskId, String taskName, LinkedList<Calendar> taskDatesTimes,
+			LinkedList<Calendar> taskReminderDatesTimes, boolean taskFloating,
+			String taskRecur, Calendar taskDateCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
 		this.taskName = taskName;
 		this.taskDatesTimes = taskDatesTimes;
 		this.taskReminderDatesTimes = taskReminderDatesTimes;
 		this.taskFloating = taskFloating;
 		this.taskRecur = taskRecur;
-		this.taskCompleted = taskCompleted;
+		this.taskDateCompleted = taskDateCompleted;
 		this.taskTag = taskTag;
 	}
 
@@ -62,7 +63,7 @@ public class Task {
 	// Task Name ************************************
 
 	// Task Dates and Times ********************************
-	public void setTaskDatesTimes(ArrayList<Calendar> al){
+	public void setTaskDatesTimes(LinkedList<Calendar> al){
 		this.taskDatesTimes = al;
 	}
 	public void removeTaskDatesTimes(Calendar date){
@@ -72,13 +73,13 @@ public class Task {
 		this.taskDatesTimes.add(date);
 	}
 
-	public ArrayList<Calendar> getTaskDatesTimes() {
+	public LinkedList<Calendar> getTaskDatesTimes() {
 		return this.taskDatesTimes;
 	}
 	// Task Dates and Times ********************************
 
 	// Task Reminder Dates Times***********************************
-	public void setTaskReminderDatesTimes(ArrayList<Calendar> al){
+	public void setTaskReminderDatesTimes(LinkedList<Calendar> al){
 		this.taskReminderDatesTimes = al;
 	}
 	public void removeTaskReminderDatesTimes(Calendar date){
@@ -88,7 +89,7 @@ public class Task {
 		this.taskReminderDatesTimes.add(date);
 	}
 
-	public ArrayList<Calendar> getTaskReminderDatesTimes() {
+	public LinkedList<Calendar> getTaskReminderDatesTimes() {
 		return this.taskReminderDatesTimes;
 	}
 
@@ -113,16 +114,24 @@ public class Task {
 	public String getTaskRecur() {
 		return this.taskRecur;
 	}
+	
+	public boolean isRecur() {
+		return !this.taskRecur.equals("");
+	}
 
 	// Task Recur***************************************
 
 	// Task Completed*********************************************
-	public void setTaskCompleted(boolean b) {
-		this.taskCompleted = b;
+	public void setTaskCompleted(Calendar c) {
+		this.taskDateCompleted = c;
 	}
 
-	public boolean getTaskCompleted() {
-		return this.taskCompleted;
+	public Calendar getTaskDateCompleted() {
+		return this.taskDateCompleted;
+	}
+	
+	public boolean isCompleted() {
+		return taskDateCompleted.after(taskDatesTimes.getLast());
 	}
 
 	// Task Completed*********************************************
