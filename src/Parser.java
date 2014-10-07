@@ -4,11 +4,7 @@ public class Parser {
 
 	private String command;
 
-	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, TAG, INVALID
-	}
-
-	private COMMAND_TYPE commandType;
+	private Command.COMMAND_TYPE commandType;
 
 	public enum RECURRING_TYPE {
 		INTERVAL, DAY_OF_MONTH, WEEK_OF_MONTH, ANNUAL
@@ -29,28 +25,28 @@ public class Parser {
 	}
 
 	public boolean isValidCommand() {
-		return commandType != COMMAND_TYPE.INVALID;
+		return commandType != Command.COMMAND_TYPE.INVALID;
 	}
 	
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
 	}
 
-	private COMMAND_TYPE parserCommandType(String commandTypeString) {
+	private Command.COMMAND_TYPE parserCommandType(String commandTypeString) {
 		if (isAddCommand(commandTypeString)) {
-			return COMMAND_TYPE.ADD;
+			return Command.COMMAND_TYPE.ADD;
 		} else if (isEditCommand(commandTypeString)) {
-			return COMMAND_TYPE.EDIT;
+			return Command.COMMAND_TYPE.EDIT;
 		} else if (isDeleteCommand(commandTypeString)) {
-			return COMMAND_TYPE.DELETE;
+			return Command.COMMAND_TYPE.DELETE;
 		} else if (isListCommand(commandTypeString)) {
-			return COMMAND_TYPE.LIST;
+			return Command.COMMAND_TYPE.LIST;
 		} else if (isSearchCommand(commandTypeString)) {
-			return COMMAND_TYPE.SEARCH;
+			return Command.COMMAND_TYPE.SEARCH;
 		} else if (isCompleteCommand(commandTypeString)) {
-			return COMMAND_TYPE.COMPLETE;
+			return Command.COMMAND_TYPE.COMPLETE;
 		} else {
-			return COMMAND_TYPE.INVALID;
+			return Command.COMMAND_TYPE.INVALID;
 		}
 	}
 

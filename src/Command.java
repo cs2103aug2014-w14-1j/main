@@ -1,6 +1,10 @@
 import java.util.LinkedList;
 
 public class Command {
+	public enum COMMAND_TYPE {
+		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, TAG, INVALID
+	}
+
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
