@@ -20,17 +20,27 @@ public class Display {
 	}
 	
 	public void toDisplay(ArrayList<Task> tasklist) {
+		int index = 1;
 		for (Task task : tasklist) {
-			print(task.getTaskId());
-			print(task.getTaskName());
+			println("Task index: " + Integer.toString(index));
+			index++;
+			
+			println("-- Task name: " + task.getTaskName());
+			
+			println("-- Task date: ");
 			LinkedList<Calendar> dates = task.getTaskDatesTimes();
 			for (Calendar date : dates) {
-				print(date.toString());
+				println("-" + date.toString());
 			}
+			println("");
 		}
 	}
 	
 	public void print(String string) {
+		System.out.print(string);
+	}
+	
+	public void println(String string) {
 		System.out.println(string);
 	}
 }
