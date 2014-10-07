@@ -9,9 +9,9 @@ public class Parser {
 	private Command commandObj = new Command();
 	private Command.COMMAND_TYPE commandType;
 
-	private String[] addCommands = {"add"};
-	private String[] editCommands = {"edit"};
-	private String[] deleteCommands = {"delete"};
+	private String[] addCommands = {"add","insert"};
+	private String[] editCommands = {"edit","update","change","modify"};
+	private String[] deleteCommands = {"delete","remove","destroy"};
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search"};
 	private String[] completeCommands = {"complete"};
