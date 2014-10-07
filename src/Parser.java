@@ -81,5 +81,4 @@ public class Parser {
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		return Arrays.asList(commands).contains(commandTypeString.toLowerCase());
 	}
-	}
 }
