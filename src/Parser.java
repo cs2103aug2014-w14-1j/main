@@ -120,14 +120,18 @@ public class Parser {
 
 	private Calendar parseLatestDate(String commandDetails) {
 		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
-		Comparator<Date> dateComparator = new Comparator<Date>() {
-			@Override
-			public int compare(Date o1, Date o2) {
-				return o2.compareTo(o1);
-			}
-		};
-		dates.sort(dateComparator);
-		return DateToCalendar(dates.get(0));
+		if (dates.size() == 0) {
+			return null;
+		} else {
+			Comparator<Date> dateComparator = new Comparator<Date>() {
+				@Override
+				public int compare(Date o1, Date o2) {
+					return o2.compareTo(o1);
+				}
+			};
+			dates.sort(dateComparator);
+			return DateToCalendar(dates.get(0));
+		}
 	}
 
 	public static Calendar DateToCalendar(Date date){
