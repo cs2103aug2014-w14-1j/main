@@ -1,4 +1,4 @@
-import java.util.Date;
+import java.util.Calendar;
 import java.util.LinkedList;
 
 public class Command {
@@ -9,7 +9,7 @@ public class Command {
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
-	private Date taskDueDate;
+	private Calendar taskDueDate;
 	private String[] taskIDsToDelete;
 	private LinkedList<String> taskTags;
 
@@ -37,11 +37,11 @@ public class Command {
 		return taskName;
 	}
 
-	public void setTaskDueDate(Date date) {
+	public void setTaskDueDate(Calendar date) {
 		taskDueDate = date;
 	}
 
-	public Date getTaskDueDate() {
+	public Calendar getTaskDueDate() {
 		return taskDueDate;
 	}
 

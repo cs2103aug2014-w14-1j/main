@@ -118,7 +118,7 @@ public class Parser {
 		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
 	}
 
-	private Date parseLatestDate(String commandDetails) {
+	private Calendar parseLatestDate(String commandDetails) {
 		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
 		Comparator<Date> dateComparator = new Comparator<Date>() {
 			@Override
@@ -127,7 +127,13 @@ public class Parser {
 			}
 		};
 		dates.sort(dateComparator);
-		return dates.get(0);
+		return DateToCalendar(dates.get(0));
+	}
+
+	public static Calendar DateToCalendar(Date date){
+		Calendar cal = Calendar.getInstance();
+		cal.setTime(date);
+		return cal;
 	}
 
 	private String parseTaskName(String commandDetails) {
