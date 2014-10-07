@@ -90,12 +90,23 @@ public class Parser {
 			case ADD:
 				generateAddCommandObj(commandDetails);
 				break;
+			case EDIT:
+				generateEditCommandObj(commandDetails);
+				break;
 		}
 	}
 
 	private String[] dateIdentifiers = {"to","until","til","till","by","due"};
 
 	private void generateAddCommandObj(String commandDetails) {
+		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
+		commandObj.setTaskName(parseTaskName(commandDetails));
+	}
+
+	private void generateEditCommandObj(String commandDetails) {
+		String[] IDs = parseTaskID(commandDetails);
+		commandObj.setTaskID(IDs[0]);
+		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
@@ -143,4 +154,11 @@ public class Parser {
 		return taskName;
 	}
 
+	private String[] parseTaskID(String commandDetails) {
+		return match(commandDetails, "/([TFR]\\d+)/g");
+	}
+
+	private String removeTaskID(String commandDetails) {
+		return commandDetails.split("\\s+", 2)[1];
+	}
 }
