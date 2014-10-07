@@ -1,3 +1,4 @@
+import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -14,11 +15,12 @@ public class Display {
 		return scan.nextLine();
 	}
 	
+	
 	public void toDisplay(ArrayList<Task> tasklist) {
 		for (Task task : tasklist) {
 			print(task.getTaskId());
 			print(task.getTaskName());
-			ArrayList<Calendar> dates = task.getTaskDatesTimes();
+			LinkedList<Calendar> dates = task.getTaskDatesTimes();
 			for (Calendar date : dates) {
 				print(date.toString());
 			}
