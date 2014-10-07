@@ -20,12 +20,15 @@ public class Display {
 	}
 	
 	public void toDisplay(ArrayList<Task> tasklist) {
-		
-		int index = 1;
-		for (Task task : tasklist) {
-			println("Task index: " + Integer.toString(index));
-			index++;
-			toDisplay(task);
+		if (tasklist.isEmpty()) {
+			println("-- Found no tasks");
+		} else {
+			int index = 1;
+			for (Task task : tasklist) {
+				println("Task index: " + Integer.toString(index));
+				index++;
+				toDisplay(task);
+			}
 		}
 	}
 	
@@ -33,11 +36,11 @@ public class Display {
 
 		println("-- Task name: " + task.getTaskName());
 
-		println("-- Task date: ");
+		println("-- Task date(s): ");
 		LinkedList<Calendar> dates = task.getTaskDatesTimes();
 		for (Calendar date : dates) {
-			println("-" + date.toString());
-		}
+			println(date.toString());
+			}
 		println("");
 
 	}
