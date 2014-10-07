@@ -8,8 +8,7 @@ public class Command {
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
-	private String taskStartDate;
-	private String taskEndDate;
+	private String taskDueDate;
 	private LinkedList<String> taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
