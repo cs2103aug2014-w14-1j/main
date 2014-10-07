@@ -28,7 +28,7 @@ public class Parser {
 	public boolean isValidCommand() {
 		return commandType != Command.COMMAND_TYPE.INVALID;
 	}
-	
+
 	public Command getCommandObj() {
 		return commandObj;
 	}
@@ -148,9 +148,9 @@ public class Parser {
 				if (parse.size() > 0) {
 					dateIndex = i;
 					break;
+				}
+			}
 		}
-	}
-	}
 		if (dateIndex > -1) {
 			taskName = "";
 			for (int i = 0; i < dateIndex; i++) {
