@@ -8,19 +8,22 @@ import org.json.JSONException;
 public class Tests {
 
 	public static void main(String[] args) {
+		
 		try {
+			Storage storage = new Storage();
+			storage.clearAll();
+			
 			
 			//Search tests*****************************************************************
 			ArrayList<String> empty_keywords = new ArrayList<String>();
 			ArrayList<String> empty_tags = new ArrayList<String>();
 			
-			Storage storage = new Storage();
-			storage.clearAll();
 			
 			Task task1 = new Task();
 			task1.setTaskName("do 2103t tutorial");
 			task1.addTaskDatesTimes(Calendar.getInstance());
 			task1.addTaskTags("2103t");
+			
 			
 			Task task2 = new Task();
 			task2.setTaskName("complete search function");
@@ -52,10 +55,10 @@ public class Tests {
 			tags.add("2103t");
 			
 			try {
-				storage.add(task1);
-				storage.add(task2);
-				storage.add(task3);
-				storage.add(task4);
+				storage.insert(task1);
+				storage.insert(task2);
+				storage.insert(task3);
+				storage.insert(task4);
 			}
 			catch (JSONException e) {
 				e.printStackTrace();

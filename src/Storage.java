@@ -28,7 +28,7 @@ public class Storage {
 		initFiles();
 	}
 	
-	public void add(Task task) throws JSONException, IOException {
+	public void insert(Task task) throws JSONException, IOException {
 		if (task.getTaskDatesTimes().isEmpty()) {
 			insert(task, al_task_floating);
 		}
@@ -60,8 +60,23 @@ public class Storage {
 		}
 		filehandler.writeFile(file);
 	}
+	
+	public void delete(Task task) throws IOException{
+		if (task.getTaskDatesTimes().isEmpty()) {
+			delete(task, al_task_floating);
+		}
+		//recurring
+		else if (task.isRecur()) {
+			delete(task, al_task_recurring);
+		}
+		//overdue
+		else {
+			delete(task, al_task);
+		}
+		
+	}
 
-	public void delete(Task task, ArrayList<Task> file) throws IOException {
+	private void delete(Task task, ArrayList<Task> file) throws IOException {
 		int taskIndex = getIndex(file, task);
 		if (taskIndex != DOES_NOT_EXIST) {
 			file.remove(taskIndex);
@@ -90,6 +105,31 @@ public class Storage {
 	
 	//Search method**********************************
 	
+	//returns only 1 task as Id is unique. Return null if empty.
+	public Task searchTaskByID(String id){
+		ArrayList<Task> search_results = new ArrayList<Task>();
+		
+		searchForID(id, al_task, search_results);
+		searchForID(id, al_task_floating, search_results);
+		searchForID(id, al_task_overdue, search_results);
+		searchForID(id, al_task_recurring, search_results);
+		
+		if(search_results.isEmpty()){
+			return null;
+		}
+		//only one item so index 0.
+		return search_results.get(0);		
+	}
+	
+	private ArrayList<Task> searchForID(String id,ArrayList<Task> list, ArrayList<Task> resultsList){
+		for(Task task: list){
+			if(task.getTaskId().equals(id)){
+				resultsList.add(task);
+			}
+		}
+		
+		return resultsList;
+	}
 	/*
 	 * Driver search method. Search for all tasks with the specified parameters
 	 * Current limitations:
