@@ -1,10 +1,12 @@
+import java.util.LinkedList;
+
 public class Command {
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
 	private String taskStartDate;
 	private String taskEndDate;
-	private LinkedList<String> taskTags
+	private LinkedList<String> taskTags;
 
 	public COMMAND_TYPE getCommandType() {
 
