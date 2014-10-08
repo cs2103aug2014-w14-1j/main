@@ -16,6 +16,7 @@ public class Controller {
 	private static Display UI_;
 	private static ArrayList<Task> searchResults_;
 	private static Parser parser_;
+	private static ArrayList<String> displayIDs_;
 	private static Storage storage_;
 	
 	public static void init() throws Exception {
@@ -42,7 +43,7 @@ public class Controller {
 		}	
 	}
 
-	private static void display(String result) {
+	private static void display(Object result) {
 		UI_.println(result);
 	}
 	
@@ -63,16 +64,25 @@ public class Controller {
 	}
 	
 	private static void delete() throws Exception {
-		delete(1);
+		String[] ids = currentCommand_.getTaskIDsToDelete();
+		for (int i = 0; i < ids.length; i++) {
+			String id = ids[i];
+			delete(id);
+		}
+	}
+	
+	private static void delete(String id) throws IOException {
+		int index = displayIDs_.indexOf(id);
+		if (index < 0) {
+			UI_.println("Invalid index to delete: " + id);
+		} else {
+			delete(index);
+		}
 	}
 	
 	private static void delete(int index) throws IOException  {
 		
-		if ((index<1)||(index>searchResults_.size())) {
-			UI_.println ("Invalid delete index");
-		}
-		
-		Task deletedTask = searchResults_.get(index - 1);
+		Task deletedTask = searchResults_.get(index);
 		storage_.delete(deletedTask);
 		storage_.save();
 		
@@ -103,7 +113,30 @@ public class Controller {
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
 		
 		UI_.println("Today Tasks: ");
-		UI_.toDisplay(searchResults_);
+		createDisplayIDs();
+		UI_.toDisplay(searchResults_,displayIDs_);
+	}
+	
+	private static void createDisplayIDs() {
+		
+		ArrayList<String> ids = new ArrayList<String>();
+		
+		for (int i=0; i < searchResults_.size(); i++) {
+			Task task = searchResults_.get(i);
+			String id = getChar(task) + Integer.toString(i+1);
+			ids.add(id);
+		}
+		displayIDs_ = ids;
+	}
+	
+	private static String getChar(Task task) {
+		if (task.isRecur()) {
+			return "r";
+		} else if (task.isTaskFloating()) {
+			return "f";
+		} else {
+			return "t";
+		}
 	}
 	
 	private static void search() {

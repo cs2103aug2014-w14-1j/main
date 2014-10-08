@@ -22,15 +22,13 @@ public class Display {
 		return scan.nextLine();
 	}
 	
-	public void toDisplay(ArrayList<Task> tasklist) {
+	public void toDisplay(ArrayList<Task> tasklist, ArrayList<String> ids) {
 		if (tasklist.isEmpty()) {
 			println("-- Found no tasks");
 		} else {
-			int index = 1;
-			for (Task task : tasklist) {
-				println("Task index: " + Integer.toString(index));
-				index++;
-				toDisplay(task);
+			for (int i = 0; i < tasklist.size(); i++) {
+				println("Task id: " + ids.get(i));
+				toDisplay(tasklist.get(i));
 			}
 		}
 	}
@@ -48,12 +46,12 @@ public class Display {
 
 	}
 	
-	public void print(String string) {
-		System.out.print(string);
+	public void print(Object obj) {
+		System.out.print(obj);
 	}
 	
-	public void println(String string) {
-		System.out.println(string);
+	public void println(Object obj) {
+		System.out.println(obj);
 	}
 	
 	public void printDate(Calendar date) {
