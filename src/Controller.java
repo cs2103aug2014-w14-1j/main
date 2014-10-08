@@ -34,17 +34,14 @@ public class Controller {
 		switch (commandType) {
 		case ADD: {
 			add();
-			viewToday();
 			return;
 			}
 		case DELETE: {
 			delete();
-			viewToday();
 			return;
 			}
 		case EDIT: {
 			update();
-			viewToday();
 			return;
 			}
 		}	
@@ -66,7 +63,8 @@ public class Controller {
 		storage_.save();
 		UI_.println("Added to Calendar: ");
 		UI_.toDisplay(newTask);
-
+		
+		viewToday();
 	}
 	
 	private static void delete() throws Exception {
@@ -75,6 +73,8 @@ public class Controller {
 			String id = ids[i];
 			delete(id);
 		}
+		
+		viewToday();
 	}
 	
 	private static void delete(String id) throws IOException {
@@ -105,6 +105,7 @@ public class Controller {
 		} else {
 			update(index);
 		}
+		viewToday();
 	}
 	
 	private static void update(int index) throws FileNotFoundException {
@@ -132,15 +133,16 @@ public class Controller {
 		
 		Calendar start_date = Calendar.getInstance();
 		start_date.setTime(c.getTime());
-		start_date.set(start_date.HOUR, 0);
+		start_date.set(start_date.HOUR, -12);
 		start_date.set(start_date.MINUTE, 0);
 		start_date.set(start_date.SECOND, 0);
-		
+
 		Calendar end_date = Calendar.getInstance();
 		end_date.setTime(c.getTime());
-		end_date.set(end_date.HOUR, 23);
+		end_date.set(end_date.HOUR, 11);
 		end_date.set(end_date.MINUTE, 59);
 		end_date.set(end_date.SECOND, 59);
+	
 		
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
 		
