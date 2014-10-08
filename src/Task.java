@@ -8,7 +8,6 @@ public class Task {
 	private String taskId;
 	private LinkedList<Calendar> taskDatesTimes;
 	private LinkedList<Calendar> taskReminderDatesTimes;
-	private boolean taskFloating;
 	private String taskRecur;
 	private Calendar taskDateCompleted;
 	private ArrayList<String> taskTag;
@@ -21,7 +20,6 @@ public class Task {
 		taskName = "";
 		taskDatesTimes = new LinkedList<Calendar>();
 		taskReminderDatesTimes = new LinkedList<Calendar>();
-		taskFloating = false;
 		taskRecur = "";
 		taskDateCompleted = null;
 		taskTag = new ArrayList<String>();
@@ -34,7 +32,6 @@ public class Task {
 		this.taskName = taskName;
 		this.taskDatesTimes = taskDatesTimes;
 		this.taskReminderDatesTimes = taskReminderDatesTimes;
-		this.taskFloating = taskFloating;
 		this.taskRecur = taskRecur;
 		this.taskDateCompleted = taskDateCompleted;
 		this.taskTag = taskTag;
@@ -96,12 +93,9 @@ public class Task {
 	// Task Reminder Dates Times***********************************
 
 	// Task Floating*******************************
-	public void setTaskFloating(boolean b) {
-		this.taskFloating = b;
-	}
 
 	public boolean isTaskFloating() {
-		return this.taskFloating;
+		return this.taskDatesTimes.isEmpty();
 	}
 
 	// Task Floating*******************************
@@ -176,7 +170,7 @@ public class Task {
 	}
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-		if (taskFloating) return true;		//autopass
+		if (isTaskFloating()) return true;		//autopass
 		for (Calendar date : taskDatesTimes) {
 			if (start_date == null || date.after(start_date)) {
 				if (end_date == null || date.before(end_date)) {

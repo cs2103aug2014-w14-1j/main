@@ -29,8 +29,7 @@ public class Storage {
 	}
 	
 	public void insert(Task task) throws JSONException, IOException {
-		if (task.getTaskDatesTimes().isEmpty()) {
-			task.setTaskFloating(true);
+		if (task.isTaskFloating()) {
 			insert(task, al_task_floating);
 		}
 		//recurring
@@ -63,7 +62,7 @@ public class Storage {
 	}
 	
 	public void delete(Task task) throws IOException{
-		if (task.getTaskDatesTimes().isEmpty()) {
+		if (task.isTaskFloating()) {
 			delete(task, al_task_floating);
 		}
 		//recurring
@@ -78,10 +77,12 @@ public class Storage {
 	}
 
 	private void delete(Task task, ArrayList<Task> file) throws IOException {
+		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 		if (taskIndex != DOES_NOT_EXIST) {
 			file.remove(taskIndex);
 		}
+		filehandler.writeFile(file);
 	}
 
 	public ArrayList<Task> getTasksFile() {
