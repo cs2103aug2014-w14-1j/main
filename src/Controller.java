@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,11 +34,17 @@ public class Controller {
 		switch (commandType) {
 		case ADD: {
 			add();
+			viewToday();
 			return;
 			}
-		
 		case DELETE: {
 			delete();
+			viewToday();
+			return;
+			}
+		case EDIT: {
+			update();
+			viewToday();
 			return;
 			}
 		}	
@@ -59,8 +66,7 @@ public class Controller {
 		storage_.save();
 		UI_.println("Added to Calendar: ");
 		UI_.toDisplay(newTask);
-		
-		viewToday();
+
 	}
 	
 	private static void delete() throws Exception {
@@ -88,10 +94,36 @@ public class Controller {
 		
 		UI_.println("Deleted from Calendar :");
 		UI_.toDisplay(deletedTask);
-		
-		viewToday();
 	}
-
+	
+	private static void update() throws FileNotFoundException {
+		
+		String id = currentCommand_.getTaskID();
+		int index = displayIDs_.indexOf(id);
+		if (index < 0) {
+			UI_.println("Invalid index to update.");
+		} else {
+			update(index);
+		}
+	}
+	
+	private static void update(int index) throws FileNotFoundException {
+		
+		Task task = searchResults_.get(index);
+		
+		if (!currentCommand_.getTaskName().equals("")) {
+			task.setTaskName(currentCommand_.getTaskName());
+		}
+		
+		if (currentCommand_.getTaskDueDate()!=null) {
+			LinkedList<Calendar> dates = new LinkedList<Calendar>();
+			dates.add(currentCommand_.getTaskDueDate());
+			task.setTaskDatesTimes(dates);
+		}
+		
+		storage_.save();
+		
+	}
 	private static void viewToday() {
 		ArrayList<String> keywords = new ArrayList<String>();
 		ArrayList<String> tags = new ArrayList<String>();
