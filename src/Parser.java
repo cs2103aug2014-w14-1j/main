@@ -8,17 +8,18 @@ public class Parser {
 	private String command;
 	private Command commandObj = new Command();
 	private Command.COMMAND_TYPE commandType;
+	private final int TYPO_DISTANCE = 1;
 
-	private String[] addCommands = {"add"};
-	private String[] editCommands = {"edit"};
-	private String[] deleteCommands = {"delete"};
+	private String[] addCommands = {"add","insert"};
+	private String[] editCommands = {"edit","update","change","modify"};
+	private String[] deleteCommands = {"delete","remove","destroy"};
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search"};
 	private String[] completeCommands = {"complete"};
 
 	public void parseCommand(String userCommand) {
 		command = userCommand;
-		String commandTypeString = getFirstWord(command);
+		String commandTypeString = getFirstWord(command).toLowerCase();
 		commandType = parserCommandType(commandTypeString);
 		if (isValidCommand()) {
 			generateCommandObj();
@@ -80,7 +81,13 @@ public class Parser {
 	}
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
-		return Arrays.asList(commands).contains(commandTypeString.toLowerCase());
+		boolean result = false;
+		for (String command: commands) {
+			if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
+				result = true;
+			}
+		}
+		return result;
 	}
 
 	private void generateCommandObj() {
@@ -99,11 +106,11 @@ public class Parser {
 		}
 	}
 
-	private String[] dateIdentifiers = {"to","until","til","till","by","due"};
+	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
 
 	private void generateAddCommandObj(String commandDetails) {
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(parseTaskName(commandDetails));
+		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateEditCommandObj(String commandDetails) {
@@ -111,7 +118,7 @@ public class Parser {
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(parseTaskName(commandDetails));
+		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateDeleteCommandObj(String commandDetails) {
@@ -120,14 +127,18 @@ public class Parser {
 
 	private Calendar parseLatestDate(String commandDetails) {
 		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
-		Comparator<Date> dateComparator = new Comparator<Date>() {
-			@Override
-			public int compare(Date o1, Date o2) {
-				return o2.compareTo(o1);
-			}
-		};
-		dates.sort(dateComparator);
-		return DateToCalendar(dates.get(0));
+		if (dates.size() == 0) {
+			return null;
+		} else {
+			Comparator<Date> dateComparator = new Comparator<Date>() {
+				@Override
+				public int compare(Date o1, Date o2) {
+					return o2.compareTo(o1);
+				}
+			};
+			dates.sort(dateComparator);
+			return DateToCalendar(dates.get(0));
+		}
 	}
 
 	public static Calendar DateToCalendar(Date date){
@@ -173,5 +184,9 @@ public class Parser {
 
 	private String removeTaskID(String commandDetails) {
 		return commandDetails.split("\\s+", 2)[1];
+	}
+
+	private String removeLeadingAndClosingPunctuation(String input) {
+		return input.replaceFirst("^[^a-zA-Z]+", "").replaceAll("[^a-zA-Z]+$", "");
 	}
 }
