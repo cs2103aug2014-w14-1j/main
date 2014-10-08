@@ -26,6 +26,7 @@ public class Storage {
 		al_task_recurring = new ArrayList<Task>();
 		filehandler = new FileHandler();
 		initFiles();
+		checkForOverdueTasks();
 	}
 	
 	public void insert(Task task) throws JSONException, IOException {
@@ -185,6 +186,26 @@ public class Storage {
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
 		filehandler.writeFile(al_task_recurring);
+	}
+	
+	//*********************
+	
+	private void checkForOverdueTasks() throws FileNotFoundException {
+		Calendar now = Calendar.getInstance();
+		ArrayList<Task> task_to_overdue = new ArrayList<Task>();
+		for (Task task : al_task) {
+			for (Calendar date : task.getTaskDatesTimes()) {
+				if ( task.getTaskDateCompleted() == null ||
+						(date.after(task.getTaskDateCompleted()) && date.before(now)) ) {
+					if (!task_to_overdue.contains(task)) {
+						task_to_overdue.add(task);
+					}
+				}
+			}
+		}
+		al_task_overdue.addAll(task_to_overdue);
+		al_task.removeAll(task_to_overdue);
+		save();
 	}
 	
 	//Methods Not Accessible to Storage instance.****************************

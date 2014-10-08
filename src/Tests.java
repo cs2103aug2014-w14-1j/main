@@ -11,8 +11,17 @@ public class Tests {
 		
 		try {
 			Storage storage = new Storage();
+			
+			
+			//Test checkOverdue
+			ArrayList<Task> overdue = storage.getOverdueTasksFile();
+			for (Task task : overdue) {
+				System.out.println(task.getTaskName());
+			}
+			
 			storage.clearAll();
 			
+			System.out.println(overdue.size() == 0);
 			
 			//Search tests*****************************************************************
 			ArrayList<String> empty_keywords = new ArrayList<String>();
@@ -107,6 +116,18 @@ public class Tests {
 			System.out.println(checkEquals("ST2132 lecture",
 					search7.get(0).getTaskName()));
 			System.out.println(checkEquals(1, search7.size()));
+			
+			//First part of test overdue
+			Task overduetask = new Task();
+			Calendar overduedate = Calendar.getInstance();
+			overduedate.set(1991, 3, 1);
+			overduetask.addTaskDatesTimes(overduedate);
+			overduetask.setTaskName("ohnoes");
+			try {
+				storage.insert(overduetask);
+			}
+			catch (JSONException e) {
+			}
 		}
 		
 		catch (IOException e) {
