@@ -1,4 +1,3 @@
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -6,8 +5,8 @@ import java.util.LinkedList;
 public class Task {
 	private String taskName;
 	private String taskId;
-	private LinkedList<Calendar> taskDatesTimes;
-	private LinkedList<Calendar> taskReminderDatesTimes;
+	private LinkedList<TaskDate> taskDatesTimes;
+	private LinkedList<TaskDate> taskReminderDatesTimes;
 	private String taskRecur;
 	private Calendar taskDateCompleted;
 	private ArrayList<String> taskTag;
@@ -18,15 +17,15 @@ public class Task {
 	public Task() {
 		taskId = "";
 		taskName = "";
-		taskDatesTimes = new LinkedList<Calendar>();
-		taskReminderDatesTimes = new LinkedList<Calendar>();
+		taskDatesTimes = new LinkedList<TaskDate>();
+		taskReminderDatesTimes = new LinkedList<TaskDate>();
 		taskRecur = "";
 		taskDateCompleted = null;
 		taskTag = new ArrayList<String>();
 	}
 	
-	public Task(String taskId, String taskName, LinkedList<Calendar> taskDatesTimes,
-			LinkedList<Calendar> taskReminderDatesTimes, boolean taskFloating,
+	public Task(String taskId, String taskName, LinkedList<TaskDate> taskDatesTimes,
+			LinkedList<TaskDate> taskReminderDatesTimes, boolean taskFloating,
 			String taskRecur, Calendar taskDateCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
 		this.taskName = taskName;
@@ -60,37 +59,41 @@ public class Task {
 	// Task Name ************************************
 
 	// Task Dates and Times ********************************
-	public void setTaskDatesTimes(LinkedList<Calendar> al){
+	public void setTaskDatesTimes(LinkedList<TaskDate> al){
 		this.taskDatesTimes = al;
 	}
 	
-	public void removeTaskDatesTimes(Calendar date){
+	public void removeTaskDatesTimes(TaskDate date){
 		this.taskDatesTimes.remove(date);
 	}
 	
-	public void addTaskDatesTimes(Calendar date) {
+	public void addTaskDatesTimes(TaskDate date) {
 		this.taskDatesTimes.add(date);
 	}
+	
+	public void addTaskDatesTimes(Calendar date) {
+		this.taskDatesTimes.add(new TaskDate(date, date));
+	}
 
-	public LinkedList<Calendar> getTaskDatesTimes() {
+	public LinkedList<TaskDate> getTaskDatesTimes() {
 		return this.taskDatesTimes;
 	}
 	// Task Dates and Times ********************************
 
 	// Task Reminder Dates Times***********************************
-	public void setTaskReminderDatesTimes(LinkedList<Calendar> al){
+	public void setTaskReminderDatesTimes(LinkedList<TaskDate> al){
 		this.taskReminderDatesTimes = al;
 	}
 	
-	public void removeTaskReminderDatesTimes(Calendar date){
+	public void removeTaskReminderDatesTimes(TaskDate date){
 		this.taskReminderDatesTimes.remove(date);
 	}
 	
-	public void addTaskReminderDatesTimes(Calendar date) {
+	public void addTaskReminderDatesTimes(TaskDate date) {
 		this.taskReminderDatesTimes.add(date);
 	}
 
-	public LinkedList<Calendar> getTaskReminderDatesTimes() {
+	public LinkedList<TaskDate> getTaskReminderDatesTimes() {
 		return this.taskReminderDatesTimes;
 	}
 
@@ -132,14 +135,14 @@ public class Task {
 		if (taskDateCompleted == null) {
 			return false;
 		}
-		return taskDateCompleted.after(taskDatesTimes.getLast());
+		return taskDateCompleted.after(taskDatesTimes.getLast().getEndDate());
 	}
 	
 	public boolean isOverdue() {
 		Calendar now = Calendar.getInstance();
-		for (Calendar date : taskDatesTimes) {
-			if ( (taskDateCompleted == null || date.after(taskDateCompleted))
-					&& date.before(now) ) {
+		for (TaskDate date : taskDatesTimes) {
+			if ( (taskDateCompleted == null || taskDateCompleted.before(date.getEndDate()))
+					&& now.after(date.getEndDate()) ) {
 				return true;
 			}
 		}
@@ -189,9 +192,9 @@ public class Task {
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
 		if (isFloating()) return true;		//autopass
-		for (Calendar date : taskDatesTimes) {
-			if (start_date == null || date.after(start_date)) {
-				if (end_date == null || date.before(end_date)) {
+		for (TaskDate date : taskDatesTimes) {
+			if (start_date == null || date.endsAfter(start_date)) {
+				if (end_date == null || date.startsBefore(end_date)) {
 					return true;
 				}
 			}
