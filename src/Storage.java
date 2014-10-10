@@ -30,17 +30,7 @@ public class Storage {
 	}
 	
 	public void insert(Task task) throws JSONException, IOException {
-		if (task.isTaskFloating()) {
-			insert(task, al_task_floating);
-		}
-		//recurring
-		else if (task.isRecur()) {
-			insert(task, al_task_recurring);
-		}
-		//overdue
-		else {
-			insert(task, al_task);
-		}
+		insert(task, retrieveTaskList(task));
 	}
 
 	// if exists, replace task. Else add task.
@@ -63,18 +53,7 @@ public class Storage {
 	}
 	
 	public void delete(Task task) throws IOException{
-		if (task.isTaskFloating()) {
-			delete(task, al_task_floating);
-		}
-		//recurring
-		else if (task.isRecur()) {
-			delete(task, al_task_recurring);
-		}
-		//overdue
-		else {
-			delete(task, al_task);
-		}
-		
+		delete(task, retrieveTaskList(task));		
 	}
 
 	private void delete(Task task, ArrayList<Task> file) throws IOException {
@@ -174,6 +153,7 @@ public class Storage {
 		clear(al_task_floating);
 		clear(al_task_overdue);
 		clear(al_task_recurring);
+		clear(al_task_completed);
 		save();
 	}
 	
@@ -181,26 +161,21 @@ public class Storage {
 		filelist.clear();
 	}
 	
-	public void save() throws FileNotFoundException {
+	private void save() throws FileNotFoundException {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
 		filehandler.writeFile(al_task_recurring);
+		filehandler.writeFile(al_task_completed);
 	}
 	
 	//*********************
 	
 	private void checkForOverdueTasks() throws FileNotFoundException {
-		Calendar now = Calendar.getInstance();
 		ArrayList<Task> task_to_overdue = new ArrayList<Task>();
 		for (Task task : al_task) {
-			for (Calendar date : task.getTaskDatesTimes()) {
-				if ( task.getTaskDateCompleted() == null ||
-						(date.after(task.getTaskDateCompleted()) && date.before(now)) ) {
-					if (!task_to_overdue.contains(task)) {
-						task_to_overdue.add(task);
-					}
-				}
+			if (task.isOverdue()) {
+				task_to_overdue.add(task);
 			}
 		}
 		al_task_overdue.addAll(task_to_overdue);
@@ -226,8 +201,23 @@ public class Storage {
 		return DOES_NOT_EXIST;
 	}
 
-
+	private ArrayList<Task> retrieveTaskList(Task task) {
+		if (task.isFloating()) {
+			return al_task_floating;
+		}
+		else if (task.isOverdue()) {
+			return al_task_overdue;
+		}
+		else if (task.isRecur()) {
+			return al_task_recurring;
+		}
+		else if (task.isCompleted()) {
+			return al_task_completed;
+		}
+		return al_task;
+	}
 	
+	//File Operations********************************************************
 	
 	class FileHandler {
 		

@@ -63,9 +63,11 @@ public class Task {
 	public void setTaskDatesTimes(LinkedList<Calendar> al){
 		this.taskDatesTimes = al;
 	}
+	
 	public void removeTaskDatesTimes(Calendar date){
 		this.taskDatesTimes.remove(date);
 	}
+	
 	public void addTaskDatesTimes(Calendar date) {
 		this.taskDatesTimes.add(date);
 	}
@@ -79,9 +81,11 @@ public class Task {
 	public void setTaskReminderDatesTimes(LinkedList<Calendar> al){
 		this.taskReminderDatesTimes = al;
 	}
+	
 	public void removeTaskReminderDatesTimes(Calendar date){
 		this.taskReminderDatesTimes.remove(date);
 	}
+	
 	public void addTaskReminderDatesTimes(Calendar date) {
 		this.taskReminderDatesTimes.add(date);
 	}
@@ -94,7 +98,7 @@ public class Task {
 
 	// Task Floating*******************************
 
-	public boolean isTaskFloating() {
+	public boolean isFloating() {
 		return this.taskDatesTimes.isEmpty();
 	}
 
@@ -125,7 +129,21 @@ public class Task {
 	}
 	
 	public boolean isCompleted() {
+		if (taskDateCompleted == null) {
+			return false;
+		}
 		return taskDateCompleted.after(taskDatesTimes.getLast());
+	}
+	
+	public boolean isOverdue() {
+		Calendar now = Calendar.getInstance();
+		for (Calendar date : taskDatesTimes) {
+			if ( (taskDateCompleted == null || date.after(taskDateCompleted))
+					&& date.before(now) ) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	// Task Completed*********************************************
@@ -170,7 +188,7 @@ public class Task {
 	}
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-		if (isTaskFloating()) return true;		//autopass
+		if (isFloating()) return true;		//autopass
 		for (Calendar date : taskDatesTimes) {
 			if (start_date == null || date.after(start_date)) {
 				if (end_date == null || date.before(end_date)) {
