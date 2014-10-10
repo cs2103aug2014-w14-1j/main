@@ -15,24 +15,22 @@ public class Tests {
 			
 			//Test checkOverdue
 			ArrayList<Task> overdue = storage.getOverdueTasksFile();
+			/*
 			for (Task task : overdue) {
 				System.out.println(task.getTaskName());
 			}
+			*/
+			
+			test(overdue.size(), 2);
 			
 			storage.clearAll();
 			
-			System.out.println(overdue.size() == 0);
-			
-			//Search tests*****************************************************************
-			ArrayList<String> empty_keywords = new ArrayList<String>();
-			ArrayList<String> empty_tags = new ArrayList<String>();
 			
 			
 			Task task1 = new Task();
 			task1.setTaskName("do 2103t tutorial");
 			task1.addTaskDatesTimes(Calendar.getInstance());
 			task1.addTaskTags("2103t");
-			
 			
 			Task task2 = new Task();
 			task2.setTaskName("complete search function");
@@ -45,22 +43,42 @@ public class Tests {
 			task3.addTaskTags("cthulhu");
 			
 			Task task4 = new Task();
-			task4.setTaskName("ST2132 lecture");
-			task4.addTaskTags("ST2132");
-			Calendar tuesday = Calendar.getInstance();
-			Calendar friday = Calendar.getInstance();
-			tuesday.set(2014, Calendar.OCTOBER, 7, 8, 0, 0);
-			friday.set(2014, Calendar.OCTOBER, 10, 8, 0, 0);
-			task4.addTaskDatesTimes(tuesday);
-			task4.addTaskDatesTimes(friday);
+			task4.setTaskName("Happy New Year!");
+			Calendar calendar_newyear = Calendar.getInstance();
+			calendar_newyear.set(2015, 1, 1, 0, 0, 0);
+			task4.addTaskDatesTimes(calendar_newyear);
+			task4.addTaskTags("2015");
+			task4.addTaskTags("New Year");
+			
+			Task task6 = new Task();
+			task6.setTaskName("ST2132 lecture");
+			task6.addTaskTags("ST2132");
+			Calendar tuesday_start = Calendar.getInstance();
+			Calendar tuesday_end = Calendar.getInstance();
+			Calendar friday_start = Calendar.getInstance();
+			Calendar friday_end = Calendar.getInstance();
+			tuesday_start.set(2014, Calendar.OCTOBER, 7, 8, 0, 0);
+			tuesday_start.set(2014, Calendar.OCTOBER, 7, 10, 0, 0);
+			friday_start.set(2014, Calendar.OCTOBER, 10, 8, 0, 0);
+			friday_start.set(2014, Calendar.OCTOBER, 10, 10, 0, 0);
+			task6.addTaskDatesTimes(new TaskDate(tuesday_start, tuesday_end));
+			task6.addTaskDatesTimes(friday_start, friday_end);
 			
 			ArrayList<String> keywords1 = new ArrayList<String>();
 			keywords1.add("complete");
 			ArrayList<String> keywords2 = new ArrayList<String>();
 			keywords2.add("ia");
 			
-			ArrayList<String> tags = new ArrayList<String>();
-			tags.add("2103t");
+			ArrayList<String> tags1 = new ArrayList<String>();
+			tags1.add("2103t");
+			ArrayList<String> tags2 = new ArrayList<String>();
+			tags2.add("2015");
+			
+			//Search tests*****************************************************************
+			ArrayList<String> empty_keywords = new ArrayList<String>();
+			ArrayList<String> empty_tags = new ArrayList<String>();
+			
+			ArrayList<Task> search;
 			
 			try {
 				storage.insert(task1);
@@ -73,61 +91,62 @@ public class Tests {
 			}
 			
 			//search 1 keyword
-			ArrayList<Task> search1 = storage.search(keywords1, empty_tags, null, null);
-			System.out.println(checkEquals("complete search function", search1.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search1.size()));
+			search = storage.search(keywords1, empty_tags, null, null);
+			test("complete search function", search.get(0).getTaskName());
+			test(1, search.size());
 			
 			//search 1 tag
-			ArrayList<Task> search2 = storage.search(empty_keywords, tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial\ncomplete search function",
-					search2.get(0).getTaskName() + "\n" + search2.get(1).getTaskName()));
-			System.out.println(checkEquals(2, search2.size()));
+			search = storage.search(empty_keywords, tags1, null, null);
+			test("do 2103t tutorial\ncomplete search function",
+					search.get(0).getTaskName() + "\n" + search.get(1).getTaskName());
+			test(2, search.size());
 			
 			//search keyword found in multiple tasks
-			ArrayList<Task> search3 = storage.search(keywords2, empty_tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial\nia ia",
-					search3.get(0).getTaskName() + "\n" + search3.get(1).getTaskName()));
-			System.out.println(checkEquals(2,search3.size()));
+			search = storage.search(keywords2, empty_tags, null, null);
+			test("do 2103t tutorial\nia ia",
+					search.get(0).getTaskName() + "\n" + search.get(1).getTaskName());
+			test(2,search.size());
 			
 			//search 2+ keywords
 			keywords2.add("tutorial");
-			ArrayList<Task> search4 = storage.search(keywords2, empty_tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial",
-					search4.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search4.size()));
+			search = storage.search(keywords2, empty_tags, null, null);
+			test("do 2103t tutorial",
+					search.get(0).getTaskName());
+			test(1, search.size());
+			
+			//search 2+ tags
 			
 			//search keywords and tags together
 			keywords2.remove(1);
-			ArrayList<Task> search5 = storage.search(keywords2, tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial",
-					search5.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search5.size()));
+			search = storage.search(keywords2, tags1, null, null);
+			test("do 2103t tutorial",
+					search.get(0).getTaskName());
+			test(1, search.size());
 			
 			//search date
 			Calendar start_date = Calendar.getInstance();
 			start_date.set(2014, Calendar.OCTOBER, 6, 0, 00, 00);
 			Calendar end_date = Calendar.getInstance();
-			end_date.set(2014, Calendar.NOVEMBER, 1, 00, 00);
+			end_date.set(2015, Calendar.NOVEMBER, 1, 00, 00);
 			
-			//search date and tag
-			tags.remove(0);
-			tags.add("ST2132");
-			ArrayList<Task> search7 = storage.search(empty_keywords, tags, start_date, end_date);
-			System.out.println(checkEquals("ST2132 lecture",
-					search7.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search7.size()));
+			//search date with tags
+			search = storage.search(empty_keywords, tags2, start_date, end_date);
+			test("Happy New Year!",
+					search.get(0).getTaskName());
+			test(1, search.size());
 			
-			//First part of test overdue
-			Task overduetask = new Task();
-			Calendar overduedate = Calendar.getInstance();
-			overduedate.set(1991, 3, 1);
-			overduetask.addTaskDatesTimes(overduedate);
-			overduetask.setTaskName("ohnoes");
-			try {
-				storage.insert(overduetask);
-			}
-			catch (JSONException e) {
-			}
+			//search for something that is outside date
+			start_date.set(Calendar.YEAR, 2013);
+			end_date.set(Calendar.YEAR, 2013);
+			search = storage.search(empty_keywords, tags2, start_date, end_date);
+			test(0, search.size());
+			
+			//search for something outside date
+			
+			//add something and search
+			
+			//delete something and search
+			
 		}
 		
 		catch (IOException e) {
@@ -143,5 +162,20 @@ public class Tests {
 	private static boolean checkEquals(int a, int b) {
 		return a == b;
 	}
+	
+	private static void test(String a, String b) {
+		if(!checkEquals(a, b)) {
+			System.out.println("MISMATCH");
+			System.out.println(a);
+			System.out.println(b);
+		}
+	}
 
+	private static void test(int a, int b) {
+		if(!checkEquals(a, b)) {
+			System.out.println("MISMATCH");
+			System.out.println(a);
+			System.out.println(b);
+		}
+	}
 }
