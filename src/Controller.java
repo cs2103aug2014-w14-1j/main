@@ -77,6 +77,10 @@ public class Controller {
 		viewToday();
 	}
 	
+	public static void wake() {
+		
+	}
+	
 	private static void delete(String id) throws IOException {
 		int index = displayIDs_.indexOf(id);
 		if (index < 0) {
