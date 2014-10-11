@@ -89,9 +89,9 @@ public class TaskDate {
 			return -1;
 		}
 		
-		public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-			if (start_date == null || endsAfter(start_date)) {
-				if (end_date == null || startsBefore(end_date)) {
+		public boolean withinDateRange(Calendar search_start_date, Calendar search_end_date) {
+			if (start_date == null || endsAfter(search_start_date)) {
+				if (end_date == null || startsBefore(search_end_date)) {
 					return true;
 				}
 			}
