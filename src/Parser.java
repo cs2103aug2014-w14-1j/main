@@ -8,7 +8,7 @@ import static org.mentaregex.Regex.match;
 public class Parser {
 
 	private String command;
-	private Command commandObj = new Command();
+	private Command commandObj;
 	private Command.COMMAND_TYPE commandType;
 	private final int TYPO_DISTANCE = 1;
 
@@ -18,24 +18,23 @@ public class Parser {
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search"};
 	private String[] completeCommands = {"complete"};
+	private String[] exitCommands = {"quit"};
 
-	public void parseCommand(String userCommand) {
+	public Command parseCommand(String userCommand) {
 		command = userCommand;
 		String commandTypeString = getFirstWord(command).toLowerCase();
 		commandType = parserCommandType(commandTypeString);
 		if (isValidCommand()) {
-			generateCommandObj();
+			return generateCommandObj();
+		} else {
+			return null;
 		}
 	}
 
-	public boolean isValidCommand() {
+	private boolean isValidCommand() {
 		return commandType != Command.COMMAND_TYPE.INVALID;
 	}
 
-	public Command getCommandObj() {
-		return commandObj;
-	}
-	
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
 	}
@@ -53,6 +52,8 @@ public class Parser {
 			return Command.COMMAND_TYPE.SEARCH;
 		} else if (isCompleteCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.COMPLETE;
+		} else if (isExitCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.EXIT;
 		} else {
 			return Command.COMMAND_TYPE.INVALID;
 		}
@@ -82,6 +83,10 @@ public class Parser {
 		return containsCommand(commandTypeString, completeCommands);
 	}
 
+	private boolean isExitCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, exitCommands);
+	}
+
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		boolean result = false;
 		for (String command: commands) {
@@ -92,7 +97,8 @@ public class Parser {
 		return result;
 	}
 
-	private void generateCommandObj() {
+	private Command generateCommandObj() {
+		commandObj = new Command();
 		commandObj.setCommandType(commandType);
 		String commandDetails = command.replaceFirst("^(\\w+)\\s+","");
 		switch (commandType) {
@@ -106,6 +112,7 @@ public class Parser {
 				generateDeleteCommandObj(commandDetails);
 				break;
 		}
+		return commandObj;
 	}
 
 	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
