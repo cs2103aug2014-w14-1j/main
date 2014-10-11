@@ -1,12 +1,15 @@
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedList;
 
 public class Task {
+	private static final String RECUR_YEAR = "year";
+	private static final String RECUR_MONTH = "month";
+	private static final String RECUR_WEEK = "week";
+	private static final String RECUR_DAY = "day";
+	
 	private String taskName;
 	private String taskId;
-	private LinkedList<TaskDate> taskDatesTimes;
-	private LinkedList<TaskDate> taskReminderDatesTimes;
+	private TaskDate taskDate;
 	private String taskRecur;
 	private Calendar taskDateCompleted;
 	private ArrayList<String> taskTag;
@@ -17,20 +20,17 @@ public class Task {
 	public Task() {
 		taskId = "";
 		taskName = "";
-		taskDatesTimes = new LinkedList<TaskDate>();
-		taskReminderDatesTimes = new LinkedList<TaskDate>();
+		taskDate = null;
 		taskRecur = "";
 		taskDateCompleted = null;
 		taskTag = new ArrayList<String>();
 	}
 	
-	public Task(String taskId, String taskName, LinkedList<TaskDate> taskDatesTimes,
-			LinkedList<TaskDate> taskReminderDatesTimes, boolean taskFloating,
+	public Task(String taskId, String taskName, TaskDate taskDatesTimes, boolean taskFloating,
 			String taskRecur, Calendar taskDateCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
 		this.taskName = taskName;
-		this.taskDatesTimes = taskDatesTimes;
-		this.taskReminderDatesTimes = taskReminderDatesTimes;
+		this.taskDate = taskDatesTimes;
 		this.taskRecur = taskRecur;
 		this.taskDateCompleted = taskDateCompleted;
 		this.taskTag = taskTag;
@@ -59,50 +59,45 @@ public class Task {
 	// Task Name ************************************
 
 	// Task Dates and Times ********************************
-	public void setTaskDatesTimes(LinkedList<TaskDate> al){
-		this.taskDatesTimes = al;
+	public void setTaskDatesTimes(TaskDate al) {
+		this.taskDate = al;
 	}
 	
+	public void setTaskDatesTimes(Calendar start_date, Calendar end_date) {
+		this.taskDate = new TaskDate(start_date, end_date);
+	}
+	
+	public void setTaskDatesTimes(Calendar date) {
+		setTaskDatesTimes(date, date);
+	}
+	
+	/*
 	public void removeTaskDatesTimes(TaskDate date){
-		this.taskDatesTimes.remove(date);
+		
 	}
 	
 	public void addTaskDatesTimes(TaskDate date) {
-		this.taskDatesTimes.add(date);
+		
+	}
+	*/
+	
+
+	public TaskDate getTaskDatesTimes() {
+		return this.taskDate;
 	}
 	
-	public void addTaskDatesTimes(Calendar date) {
-		this.taskDatesTimes.add(new TaskDate(date, date));
-	}
-
-	public LinkedList<TaskDate> getTaskDatesTimes() {
-		return this.taskDatesTimes;
-	}
 	// Task Dates and Times ********************************
 
 	// Task Reminder Dates Times***********************************
-	public void setTaskReminderDatesTimes(LinkedList<TaskDate> al){
-		this.taskReminderDatesTimes = al;
-	}
-	
-	public void removeTaskReminderDatesTimes(TaskDate date){
-		this.taskReminderDatesTimes.remove(date);
-	}
-	
-	public void addTaskReminderDatesTimes(TaskDate date) {
-		this.taskReminderDatesTimes.add(date);
-	}
 
-	public LinkedList<TaskDate> getTaskReminderDatesTimes() {
-		return this.taskReminderDatesTimes;
-	}
+	
 
 	// Task Reminder Dates Times***********************************
 
 	// Task Floating*******************************
 
 	public boolean isFloating() {
-		return this.taskDatesTimes.isEmpty();
+		return this.taskDate == null;
 	}
 
 	// Task Floating*******************************
@@ -118,6 +113,24 @@ public class Task {
 	
 	public boolean isRecur() {
 		return !this.taskRecur.equals("");
+	}
+	
+	//TBC
+	public void updateRecurDates(int YEAR_LIMIT) {
+		if (taskRecur.equals(RECUR_YEAR)) {
+		}
+		
+		else if (taskRecur.equals(RECUR_MONTH)) {
+			
+		}
+		
+		else if (taskRecur.equals(RECUR_WEEK)) {
+			
+		}
+		
+		else if (taskRecur.equals(RECUR_DAY)) {
+			
+		}
 	}
 
 	// Task Recur***************************************
@@ -135,16 +148,14 @@ public class Task {
 		if (taskDateCompleted == null) {
 			return false;
 		}
-		return taskDateCompleted.after(taskDatesTimes.getLast().getEndDate());
+		return taskDateCompleted.after(taskDate.getEndDate());
 	}
 	
 	public boolean isOverdue() {
 		Calendar now = Calendar.getInstance();
-		for (TaskDate date : taskDatesTimes) {
-			if ( (taskDateCompleted == null || taskDateCompleted.before(date.getEndDate()))
-					&& now.after(date.getEndDate()) ) {
-				return true;
-			}
+		if ( (taskDateCompleted == null || taskDateCompleted.before(taskDate.getEndDate()))
+				&& now.after(taskDate.getEndDate()) ) {
+			return true;
 		}
 		return false;
 	}
@@ -192,13 +203,6 @@ public class Task {
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
 		if (isFloating()) return true;		//autopass
-		for (TaskDate date : taskDatesTimes) {
-			if (start_date == null || date.endsAfter(start_date)) {
-				if (end_date == null || date.startsBefore(end_date)) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return taskDate.withinDateRange(start_date, end_date);
 	}
 }
