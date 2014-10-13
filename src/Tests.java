@@ -81,10 +81,12 @@ public class Tests {
 			
 			test(task4.isFloating(),true);
 			
-			//Task 5: Recurring Task
+			//Task 5: Recurring Task (YEAR)
 			
 			Task task5 = new Task();
 			task5.setTaskName("Casey's birthday");
+			task5.addTaskTags("Casey");
+			task5.addTaskTags("birthdays");
 			Calendar task5_start_date = Calendar.getInstance();
 			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
 			Calendar task5_end_date = Calendar.getInstance();
@@ -94,6 +96,31 @@ public class Tests {
 			task5.setTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
 			task5.updateRecur();
 			test(task5.getTaskDatesTimes().getDates().size(), 4);
+			
+			//Task 6: Recurring Task (MONTH)
+			
+			Task task6 = new Task();
+			task6.setTaskName("1st of month");
+			Calendar task6_date = Calendar.getInstance();
+			task6_date.set(2014, Calendar.JANUARY, 1, 00, 00, 00);
+			Calendar task6_limit = Calendar.getInstance();
+			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
+			task6.setTaskDatesTimes(task6_date, "month", task6_limit);
+			task6.updateRecur();
+			test(task6.getTaskDatesTimes().getDates().size(), 24);
+			
+			//Task 7: Recurring Task (WEEK)
+			
+			Task task7 = new Task();
+			task7.setTaskName("Go jogging");
+			task7.addTaskTags("exercise");
+			Calendar task7_date = Calendar.getInstance();
+			task7_date.set(2014, Calendar.OCTOBER, Calendar.SUNDAY, 00, 00, 00);
+			Calendar task7_limit = Calendar.getInstance();
+			task7_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
+			task7.setTaskDatesTimes(task7_date, "month", task7_limit);
+			task7.updateRecur();
+			test(task7.getTaskDatesTimes().getDates().size(), 24);
 			
 		}
 		

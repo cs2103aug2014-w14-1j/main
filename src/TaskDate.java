@@ -10,6 +10,7 @@ public class TaskDate {
 	private static final String RECUR_MONTH = "month";
 	private static final String RECUR_WEEK = "week";
 	private static final String RECUR_DAY = "day";
+	private static final int RECUR_AMOUNT = 1;
 	
 	private LinkedList<DateNode> nodes;
 	private String recur;
@@ -17,6 +18,9 @@ public class TaskDate {
 	
 	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
 		dateLogger.log(Level.INFO, "Creating new TaskDate");
+		if (end_date.before(start_date)) {
+			
+		}
 		this.nodes = new LinkedList<DateNode>();
 		this.nodes.add(new DateNode(start_date, end_date));
 		this.recur = recur;
@@ -44,36 +48,50 @@ public class TaskDate {
 					Boolean.toString(nodes.isEmpty()));
 			return;
 		}
-		//testing purposes
-		int old_size = nodes.size();
 		
-		DateNode first = nodes.getLast();
-		while (first.getEndDate().before(limit)) {
-			Calendar a = (Calendar) first.getStartDate().clone();
-			Calendar b = (Calendar) first.getEndDate().clone();
-			dateLogger.log(Level.INFO, a.getTime().toString() + "\n" + b.getTime().toString());
-			if (recur.equals(RECUR_YEAR)) {
-				a.add(Calendar.YEAR, 1);
-				b.add(Calendar.YEAR, 1);
+		DateNode latest_date = nodes.getLast();
+		while (latest_date.getEndDate().before(limit)) {
+			latest_date = increaseDate(latest_date);
+			if (latest_date.getEndDate().before(limit)) {
+				nodes.addLast(latest_date);
 			}
-			else if (recur.equals(RECUR_MONTH)) {
-				a.add(Calendar.MONTH, 1);
-				b.add(Calendar.MONTH, 1);
-			}
-			else if (recur.equals(RECUR_WEEK)) {
-				a.add(Calendar.WEEK_OF_YEAR, 1);
-				b.add(Calendar.WEEK_OF_YEAR, 1);
-			}
-			else if (recur.equals(RECUR_DAY)) {
-				a.add(Calendar.DAY_OF_YEAR, 1);
-				b.add(Calendar.DAY_OF_YEAR, 1);
-			}
-			first = new DateNode(a, b);
-			nodes.addLast(first);
-			
-			assert nodes.size() > old_size;
 		}
+		
 		dateLogger.log(Level.INFO, "Updated!");
+	}
+	
+	private DateNode increaseDate(DateNode date) {
+		Calendar before = (Calendar) date.getStartDate().clone();
+		Calendar after = (Calendar) date.getEndDate().clone();
+		
+		int field = getRecurField(recur);
+		assert field != -1;
+		
+		before.add(getRecurField(recur), RECUR_AMOUNT);
+		after.add(getRecurField(recur), RECUR_AMOUNT);
+		
+		assert before.before(after);
+		
+		dateLogger.log(Level.INFO, before.getTime().toString() + "\n" + after.getTime().toString());
+		
+		return new DateNode(before, after);
+	}
+	
+	private int getRecurField(String recur) {
+		if (recur.equals(RECUR_YEAR)) {
+			return Calendar.YEAR;
+		}
+		else if (recur.equals(RECUR_MONTH)) {
+			return Calendar.MONTH;
+		}
+		else if (recur.equals(RECUR_WEEK)) {
+			return Calendar.WEEK_OF_YEAR;
+		}
+		else if (recur.equals(RECUR_DAY)) {
+			return Calendar.DAY_OF_YEAR;
+		}
+		
+		return -1;
 	}
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
