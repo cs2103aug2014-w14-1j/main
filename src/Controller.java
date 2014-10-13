@@ -132,7 +132,7 @@ public class Controller {
 	private static String getChar(Task task) {
 		if (task.isRecur()) {
 			return "r";
-		} else if (task.isTaskFloating()) {
+		} else if (task.isFloating()) {
 			return "f";
 		} else {
 			return "t";

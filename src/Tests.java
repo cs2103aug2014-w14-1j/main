@@ -115,13 +115,24 @@ public class Tests {
 			task7.setTaskName("Go jogging");
 			task7.addTaskTags("exercise");
 			Calendar task7_date = Calendar.getInstance();
-			task7_date.set(2014, Calendar.OCTOBER, Calendar.SUNDAY, 00, 00, 00);
+			task7_date.set(2014, Calendar.OCTOBER, 5, 00, 00, 00);
 			Calendar task7_limit = Calendar.getInstance();
-			task7_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
-			task7.setTaskDatesTimes(task7_date, "month", task7_limit);
+			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
+			task7.setTaskDatesTimes(task7_date, "week", task7_limit);
 			task7.updateRecur();
-			test(task7.getTaskDatesTimes().getDates().size(), 24);
+			test(task7.getTaskDatesTimes().getDates().size(), 17);
 			
+			
+			//Task 8: Recurring Task (DAY)
+			Task task8 = new Task();
+			task8.setTaskName("Go to sleep by 11");
+			Calendar task8_date = Calendar.getInstance();
+			task8_date.set(2014, Calendar.NOVEMBER, 1, 23, 00, 00);
+			Calendar task8_limit = Calendar.getInstance();
+			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
+			task8.setTaskDatesTimes(task8_date, "day", task8_limit);
+			task8.updateRecur();
+			test(task8.getTaskDatesTimes().getDates().size(), 31);
 		}
 		
 		catch (IOException e) {
