@@ -1,4 +1,7 @@
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 import java.io.*;
 
 import org.json.JSONException;
@@ -7,6 +10,8 @@ import com.google.gson.Gson;
 
 
 public class Storage {
+	private static final Logger storageLogger = Logger.getLogger(Storage.class.getName());
+	
 	private ArrayList<Task> al_task;
 	private ArrayList<Task> al_task_floating;
 	private ArrayList<Task> al_task_overdue;
@@ -36,6 +41,7 @@ public class Storage {
 	// if exists, replace task. Else add task.
 	private void insert(Task task, ArrayList<Task> file) throws JSONException,
 			IOException {
+		storageLogger.log(Level.INFO, "Beginning log: Insert task");
 		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 		// add
@@ -50,6 +56,7 @@ public class Storage {
 			file.set(taskIndex, task);
 		}
 		filehandler.writeFile(file);
+		storageLogger.log(Level.INFO, "Ending log: Insert task");
 	}
 	
 	public void delete(Task task) throws IOException{
@@ -57,12 +64,14 @@ public class Storage {
 	}
 
 	private void delete(Task task, ArrayList<Task> file) throws IOException {
+		storageLogger.log(Level.INFO, "Beginning log: Delete task");
 		filehandler.readFile(file);
 		int taskIndex = getIndex(file, task);
 		if (taskIndex != DOES_NOT_EXIST) {
 			file.remove(taskIndex);
 		}
 		filehandler.writeFile(file);
+		storageLogger.log(Level.INFO, "Ending log: Delete task");
 	}
 
 	public ArrayList<Task> getTasksFile() {

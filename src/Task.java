@@ -1,7 +1,9 @@
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.logging.*;
 
 public class Task {
+	private static final Logger taskLogger = Logger.getLogger(Task.class.getName());
 	
 	private String taskName;
 	private String taskId;
@@ -14,6 +16,7 @@ public class Task {
 	 * No input constructor
 	 */
 	public Task() {
+		taskLogger.log(Level.INFO, "creating new empty Task");
 		taskId = "";
 		taskName = "";
 		taskDate = null;
@@ -143,6 +146,7 @@ public class Task {
 	}
 	
 	public boolean isOverdue() {
+		taskLogger.log(Level.INFO, "Checking overdue");
 		Calendar now = Calendar.getInstance();
 		if ( (taskDateCompleted == null || taskDateCompleted.before(taskDate.getEndDate()))
 				&& now.after(taskDate.getEndDate()) ) {
@@ -193,7 +197,10 @@ public class Task {
 	}
 	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-		if (isFloating()) return true;		//autopass
+		if (isFloating()) {
+			return true;		//autopass
+		}
+		assert taskDate != null;
 		return taskDate.withinDateRange(start_date, end_date);
 	}
 }

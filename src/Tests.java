@@ -93,7 +93,7 @@ public class Tests {
 			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
 			task5.setTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
 			task5.updateRecur();
-			test(task4.getTaskDatesTimes().getDates().size(), 4);
+			test(task5.getTaskDatesTimes().getDates().size(), 4);
 			
 		}
 		
