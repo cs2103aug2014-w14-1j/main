@@ -2,10 +2,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 public class Task {
-	private static final String RECUR_YEAR = "year";
-	private static final String RECUR_MONTH = "month";
-	private static final String RECUR_WEEK = "week";
-	private static final String RECUR_DAY = "day";
 	
 	private String taskName;
 	private String taskId;
@@ -62,6 +58,14 @@ public class Task {
 	public void setTaskDatesTimes(TaskDate al) {
 		this.taskDate = al;
 	}
+
+	public void setTaskDatesTimes(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
+		this.taskDate = new TaskDate(start_date, end_date, recur, limit);
+	}
+	
+	public void setTaskDatesTimes(Calendar date, String recur, Calendar limit) {
+		setTaskDatesTimes(date, date, recur, limit);
+	}
 	
 	public void setTaskDatesTimes(Calendar start_date, Calendar end_date) {
 		this.taskDate = new TaskDate(start_date, end_date);
@@ -116,21 +120,8 @@ public class Task {
 	}
 	
 	//TBC
-	public void updateRecurDates(int YEAR_LIMIT) {
-		if (taskRecur.equals(RECUR_YEAR)) {
-		}
-		
-		else if (taskRecur.equals(RECUR_MONTH)) {
-			
-		}
-		
-		else if (taskRecur.equals(RECUR_WEEK)) {
-			
-		}
-		
-		else if (taskRecur.equals(RECUR_DAY)) {
-			
-		}
+	public void updateRecur() {
+		taskDate.updateRecur();
 	}
 
 	// Task Recur***************************************

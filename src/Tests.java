@@ -82,7 +82,19 @@ public class Tests {
 			test(task4.isFloating(),true);
 			
 			//Task 5: Recurring Task
-
+			
+			Task task5 = new Task();
+			task5.setTaskName("Casey's birthday");
+			Calendar task5_start_date = Calendar.getInstance();
+			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
+			Calendar task5_end_date = Calendar.getInstance();
+			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
+			Calendar task5_limit = Calendar.getInstance();
+			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
+			task5.setTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
+			task5.updateRecur();
+			test(task4.getTaskDatesTimes().getDates().size(), 4);
+			
 		}
 		
 		catch (IOException e) {

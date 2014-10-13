@@ -3,30 +3,57 @@ import java.util.LinkedList;
 
 //prototype
 public class TaskDate {
+	
+	private static final String RECUR_YEAR = "year";
+	private static final String RECUR_MONTH = "month";
+	private static final String RECUR_WEEK = "week";
+	private static final String RECUR_DAY = "day";
+	
 	private LinkedList<DateNode> nodes;
 	private String recur;
+	private Calendar limit;
 	
-	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar year_limit) {
+	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
 		this.nodes = new LinkedList<DateNode>();
 		this.nodes.add(new DateNode(start_date, end_date));
 		this.recur = recur;
-		updateRecur(year_limit);
+		this.limit = limit;
+		updateRecur();
 	}
 	
 	public TaskDate(Calendar start_date, Calendar end_date) {
 		this(start_date, end_date, "", null);
 	}
 	
+	
+	//Recurring***********************************************
+	
 	public boolean isRecur() {
 		return !recur.equals("");
 	}
 	
 	//assumes at least one datenode
-	public void updateRecur(Calendar limit) {
-		if (limit == null) return;
+	public void updateRecur() {
+		if (recur.equals("") || limit == null || nodes.isEmpty()) {
+			return;
+		}
 		DateNode first = nodes.getLast();
 		while (first.getEndDate().before(limit)) {
-			first = new DateNode((Calendar) first.getStartDate().clone(), (Calendar) first.getEndDate().clone());
+			Calendar a = (Calendar) first.getStartDate().clone();
+			Calendar b = (Calendar) first.getEndDate().clone();
+			if (recur.equals(RECUR_YEAR)) {
+				a.add(Calendar.YEAR, 1);
+			}
+			else if (recur.equals(RECUR_MONTH)) {
+				a.add(Calendar.MONTH, 1);
+			}
+			else if (recur.equals(RECUR_WEEK)) {
+				a.add(Calendar.WEEK_OF_YEAR, 1);
+			}
+			else if (recur.equals(RECUR_DAY)) {
+				a.add(Calendar.DAY_OF_YEAR, 1);
+			}
+			first = new DateNode(a, b);
 			nodes.addLast(first);
 		}
 	}
@@ -40,6 +67,10 @@ public class TaskDate {
 		return false;
 	}
 	
+	public LinkedList<DateNode> getDates() {
+		return nodes;
+	}
+	
 	public Calendar getStartDate() {
 		return nodes.getFirst().getStartDate();
 	}
@@ -47,6 +78,9 @@ public class TaskDate {
 	public Calendar getEndDate() {
 		return nodes.getLast().getEndDate();
 	}
+	
+	
+	//Internal class DateNode*************************************************
 	
 	class DateNode {
 		
