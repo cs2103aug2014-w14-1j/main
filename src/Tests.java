@@ -19,7 +19,7 @@ public class Tests {
 			task1.setTaskName("Task 1: CS2103T finals");
 			Calendar task1_date = Calendar.getInstance();
 			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			task1.setTaskDatesTimes(task1_date);
+			task1.addTaskDatesTimes(task1_date);
 			task1.addTaskTags("school");
 			task1.addTaskTags("CS2103T");
 			task1.addTaskTags("exams");
@@ -30,9 +30,9 @@ public class Tests {
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 			
 			test(task1.getTaskName(), "Task 1: CS2103T finals");
-			test(task1.getTaskDatesTimes().getStartDate(), task1_date);
-			test(task1.getTaskDatesTimes().getEndDate(), task1_date);
-			test(task1.getTaskDatesTimes().withinDateRange(task1_test_start_date, task1_test_end_date), true);
+			test(task1.getTaskStartDateTime(), task1_date);
+			test(task1.getTaskEndDateTime(), task1_date);
+			test(task1.withinDateRange(task1_test_start_date, task1_test_end_date), true);
 			test(task1.getTaskTags().size(), 3);
 			test(task1.getTaskTags().get(0), "school");
 			test(task1.getTaskTags().get(1), "CS2103T");
@@ -45,7 +45,7 @@ public class Tests {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.setTaskDatesTimes(task2_start_date, task2_end_date);
+			task2.addTaskDatesTimes(task2_start_date, task2_end_date);
 			task1.addTaskTags("school");
 			task1.addTaskTags("MA3110");
 			task1.addTaskTags("exams");
@@ -55,21 +55,21 @@ public class Tests {
 			Calendar task2_test_end_date = Calendar.getInstance();
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
 			
-			test(task2.getTaskDatesTimes().getStartDate(), task2_start_date);
-			test(task2.getTaskDatesTimes().getEndDate(), task2_end_date);
-			test(task2.getTaskDatesTimes().withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			test(task2.getTaskStartDateTime(), task2_start_date);
+			test(task2.getTaskEndDateTime(), task2_end_date);
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			
 			task2_test_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 30, 00);
-			test(task2.getTaskDatesTimes().withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
-			test(task2.getTaskDatesTimes().withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			
 			//Task 3: Overdue Task
 			Task task3 = new Task();
 			task3.setTaskName("100 pushups");
 			Calendar task3_date = Calendar.getInstance();
 			task3_date.set(2014, Calendar.OCTOBER, 8, 10, 00, 00);
-			task3.setTaskDatesTimes(task3_date);
+			task3.addTaskDatesTimes(task3_date);
 			task3.addTaskTags("exercise");
 			
 			test(task3.isOverdue(),true);
@@ -93,9 +93,9 @@ public class Tests {
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
 			Calendar task5_limit = Calendar.getInstance();
 			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
-			task5.setTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
+			task5.addTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
 			task5.updateRecur();
-			test(task5.getTaskDatesTimes().getDates().size(), 4);
+			test(task5.getTaskDateTime().getDates().size(), 4);
 			
 			//Task 6: Recurring Task (MONTH)
 			
@@ -105,9 +105,9 @@ public class Tests {
 			task6_date.set(2014, Calendar.JANUARY, 1, 00, 00, 00);
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
-			task6.setTaskDatesTimes(task6_date, "month", task6_limit);
+			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
 			task6.updateRecur();
-			test(task6.getTaskDatesTimes().getDates().size(), 24);
+			test(task6.getTaskDateTime().getDates().size(), 24);
 			
 			//Task 7: Recurring Task (WEEK)
 			
@@ -118,9 +118,9 @@ public class Tests {
 			task7_date.set(2014, Calendar.OCTOBER, 5, 00, 00, 00);
 			Calendar task7_limit = Calendar.getInstance();
 			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
-			task7.setTaskDatesTimes(task7_date, "week", task7_limit);
+			task7.addTaskDatesTimes(task7_date, "week", task7_limit);
 			task7.updateRecur();
-			test(task7.getTaskDatesTimes().getDates().size(), 17);
+			test(task7.getTaskDateTime().getDates().size(), 17);
 			
 			
 			//Task 8: Recurring Task (DAY)
@@ -130,9 +130,27 @@ public class Tests {
 			task8_date.set(2014, Calendar.NOVEMBER, 1, 23, 00, 00);
 			Calendar task8_limit = Calendar.getInstance();
 			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
-			task8.setTaskDatesTimes(task8_date, "day", task8_limit);
+			task8.addTaskDatesTimes(task8_date, "day", task8_limit);
 			task8.updateRecur();
-			test(task8.getTaskDatesTimes().getDates().size(), 31);
+			test(task8.getTaskDateTime().getDates().size(), 31);
+			
+			//Task 9: Task with two different dates (RECURRING)
+			Task task9 = new Task();
+			task9.setTaskName("ST2132 Lecture");
+			task9.addTaskTags("school");
+			task9.addTaskTags("ST2132");
+			Calendar task9_tue_date1 = Calendar.getInstance();
+			task9_tue_date1.set(2014, Calendar.AUGUST, 12, 8, 00, 00);
+			Calendar task9_tue_date2 = Calendar.getInstance();
+			task9_tue_date2.set(2014, Calendar.AUGUST, 12, 10, 00, 00);
+			Calendar task9_limit = Calendar.getInstance();
+			task9_limit.set(2014, Calendar.NOVEMBER, 15, 00, 00, 00);
+			task9.addTaskDatesTimes(task9_tue_date1, task9_tue_date2, "week", task9_limit);
+			task9.updateRecur();
+			test(task9.getTaskDateTime().getDates().size(), 14);
+			
+			
+			//Storage tests*****************************************************
 		}
 		
 		catch (IOException e) {
