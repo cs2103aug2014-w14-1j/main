@@ -18,9 +18,6 @@ public class Storage {
 	private FileHandler filehandler;
 	private int counter;
 
-	// Index for if the task does not exist in the ArrayList.
-	private static final int DOES_NOT_EXIST = -1;
-
 	public Storage() throws IOException {
 		al_task = new ArrayList<Task>();
 		al_task_floating = new ArrayList<Task>();
@@ -30,44 +27,55 @@ public class Storage {
 		initFiles();
 		checkForOverdueTasks();
 	}
+
+	//Insert methods*********************************************************
+	
+	/*
+	 * Assumption: This task is unique and does not already exist inside the
+	 * lists. If it was an existing task, it should have been deleted
+	 */
 	
 	public void insert(Task task) throws JSONException, IOException {
 		insert(task, retrieveTaskList(task));
 	}
 
-	// if exists, replace task. Else add task.
-	private void insert(Task task, ArrayList<Task> file) throws JSONException,
+	private void insert(Task task, ArrayList<Task> list) throws JSONException,
 			IOException {
 		storageLogger.log(Level.INFO, "Beginning log: Insert task");
-		filehandler.readFile(file);
-		int taskIndex = getIndex(file, task);
-		// add
-		if (taskIndex == DOES_NOT_EXIST) {
-			counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
-			task.setTaskId(counter);
-			file.add(task);
-			filehandler.writeTaskCounter(counter);
+		filehandler.readFile(list);
+		
+		if (task.getTaskId().equals("")) {
+			assignID(task);
+			storageLogger.log(Level.INFO, "New task: Assigned ID " + task.getTaskId());
 		}
-		// insert
-		else {
-			file.set(taskIndex, task);
-		}
-		filehandler.writeFile(file);
+		list.add(task);
+		
+		filehandler.writeFile(list);
 		storageLogger.log(Level.INFO, "Ending log: Insert task");
 	}
+	
+	private void assignID(Task task) throws IOException {
+		counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
+		task.setTaskId(counter);
+		filehandler.writeTaskCounter(counter);
+	}
+	
+	//Delete methods***************************************************
+	
+	/*
+	 * Assumption: Task either does not exist in any of the lists, or exists
+	 * only in 1 list. Insertion should not insert any duplicates
+	 */
 	
 	public void delete(Task task) throws IOException{
 		delete(task, retrieveTaskList(task));		
 	}
 
-	private void delete(Task task, ArrayList<Task> file) throws IOException {
+	private void delete(Task task, ArrayList<Task> list) throws IOException {
 		storageLogger.log(Level.INFO, "Beginning log: Delete task");
-		filehandler.readFile(file);
-		int taskIndex = getIndex(file, task);
-		if (taskIndex != DOES_NOT_EXIST) {
-			file.remove(taskIndex);
-		}
-		filehandler.writeFile(file);
+		filehandler.readFile(list);
+		list.remove(task);
+		filehandler.writeFile(list);
 		storageLogger.log(Level.INFO, "Ending log: Delete task");
 	}
 
@@ -87,9 +95,11 @@ public class Storage {
 		return this.al_task_overdue;
 	}
 	
-	//Search method**********************************
+	//Search methods**********************************
 	
-	//returns only 1 task as Id is unique. Return null if empty.
+	/*
+	 * Assumption: All tasks are unique. Only one result should be found
+	 */
 	public Task searchTaskByID(String id){
 		ArrayList<Task> search_results = new ArrayList<Task>();
 		
@@ -100,8 +110,11 @@ public class Storage {
 		if(search_results.isEmpty()){
 			return null;
 		}
+		
+		assert search_results.size() == 1;
+		
 		//only one item so index 0.
-		return search_results.get(0);		
+		return search_results.get(0);
 	}
 	
 	private ArrayList<Task> searchForID(String id,ArrayList<Task> list, ArrayList<Task> resultsList){
@@ -113,6 +126,7 @@ public class Storage {
 		
 		return resultsList;
 	}
+	
 	/*
 	 * Driver search method. Search for all tasks with the specified parameters
 	 * Current limitations:
@@ -146,7 +160,7 @@ public class Storage {
 		}
 	}
 	
-	//Clear method**********************************
+	//Clear methods**************************************************************
 	
 	public void clearAll() throws FileNotFoundException {
 		clear(al_task);
@@ -160,6 +174,8 @@ public class Storage {
 		filelist.clear();
 	}
 	
+	//Save methods**********************************************************
+	
 	private void save() throws FileNotFoundException {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
@@ -167,7 +183,7 @@ public class Storage {
 		filehandler.writeFile(al_task_completed);
 	}
 	
-	//*********************
+	//Miscellaneous methods*************************************************
 	
 	private void checkForOverdueTasks() throws FileNotFoundException {
 		ArrayList<Task> task_to_overdue = new ArrayList<Task>();
@@ -181,21 +197,11 @@ public class Storage {
 		save();
 	}
 	
-	//Methods Not Accessible to Storage instance.****************************
 	private void initFiles() throws IOException {
 		filehandler.readFile(al_task);
 		filehandler.readFile(al_task_floating);
 		filehandler.readFile(al_task_completed);
 		filehandler.readFile(al_task_overdue);
-	}
-
-	private int getIndex(ArrayList<Task> file, Task task) {
-		for (int i = 0; i < file.size(); i++) {
-			if (task.getTaskId().equals(file.get(i).getTaskId())) {
-				return i;
-			}
-		}
-		return DOES_NOT_EXIST;
 	}
 
 	private ArrayList<Task> retrieveTaskList(Task task) {

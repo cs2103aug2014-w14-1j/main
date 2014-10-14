@@ -1,8 +1,5 @@
-import java.io.*;
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import org.json.JSONException;
 
 
 public class Tests {
@@ -163,9 +160,48 @@ public class Tests {
 			
 			
 			//Storage tests*****************************************************
+			
+			storage.clearAll();
+			
+			//testing insertion
+			storage.insert(task1);
+			test(storage.getTasksFile().size(), 1);
+			
+			storage.insert(task2);
+			test(storage.getTasksFile().size(), 2);
+			
+			//insert overdue task
+			storage.insert(task3);
+			test(storage.getOverdueTasksFile().size(), 1);
+			
+			//insert floating task
+			storage.insert(task4);
+			test(storage.getFloatingTasksFile().size(), 1);
+			
+			//insert recurring task
+			storage.insert(task5);
+			test(storage.getTasksFile().size(), 3);
+			
+			storage.insert(task6);
+			test(storage.getTasksFile().size(), 4);
+			
+			storage.insert(task7);
+			test(storage.getTasksFile().size(), 5);
+			
+			storage.insert(task8);
+			test(storage.getTasksFile().size(), 6);
+			
+			storage.insert(task9);
+			test(storage.getTasksFile().size(), 7);
+			
+			//insert an already existing task
+			storage.insert(task1);
+			test(storage.getTasksFile().size(), 7);
+			
+			System.out.println("All tests successful");
 		}
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -192,6 +228,7 @@ public class Tests {
 			System.out.println("MISMATCH");
 			System.out.println(a);
 			System.out.println(b);
+			System.exit(1);
 		}
 	}
 	
@@ -200,6 +237,7 @@ public class Tests {
 			System.out.println("MISMATCH");
 			System.out.println(a);
 			System.out.println(b);
+			System.exit(1);
 		}
 	}
 
@@ -208,6 +246,7 @@ public class Tests {
 			System.out.println("MISMATCH");
 			System.out.println(a);
 			System.out.println(b);
+			System.exit(1);
 		}
 	}
 	
@@ -216,6 +255,7 @@ public class Tests {
 			System.out.println("MISMATCH");
 			System.out.println(a.getTime());
 			System.out.println(b.getTime());
+			System.exit(1);
 		}
 	}
 }
