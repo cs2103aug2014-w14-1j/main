@@ -118,7 +118,7 @@ public class Task {
 	// Task Floating*******************************
 
 	public boolean isFloating() {
-		return this.taskDates == null;
+		return this.taskDates.isEmpty();
 	}
 
 	// Task Floating*******************************
@@ -140,6 +140,9 @@ public class Task {
 	public void updateRecur() {
 		for (TaskDate date : taskDates) {
 			date.updateRecur();
+			if (taskDateCompleted != null) {
+				date.removeOldDates(taskDateCompleted);
+			}
 		}
 	}
 

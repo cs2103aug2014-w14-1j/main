@@ -15,6 +15,7 @@ public class Tests {
 			//Task tests**********************************************************
 			
 			//Task 1: Normal task
+			System.out.println("Task 1");
 			Task task1 = new Task();
 			task1.setTaskName("Task 1: CS2103T finals");
 			Calendar task1_date = Calendar.getInstance();
@@ -39,6 +40,7 @@ public class Tests {
 			test(task1.getTaskTags().get(2), "exams");
 			
 			//Task 2: Task with interval
+			System.out.println("Task 2");
 			Task task2 = new Task();
 			task2.setTaskName("Task 2: MA3110 Finals");
 			Calendar task2_start_date = Calendar.getInstance();
@@ -65,6 +67,7 @@ public class Tests {
 			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			
 			//Task 3: Overdue Task
+			System.out.println("Task 3");
 			Task task3 = new Task();
 			task3.setTaskName("100 pushups");
 			Calendar task3_date = Calendar.getInstance();
@@ -74,6 +77,7 @@ public class Tests {
 			
 			test(task3.isOverdue(),true);
 			
+			System.out.println("Task 4");
 			//Task 4: Floating Task
 			Task task4 = new Task();
 			task4.setTaskName("Bake chocolate cake");
@@ -81,8 +85,9 @@ public class Tests {
 			
 			test(task4.isFloating(),true);
 			
-			//Task 5: Recurring Task (YEAR)
+			//Task 5: Recurring Task (YEAR) + Date completed
 			
+			System.out.println("Task 5");
 			Task task5 = new Task();
 			task5.setTaskName("Casey's birthday");
 			task5.addTaskTags("Casey");
@@ -94,8 +99,10 @@ public class Tests {
 			Calendar task5_limit = Calendar.getInstance();
 			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
 			task5.addTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
-			task5.updateRecur();
-			test(task5.getTaskDateTime().getDates().size(), 4);
+			Calendar task5_completed = Calendar.getInstance();
+			task5.setTaskCompleted(task5_completed);
+			task5.updateRecur();		//this is a redundant check, it should auto-update
+			test(task5.getTaskDateTime().getDates().size(), 3);
 			
 			//Task 6: Recurring Task (MONTH)
 			
@@ -106,7 +113,6 @@ public class Tests {
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
 			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
-			task6.updateRecur();
 			test(task6.getTaskDateTime().getDates().size(), 24);
 			
 			//Task 7: Recurring Task (WEEK)
@@ -119,7 +125,6 @@ public class Tests {
 			Calendar task7_limit = Calendar.getInstance();
 			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
 			task7.addTaskDatesTimes(task7_date, "week", task7_limit);
-			task7.updateRecur();
 			test(task7.getTaskDateTime().getDates().size(), 17);
 			
 			
@@ -131,7 +136,6 @@ public class Tests {
 			Calendar task8_limit = Calendar.getInstance();
 			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
 			task8.addTaskDatesTimes(task8_date, "day", task8_limit);
-			task8.updateRecur();
 			test(task8.getTaskDateTime().getDates().size(), 31);
 			
 			//Task 9: Task with two different dates (RECURRING)
@@ -146,7 +150,6 @@ public class Tests {
 			Calendar task9_limit = Calendar.getInstance();
 			task9_limit.set(2014, Calendar.NOVEMBER, 15, 00, 00, 00);
 			task9.addTaskDatesTimes(task9_tue_date1, task9_tue_date2, "week", task9_limit);
-			task9.updateRecur();
 			test(task9.getTaskDateTime().getDates().size(), 14);
 			
 			

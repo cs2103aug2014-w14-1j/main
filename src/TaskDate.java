@@ -94,6 +94,13 @@ public class TaskDate {
 		return -1;
 	}
 	
+	public void removeOldDates(Calendar dateCompleted) {
+		assert dateCompleted != null;
+		while (nodes.getFirst().getEndDate().before(dateCompleted)) {
+			nodes.removeFirst();
+		}
+	}
+	
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
 		for (DateNode date : nodes) {
 			if (date.withinDateRange(start_date, end_date)) {
