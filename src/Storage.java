@@ -15,7 +15,6 @@ public class Storage {
 	private ArrayList<Task> al_task_floating;
 	private ArrayList<Task> al_task_overdue;
 	private ArrayList<Task> al_task_completed;
-	private ArrayList<Task> al_task_recurring;
 	private FileHandler filehandler;
 	private int counter;
 
@@ -27,7 +26,6 @@ public class Storage {
 		al_task_floating = new ArrayList<Task>();
 		al_task_overdue = new ArrayList<Task>();
 		al_task_completed = new ArrayList<Task>();
-		al_task_recurring = new ArrayList<Task>();
 		filehandler = new FileHandler();
 		initFiles();
 		checkForOverdueTasks();
@@ -89,10 +87,6 @@ public class Storage {
 		return this.al_task_overdue;
 	}
 	
-	public ArrayList<Task> getRecurringTasksFile() {
-		return this.al_task_recurring;
-	}
-	
 	//Search method**********************************
 	
 	//returns only 1 task as Id is unique. Return null if empty.
@@ -102,7 +96,6 @@ public class Storage {
 		searchForID(id, al_task, search_results);
 		searchForID(id, al_task_floating, search_results);
 		searchForID(id, al_task_overdue, search_results);
-		searchForID(id, al_task_recurring, search_results);
 		
 		if(search_results.isEmpty()){
 			return null;
@@ -133,7 +126,6 @@ public class Storage {
 		searchList(search_results, al_task, keywords, tags, start_date, end_date);
 		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
 		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_recurring, keywords, tags, start_date, end_date);
 		
 		return search_results;
 	}
@@ -160,7 +152,6 @@ public class Storage {
 		clear(al_task);
 		clear(al_task_floating);
 		clear(al_task_overdue);
-		clear(al_task_recurring);
 		clear(al_task_completed);
 		save();
 	}
@@ -173,7 +164,6 @@ public class Storage {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
-		filehandler.writeFile(al_task_recurring);
 		filehandler.writeFile(al_task_completed);
 	}
 	
@@ -197,7 +187,6 @@ public class Storage {
 		filehandler.readFile(al_task_floating);
 		filehandler.readFile(al_task_completed);
 		filehandler.readFile(al_task_overdue);
-		filehandler.readFile(al_task_recurring);
 	}
 
 	private int getIndex(ArrayList<Task> file, Task task) {
@@ -216,9 +205,6 @@ public class Storage {
 		else if (task.isOverdue()) {
 			return al_task_overdue;
 		}
-		else if (task.isRecur()) {
-			return al_task_recurring;
-		}
 		else if (task.isCompleted()) {
 			return al_task_completed;
 		}
@@ -235,7 +221,6 @@ public class Storage {
 		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
 		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 		private static final String TASK_FILENAME = "Task.txt";
-		private static final String RECURRING_TASK_FILENAME = "RecurringTask.txt";
 		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 		
 		// Interfaces with the textFiles(databases)*************************
@@ -306,8 +291,6 @@ public class Storage {
 				filename = COMPLETED_TASK_FILENAME;
 			} else if (fileToWrite == al_task_overdue) {
 				filename = OVERDUE_TASK_FILENAME;
-			} else if (fileToWrite == al_task_recurring) {
-				filename = RECURRING_TASK_FILENAME;
 			} else {
 				throw new Error("Invalid file to write to");
 			}

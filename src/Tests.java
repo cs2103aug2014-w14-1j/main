@@ -102,10 +102,11 @@ public class Tests {
 			Calendar task5_completed = Calendar.getInstance();
 			task5.setTaskCompleted(task5_completed);
 			task5.updateRecur();		//this is a redundant check, it should auto-update
-			test(task5.getTaskDateTime().getDates().size(), 3);
+			test(task5.getTaskDateTime(0).size(), 3);
 			
 			//Task 6: Recurring Task (MONTH)
 			
+			System.out.println("Task 6");
 			Task task6 = new Task();
 			task6.setTaskName("1st of month");
 			Calendar task6_date = Calendar.getInstance();
@@ -113,10 +114,11 @@ public class Tests {
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
 			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
-			test(task6.getTaskDateTime().getDates().size(), 24);
+			test(task6.getTaskDateTime(0).size(), 24);
 			
 			//Task 7: Recurring Task (WEEK)
 			
+			System.out.println("Task 7");
 			Task task7 = new Task();
 			task7.setTaskName("Go jogging");
 			task7.addTaskTags("exercise");
@@ -125,10 +127,10 @@ public class Tests {
 			Calendar task7_limit = Calendar.getInstance();
 			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
 			task7.addTaskDatesTimes(task7_date, "week", task7_limit);
-			test(task7.getTaskDateTime().getDates().size(), 17);
-			
+			test(task7.getTaskDateTime(0).size(), 17);
 			
 			//Task 8: Recurring Task (DAY)
+			System.out.println("Task 8");
 			Task task8 = new Task();
 			task8.setTaskName("Go to sleep by 11");
 			Calendar task8_date = Calendar.getInstance();
@@ -136,9 +138,10 @@ public class Tests {
 			Calendar task8_limit = Calendar.getInstance();
 			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
 			task8.addTaskDatesTimes(task8_date, "day", task8_limit);
-			test(task8.getTaskDateTime().getDates().size(), 31);
+			test(task8.getTaskDateTime(0).size(), 31);
 			
 			//Task 9: Task with two different dates (RECURRING)
+			System.out.println("Task 9");
 			Task task9 = new Task();
 			task9.setTaskName("ST2132 Lecture");
 			task9.addTaskTags("school");
@@ -147,10 +150,16 @@ public class Tests {
 			task9_tue_date1.set(2014, Calendar.AUGUST, 12, 8, 00, 00);
 			Calendar task9_tue_date2 = Calendar.getInstance();
 			task9_tue_date2.set(2014, Calendar.AUGUST, 12, 10, 00, 00);
+			Calendar task9_fri_date1 = Calendar.getInstance();
+			task9_fri_date1.set(2014, Calendar.AUGUST, 15, 8, 00, 00);
+			Calendar task9_fri_date2 = Calendar.getInstance();
+			task9_fri_date2.set(2014, Calendar.AUGUST, 15, 10, 00, 00);
 			Calendar task9_limit = Calendar.getInstance();
 			task9_limit.set(2014, Calendar.NOVEMBER, 15, 00, 00, 00);
 			task9.addTaskDatesTimes(task9_tue_date1, task9_tue_date2, "week", task9_limit);
-			test(task9.getTaskDateTime().getDates().size(), 14);
+			task9.addTaskDatesTimes(task9_fri_date1, task9_fri_date2, "week", task9_limit);
+			test(task9.getTaskDateTime(0).size(), 14);
+			test(task9.getTaskDateTime(1).size(), 14);
 			
 			
 			//Storage tests*****************************************************

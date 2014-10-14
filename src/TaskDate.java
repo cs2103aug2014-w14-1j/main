@@ -72,7 +72,7 @@ public class TaskDate {
 		
 		assert before.before(after);
 		
-		dateLogger.log(Level.INFO, before.getTime().toString() + "\n" + after.getTime().toString());
+		//dateLogger.log(Level.INFO, before.getTime().toString() + "\n" + after.getTime().toString());
 		
 		return new DateNode(before, after);
 	}
@@ -110,9 +110,12 @@ public class TaskDate {
 		return false;
 	}
 	
-	public LinkedList<DateNode> getDates() {
-		assert nodes != null;
-		return nodes;
+	public LinkedList<String> getDates() {
+		LinkedList<String> datesTranslated = new LinkedList<String>();
+		for (DateNode date : nodes) {
+			datesTranslated.add(date.getDates());
+		}
+		return datesTranslated;
 	}
 	
 	public Calendar getStartDate() {
@@ -121,6 +124,10 @@ public class TaskDate {
 	
 	public Calendar getEndDate() {
 		return nodes.getLast().getEndDate();
+	}
+	
+	public String getFirstDate() {
+		return nodes.getFirst().getDates();
 	}
 	
 	
@@ -147,6 +154,9 @@ public class TaskDate {
 		}
 		
 		public String getDates() {
+			if (start_date.equals(end_date)) {
+				return start_date.getTime().toString();
+			}
 			return start_date.getTime().toString() + " - " + end_date.getTime().toString();
 		}
 		
