@@ -78,4 +78,12 @@ public class Command {
 	public void setSearchStartDate(Calendar searchStartDate) {
 		this.searchStartDate = searchStartDate;
 	}
+
+	public Calendar getSearchEndDate() {
+		return searchEndDate;
+	}
+
+	public void setSearchEndDate(Calendar searchEndDate) {
+		this.searchEndDate = searchEndDate;
+	}
 }
