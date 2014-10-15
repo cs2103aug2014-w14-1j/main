@@ -12,6 +12,7 @@ public class Command {
 	private Calendar taskDueDate;
 	private Calendar searchDate;
 	private Calendar searchStartDate;
+	private Calendar searchEndDate;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
 	private LinkedList<String> taskTags;
