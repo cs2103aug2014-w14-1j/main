@@ -120,6 +120,9 @@ public class Parser {
 				case DELETE:
 					generateDeleteCommandObj(commandDetails);
 					break;
+				case COMPLETE:
+					generateCompleteCommandObj(commandDetails);
+					break;
 			}
 		}
 		return commandObj;
@@ -153,6 +156,11 @@ public class Parser {
 	private void generateDeleteCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
+	}
+
+	private void generateCompleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
 	}
 
 	private Calendar parseLatestDate(String commandDetails) {
