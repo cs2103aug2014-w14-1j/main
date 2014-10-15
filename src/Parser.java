@@ -163,20 +163,23 @@ public class Parser {
 		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
 	}
 
+	private ArrayList<Calendar> parseDates(String input) {
+		List<Date> dates = new PrettyTimeParser().parse(input);
+		ArrayList<Calendar> result = new ArrayList<Calendar>();
+		for (Date date: dates) {
+			result.add(DateToCalendar(date));
+		}
+		return result;
+	}
+
 	private Calendar parseLatestDate(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
+		ArrayList<Calendar> dates = parseDates(commandDetails);
 		if (dates.size() == 0) {
 			return null;
 		} else {
-			Comparator<Date> dateComparator = new Comparator<Date>() {
-				@Override
-				public int compare(Date o1, Date o2) {
-					return o2.compareTo(o1);
-				}
-			};
-			dates.sort(dateComparator);
-			return DateToCalendar(dates.get(0));
+			Collections.sort(dates);
+			return dates.get(dates.size()-1);
 		}
 	}
 
