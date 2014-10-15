@@ -101,16 +101,18 @@ public class Parser {
 		commandObj = new Command();
 		commandObj.setCommandType(commandType);
 		String commandDetails = command.replaceFirst("^(\\w+)\\s+","");
-		switch (commandType) {
-			case ADD:
-				generateAddCommandObj(commandDetails);
-				break;
-			case EDIT:
-				generateEditCommandObj(commandDetails);
-				break;
-			case DELETE:
-				generateDeleteCommandObj(commandDetails);
-				break;
+		if (!commandDetails.trim().equals("")) {
+			switch (commandType) {
+				case ADD:
+					generateAddCommandObj(commandDetails);
+					break;
+				case EDIT:
+					generateEditCommandObj(commandDetails);
+					break;
+				case DELETE:
+					generateDeleteCommandObj(commandDetails);
+					break;
+			}
 		}
 		return commandObj;
 	}
