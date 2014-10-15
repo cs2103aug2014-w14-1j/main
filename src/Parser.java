@@ -26,16 +26,9 @@ public class Parser {
 		command = userCommand;
 		String commandTypeString = getFirstWord(command).toLowerCase();
 		commandType = parserCommandType(commandTypeString);
-		if (isValidCommand()) {
-			return generateCommandObj();
-		} else {
-			return null;
-		}
+		return generateCommandObj();
 	}
 
-	private boolean isValidCommand() {
-		return commandType != Command.COMMAND_TYPE.INVALID;
-	}
 
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
