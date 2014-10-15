@@ -10,6 +10,7 @@ public class Command {
 	private String taskID;
 	private String taskName;
 	private Calendar taskDueDate;
+	private Calendar searchDate;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
 	private LinkedList<String> taskTags;
@@ -56,7 +57,15 @@ public class Command {
 	public void setTaskIDsToComplete(String[] IDs) {
 		taskIDsToComplete = IDs;
 	}
+
 	public String[] getTaskIDsToComplete() {
 		return taskIDsToComplete;
+	}
+	public Calendar getSearchDate() {
+		return searchDate;
+	}
+
+	public void setSearchDate(Calendar searchDate) {
+		this.searchDate = searchDate;
 	}
 }
