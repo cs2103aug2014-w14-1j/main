@@ -128,11 +128,13 @@ public class Parser {
 	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
 
 	private void generateAddCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateEditCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
@@ -141,10 +143,12 @@ public class Parser {
 	}
 
 	private void generateDeleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
 	}
 
 	private Calendar parseLatestDate(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
 		if (dates.size() == 0) {
 			return null;
@@ -167,6 +171,7 @@ public class Parser {
 	}
 
 	private String parseTaskName(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String taskName = commandDetails;
 		String[] commandArray = commandDetails.split("\\s+");
 		int dateIndex = -1;
