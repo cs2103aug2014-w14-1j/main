@@ -3,7 +3,7 @@ import java.util.LinkedList;
 
 public class Command {
 	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, TAG, INVALID, EXIT
+		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, INVALID, EXIT
 	}
 
 	private COMMAND_TYPE commandType;

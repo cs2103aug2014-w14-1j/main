@@ -18,6 +18,7 @@ public class Parser {
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search"};
 	private String[] completeCommands = {"complete"};
+	private String[] undoCommands = {"undo"};
 	private String[] exitCommands = {"quit"};
 
 	public Command parseCommand(String userCommand) {
@@ -52,6 +53,8 @@ public class Parser {
 			return Command.COMMAND_TYPE.SEARCH;
 		} else if (isCompleteCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.COMPLETE;
+		} else if (isUndoCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.UNDO;
 		} else if (isExitCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.EXIT;
 		} else {
@@ -81,6 +84,10 @@ public class Parser {
 
 	private boolean isCompleteCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, completeCommands);
+	}
+
+	private boolean isUndoCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, undoCommands);
 	}
 
 	private boolean isExitCommand(String commandTypeString) {
