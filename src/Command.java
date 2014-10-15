@@ -11,6 +11,7 @@ public class Command {
 	private String taskName;
 	private Calendar taskDueDate;
 	private String[] taskIDsToDelete;
+	private String[] taskIDsToComplete;
 	private LinkedList<String> taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
@@ -51,5 +52,11 @@ public class Command {
 
 	public String[] getTaskIDsToDelete() {
 		return taskIDsToDelete;
+	}
+	public void setTaskIDsToComplete(String[] IDs) {
+		taskIDsToComplete = IDs;
+	}
+	public String[] getTaskIDsToComplete() {
+		return taskIDsToComplete;
 	}
 }
