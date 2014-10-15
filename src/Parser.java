@@ -100,8 +100,8 @@ public class Parser {
 	private Command generateCommandObj() {
 		commandObj = new Command();
 		commandObj.setCommandType(commandType);
-		String commandDetails = command.replaceFirst("^(\\w+)\\s+","");
-		if (!commandDetails.trim().equals("")) {
+		String commandDetails = removeCommand();
+		if (!commandDetails.equals("")) {
 			switch (commandType) {
 				case ADD:
 					generateAddCommandObj(commandDetails);
@@ -115,6 +115,14 @@ public class Parser {
 			}
 		}
 		return commandObj;
+	}
+
+	private String removeCommand() {
+		if (matches(command, "\\s+")) {
+			return command.replaceFirst("^(\\w+)\\s+","");
+		} else {
+			return "";
+		}
 	}
 
 	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
