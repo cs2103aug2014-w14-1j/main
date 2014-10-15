@@ -180,7 +180,7 @@ public class Parser {
 		}
 	}
 
-	public static Calendar DateToCalendar(Date date){
+	public Calendar DateToCalendar(Date date){
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		return cal;
