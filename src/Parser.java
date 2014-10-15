@@ -120,6 +120,9 @@ public class Parser {
 				case DELETE:
 					generateDeleteCommandObj(commandDetails);
 					break;
+				case LIST:
+					generateListCommandObj(commandDetails);
+					break;
 				case COMPLETE:
 					generateCompleteCommandObj(commandDetails);
 					break;
@@ -156,6 +159,17 @@ public class Parser {
 	private void generateDeleteCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
+	}
+
+	private void generateListCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		ArrayList<Calendar> dates = parseDates(commandDetails);
+		if (dates.size() == 1) {
+			commandObj.setSearchDate(dates.get(0));
+		} else if (dates.size() > 1) {
+			commandObj.setSearchStartDate(dates.get(0));
+			commandObj.setSearchEndDate(dates.get(dates.size()-1));
+		}
 	}
 
 	private void generateCompleteCommandObj(String commandDetails) {
