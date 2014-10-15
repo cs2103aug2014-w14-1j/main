@@ -4,6 +4,7 @@ import org.ocpsoft.prettytime.shade.org.apache.commons.lang.StringUtils;
 import java.util.*;
 
 import static org.mentaregex.Regex.match;
+import static org.mentaregex.Regex.matches;
 
 public class Parser {
 
