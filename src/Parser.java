@@ -158,7 +158,10 @@ public class Parser {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		ArrayList<Calendar> dates = parseDates(commandDetails);
 		if (dates.size() == 1) {
-			commandObj.setSearchDate(dates.get(0));
+			Calendar startDate = startOfDay(dates.get(0));
+			commandObj.setSearchStartDate(startDate);
+			Calendar endDate = endOfDay((Calendar) startDate.clone());
+			commandObj.setSearchEndDate(endDate);
 		} else if (dates.size() > 1) {
 			commandObj.setSearchStartDate(dates.get(0));
 			commandObj.setSearchEndDate(dates.get(dates.size()-1));
@@ -168,6 +171,20 @@ public class Parser {
 	private void generateCompleteCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
+	}
+
+	private Calendar startOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		return cal;
+	}
+
+	private Calendar endOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		return cal;
 	}
 
 	private ArrayList<Calendar> parseDates(String input) {
