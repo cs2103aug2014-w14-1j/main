@@ -2,7 +2,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
 
@@ -75,10 +74,6 @@ public class Controller {
 		}
 		
 		viewToday();
-	}
-	
-	public static void wake() {
-		
 	}
 	
 	private static void delete(String id) throws IOException {

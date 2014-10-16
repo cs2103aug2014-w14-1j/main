@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import com.sun.istack.internal.logging.Logger;
+
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -35,6 +37,8 @@ public class UI extends Application{
 	TextArea overdueTasks;
 	TextArea reminders;
 	
+	private static Logger log = Logger.getLogger(Application.class);
+	
 	private static final double WIDTH_OF_PROGRAM = 900;
 	private static final double HEIGHT_OF_PROGRAM = 500;
 	private static final double WIDTH_OF_NORMTASKVIEW = WIDTH_OF_PROGRAM * 7/10;
@@ -51,15 +55,17 @@ public class UI extends Application{
 	public void start(Stage stage) throws Exception {
 		initStage(stage);
 		initUserCommands();
+		log.info("Successful initiation of Stage");
 		
 	}
 	
 	/*Method handles the display and sizing of components*/
 	
-	public void initStage(Stage stage){
+	private void initStage(Stage stage){
 		ArrayList<String> al = new ArrayList<String>();
-		al.add("Test 1");
-		al.add("Test 2");
+		for(int i = 0; i < 50; i ++){
+		al.add("Test " + i);		
+		}
 		
 		root = new HBox();
 		root.setPrefSize(WIDTH_OF_PROGRAM, HEIGHT_OF_PROGRAM);
@@ -158,9 +164,10 @@ public class UI extends Application{
 
 
 	
-	void initUserCommands(){
+	private void initUserCommands(){
 		userCommands.setText("");
 		userCommands.requestFocus();
+		log.info("Ready to receive Input");
 	}
 	
 }
