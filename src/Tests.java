@@ -113,6 +113,7 @@ public class Tests {
 			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
 			test(task6.getTaskDateTime(0).size(), 24);
 			
+			
 			//Task 7: Recurring Task (WEEK)
 			
 			System.out.println("Task 7");
@@ -194,10 +195,11 @@ public class Tests {
 			storage.insert(task9);
 			test(storage.getTasksFile().size(), 7);
 			
+			/*
 			//insert an already existing task
 			storage.insert(task1);
 			test(storage.getTasksFile().size(), 7);
-			
+			*/
 			System.out.println("All tests successful");
 		}
 		

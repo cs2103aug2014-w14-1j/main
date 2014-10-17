@@ -1,10 +1,8 @@
 import java.util.Calendar;
 import java.util.LinkedList;
-import java.util.logging.*;
 
 //prototype
 public class TaskDate {
-	private static final Logger dateLogger = Logger.getLogger(TaskDate.class.getName());
 	
 	private static final String RECUR_YEAR = "year";
 	private static final String RECUR_MONTH = "month";
@@ -17,7 +15,6 @@ public class TaskDate {
 	private Calendar limit;
 	
 	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
-		dateLogger.log(Level.INFO, "Creating new TaskDate");
 		if (end_date.before(start_date)) {
 			
 		}
@@ -41,11 +38,7 @@ public class TaskDate {
 	
 	//assumes at least one datenode
 	public void updateRecur() {
-		dateLogger.log(Level.INFO, "Updating dates of recurring task");
 		if (recur.equals("") || limit == null || nodes.isEmpty()) {
-			dateLogger.log(Level.WARNING, Boolean.toString(recur.equals("")) + " " +
-					Boolean.toString(limit == null) + " " +
-					Boolean.toString(nodes.isEmpty()));
 			return;
 		}
 		
@@ -57,7 +50,6 @@ public class TaskDate {
 			}
 		}
 		
-		dateLogger.log(Level.INFO, "Updated!");
 	}
 	
 	private DateNode increaseDate(DateNode date) {

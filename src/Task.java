@@ -1,10 +1,8 @@
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Calendar;
-import java.util.logging.*;
 
 public class Task {
-	private static final Logger taskLogger = Logger.getLogger(Task.class.getName());
 	
 	private String taskName;
 	private String taskId;
@@ -17,7 +15,6 @@ public class Task {
 	 */
 	public Task() {
 		this("", "", new LinkedList<TaskDate>(), "", null, new ArrayList<String>());
-		taskLogger.log(Level.INFO, "New empty Task");
 	}
 	
 	private Task(String taskId, String taskName, LinkedList<TaskDate> taskDatesTimes,
@@ -36,6 +33,10 @@ public class Task {
 
 	public String getTaskId() {
 		return this.taskId;
+	}
+	
+	public boolean hasNoID() {
+		return taskId.equals("");
 	}
 
 	// Task ID************************************
@@ -133,7 +134,6 @@ public class Task {
 	}
 	
 	public boolean isOverdue() {
-		taskLogger.log(Level.INFO, "Checking overdue");
 		Calendar now = Calendar.getInstance();
 		for (TaskDate date: taskDates) {
 			if ( (taskDateCompleted == null || taskDateCompleted.before(date.getEndDate()))

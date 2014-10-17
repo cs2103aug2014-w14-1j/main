@@ -1,6 +1,4 @@
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.io.*;
 
 import org.json.JSONException;
@@ -9,7 +7,6 @@ import com.google.gson.Gson;
 
 
 public class Storage {
-	private static final Logger storageLogger = Logger.getLogger(Storage.class.getName());
 	
 	private ArrayList<Task> al_task;
 	private ArrayList<Task> al_task_floating;
@@ -41,17 +38,14 @@ public class Storage {
 
 	private void insert(Task task, ArrayList<Task> list) throws JSONException,
 			IOException {
-		storageLogger.log(Level.INFO, "Beginning log: Insert task");
 		filehandler.readFile(list);
 		
-		if (task.getTaskId().equals("")) {
+		if (task.hasNoID()) {
 			assignID(task);
-			storageLogger.log(Level.INFO, "New task: Assigned ID " + task.getTaskId());
 		}
 		list.add(task);
 		
 		filehandler.writeFile(list);
-		storageLogger.log(Level.INFO, "Ending log: Insert task");
 	}
 	
 	private void assignID(Task task) throws IOException {
@@ -72,11 +66,9 @@ public class Storage {
 	}
 
 	private void delete(Task task, ArrayList<Task> list) throws IOException {
-		storageLogger.log(Level.INFO, "Beginning log: Delete task");
 		filehandler.readFile(list);
 		list.remove(task);
 		filehandler.writeFile(list);
-		storageLogger.log(Level.INFO, "Ending log: Delete task");
 	}
 
 	public ArrayList<Task> getTasksFile() {
