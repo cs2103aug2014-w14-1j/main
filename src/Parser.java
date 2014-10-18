@@ -4,6 +4,7 @@ import org.ocpsoft.prettytime.shade.org.apache.commons.lang.StringUtils;
 import java.util.*;
 
 import static org.mentaregex.Regex.match;
+import static org.mentaregex.Regex.matches;
 
 public class Parser {
 
@@ -18,22 +19,16 @@ public class Parser {
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search"};
 	private String[] completeCommands = {"complete"};
+	private String[] undoCommands = {"undo"};
 	private String[] exitCommands = {"quit"};
 
 	public Command parseCommand(String userCommand) {
 		command = userCommand;
 		String commandTypeString = getFirstWord(command).toLowerCase();
 		commandType = parserCommandType(commandTypeString);
-		if (isValidCommand()) {
-			return generateCommandObj();
-		} else {
-			return null;
-		}
+		return generateCommandObj();
 	}
 
-	private boolean isValidCommand() {
-		return commandType != Command.COMMAND_TYPE.INVALID;
-	}
 
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
@@ -52,6 +47,8 @@ public class Parser {
 			return Command.COMMAND_TYPE.SEARCH;
 		} else if (isCompleteCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.COMPLETE;
+		} else if (isUndoCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.UNDO;
 		} else if (isExitCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.EXIT;
 		} else {
@@ -83,6 +80,10 @@ public class Parser {
 		return containsCommand(commandTypeString, completeCommands);
 	}
 
+	private boolean isUndoCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, undoCommands);
+	}
+
 	private boolean isExitCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, exitCommands);
 	}
@@ -100,29 +101,47 @@ public class Parser {
 	private Command generateCommandObj() {
 		commandObj = new Command();
 		commandObj.setCommandType(commandType);
-		String commandDetails = command.replaceFirst("^(\\w+)\\s+","");
-		switch (commandType) {
-			case ADD:
-				generateAddCommandObj(commandDetails);
-				break;
-			case EDIT:
-				generateEditCommandObj(commandDetails);
-				break;
-			case DELETE:
-				generateDeleteCommandObj(commandDetails);
-				break;
+		String commandDetails = removeCommand();
+		if (!commandDetails.equals("")) {
+			switch (commandType) {
+				case ADD:
+					generateAddCommandObj(commandDetails);
+					break;
+				case EDIT:
+					generateEditCommandObj(commandDetails);
+					break;
+				case DELETE:
+					generateDeleteCommandObj(commandDetails);
+					break;
+				case LIST:
+					generateListCommandObj(commandDetails);
+					break;
+				case COMPLETE:
+					generateCompleteCommandObj(commandDetails);
+					break;
+			}
 		}
 		return commandObj;
+	}
+
+	private String removeCommand() {
+		if (matches(command, "\\s+")) {
+			return command.replaceFirst("^(\\w+)\\s+","");
+		} else {
+			return "";
+		}
 	}
 
 	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
 
 	private void generateAddCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
 
 	private void generateEditCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
@@ -131,32 +150,71 @@ public class Parser {
 	}
 
 	private void generateDeleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
 	}
 
-	private Calendar parseLatestDate(String commandDetails) {
-		List<Date> dates = new PrettyTimeParser().parse(commandDetails);
-		if (dates.size() == 0) {
-			return null;
-		} else {
-			Comparator<Date> dateComparator = new Comparator<Date>() {
-				@Override
-				public int compare(Date o1, Date o2) {
-					return o2.compareTo(o1);
-				}
-			};
-			dates.sort(dateComparator);
-			return DateToCalendar(dates.get(0));
+	private void generateListCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		ArrayList<Calendar> dates = parseDates(commandDetails);
+		if (dates.size() == 1) {
+			Calendar startDate = startOfDay(dates.get(0));
+			commandObj.setSearchStartDate(startDate);
+			Calendar endDate = endOfDay((Calendar) startDate.clone());
+			commandObj.setSearchEndDate(endDate);
+		} else if (dates.size() > 1) {
+			commandObj.setSearchStartDate(dates.get(0));
+			commandObj.setSearchEndDate(dates.get(dates.size()-1));
 		}
 	}
 
-	public static Calendar DateToCalendar(Date date){
+	private void generateCompleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
+	}
+
+	private Calendar startOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		return cal;
+	}
+
+	private Calendar endOfDay(Calendar cal) {
+		cal.set(Calendar.HOUR_OF_DAY, 23);
+		cal.set(Calendar.MINUTE, 59);
+		cal.set(Calendar.SECOND, 59);
+		return cal;
+	}
+
+	private ArrayList<Calendar> parseDates(String input) {
+		List<Date> dates = new PrettyTimeParser().parse(input);
+		ArrayList<Calendar> result = new ArrayList<Calendar>();
+		for (Date date: dates) {
+			result.add(DateToCalendar(date));
+		}
+		return result;
+	}
+
+	private Calendar parseLatestDate(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		ArrayList<Calendar> dates = parseDates(commandDetails);
+		if (dates.size() == 0) {
+			return null;
+		} else {
+			Collections.sort(dates);
+			return dates.get(dates.size()-1);
+		}
+	}
+
+	public Calendar DateToCalendar(Date date){
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 		return cal;
 	}
 
 	private String parseTaskName(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String taskName = commandDetails;
 		String[] commandArray = commandDetails.split("\\s+");
 		int dateIndex = -1;

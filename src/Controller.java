@@ -199,7 +199,7 @@ public class Controller {
 			inputCommand_= UI_.get();
 			currentCommand_ = parser_.parseCommand(inputCommand_);
 			
-			if (currentCommand_!=null) {
+			if (currentCommand_.getCommandType() != Command.COMMAND_TYPE.INVALID) {
 				proceedCommand();
 			} else {
 				UI_.println("Invalid Command");
