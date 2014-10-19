@@ -2,6 +2,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Calendar;
 
+import org.ocpsoft.prettytime.shade.edu.emory.mathcs.backport.java.util.Collections;
+
 public class Task {
 	
 	private String taskName;
@@ -72,20 +74,26 @@ public class Task {
 		addTaskDatesTimes(date, date);
 	}
 	
-	public void removeTaskDatesTimes(int i){
-		taskDates.remove(i);
-	}
-	
-	public Calendar getTaskStartDateTime() {
-		return taskDates.getFirst().getStartDate();
-	}
-	
-	public Calendar getTaskEndDateTime() {
-		return taskDates.getLast().getEndDate();
+	public void clearTaskDatesTimes() {
+		taskDates.clear();
 	}
 	
 	public LinkedList<String> getTaskDateTime(int i) {
 		return taskDates.get(i).getDates();
+	}
+	
+	public LinkedList<String> getTaskDatesSorted() {
+		LinkedList<DateNode> taskStartDates = new LinkedList<DateNode>();
+		DateComparator dateComparator = new DateComparator();
+		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
+		for(int i = 0; i < taskDates.size(); i++) {
+			taskStartDates.addAll(taskDates.get(i).getDateNodes());
+		}
+		Collections.sort(taskStartDates, dateComparator);
+		for (DateNode date : taskStartDates) {
+			taskStartDatesTranslated.add(date.getDates());
+		}
+		return taskStartDatesTranslated;
 	}
 	
 	// Task Dates and Times ********************************
@@ -122,8 +130,8 @@ public class Task {
 		this.taskDateCompleted = c;
 	}
 
-	public Calendar getTaskDateCompleted() {
-		return this.taskDateCompleted;
+	public String getTaskDateCompleted() {
+		return this.taskDateCompleted.getTime().toString();
 	}
 	
 	public boolean isCompleted() {

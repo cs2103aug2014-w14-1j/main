@@ -38,14 +38,12 @@ public class Storage {
 
 	private void insert(Task task, ArrayList<Task> list) throws JSONException,
 			IOException {
-		filehandler.readFile(list);
 		
 		if (task.hasNoID()) {
 			assignID(task);
 		}
 		list.add(task);
 		
-		filehandler.writeFile(list);
 	}
 	
 	private void assignID(Task task) throws IOException {
@@ -66,9 +64,7 @@ public class Storage {
 	}
 
 	private void delete(Task task, ArrayList<Task> list) throws IOException {
-		filehandler.readFile(list);
 		list.remove(task);
-		filehandler.writeFile(list);
 	}
 
 	public ArrayList<Task> getTasksFile() {

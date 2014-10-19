@@ -1,5 +1,6 @@
 import java.util.Calendar;
 import java.util.LinkedList;
+import java.util.Comparator;
 
 //prototype
 public class TaskDate {
@@ -12,16 +13,14 @@ public class TaskDate {
 	
 	private LinkedList<DateNode> nodes;
 	private String recur;
-	private Calendar limit;
+	private Calendar end_limit;
 	
-	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
-		if (end_date.before(start_date)) {
-			
-		}
+	public TaskDate(Calendar start_date, Calendar end_date, String recur, Calendar end_limit) {
+		assert !end_date.before(start_date);
 		this.nodes = new LinkedList<DateNode>();
 		this.nodes.add(new DateNode(start_date, end_date));
 		this.recur = recur;
-		this.limit = limit;
+		this.end_limit = end_limit;
 		updateRecur();
 	}
 	
@@ -38,14 +37,14 @@ public class TaskDate {
 	
 	//assumes at least one datenode
 	public void updateRecur() {
-		if (recur.equals("") || limit == null || nodes.isEmpty()) {
+		if (recur.equals("") || end_limit == null || nodes.isEmpty()) {
 			return;
 		}
 		
 		DateNode latest_date = nodes.getLast();
-		while (latest_date.getEndDate().before(limit)) {
+		while (latest_date.getEndDate().before(end_limit)) {
 			latest_date = increaseDate(latest_date);
-			if (latest_date.getEndDate().before(limit)) {
+			if (latest_date.getEndDate().before(end_limit)) {
 				nodes.addLast(latest_date);
 			}
 		}
@@ -63,8 +62,6 @@ public class TaskDate {
 		after.add(getRecurField(recur), RECUR_AMOUNT);
 		
 		assert before.before(after);
-		
-		//dateLogger.log(Level.INFO, before.getTime().toString() + "\n" + after.getTime().toString());
 		
 		return new DateNode(before, after);
 	}
@@ -110,6 +107,10 @@ public class TaskDate {
 		return datesTranslated;
 	}
 	
+	public LinkedList<DateNode> getDateNodes() {
+		return nodes;
+	}
+	
 	public Calendar getStartDate() {
 		return nodes.getFirst().getStartDate();
 	}
@@ -122,61 +123,71 @@ public class TaskDate {
 		return nodes.getFirst().getDates();
 	}
 	
+}
+
+//Internal class DateNode*************************************************
+
+class DateNode {
 	
-	//Internal class DateNode*************************************************
+	Calendar start_date;
+	Calendar end_date;
+	int interval;
 	
-	class DateNode {
-		
-		Calendar start_date;
-		Calendar end_date;
-		int interval;
-		
-		public DateNode(Calendar start_date, Calendar end_date) {
-			this.start_date = start_date;
-			this.end_date = end_date;
-			this.interval = computeInterval();
-		}
+	public DateNode(Calendar start_date, Calendar end_date) {
+		this.start_date = start_date;
+		this.end_date = end_date;
+		this.interval = computeInterval();
+	}
+
+	public Calendar getStartDate() {
+		return start_date;
+	}
 	
-		public Calendar getStartDate() {
-			return start_date;
+	public Calendar getEndDate() {
+		return end_date;
+	}
+	
+	public String getDates() {
+		if (start_date.equals(end_date)) {
+			return start_date.getTime().toString();
 		}
-		
-		public Calendar getEndDate() {
-			return end_date;
-		}
-		
-		public String getDates() {
-			if (start_date.equals(end_date)) {
-				return start_date.getTime().toString();
+		return start_date.getTime().toString() + " - " + end_date.getTime().toString();
+	}
+	
+	public int getInterval() {
+		return interval;
+	}
+	
+	public boolean endsAfter(Calendar search_date) {
+		return end_date.after(search_date);
+	}
+	
+	public boolean startsBefore(Calendar search_date) {
+		return start_date.before(search_date);
+	}
+	
+	//TBC
+	private int computeInterval() {
+		return -1;
+	}
+	
+	public boolean withinDateRange(Calendar search_start_date, Calendar search_end_date) {
+		if (start_date == null || endsAfter(search_start_date)) {
+			if (end_date == null || startsBefore(search_end_date)) {
+				return true;
 			}
-			return start_date.getTime().toString() + " - " + end_date.getTime().toString();
 		}
-		
-		public int getInterval() {
-			return interval;
-		}
-		
-		public boolean endsAfter(Calendar search_date) {
-			return end_date.after(search_date);
-		}
-		
-		public boolean startsBefore(Calendar search_date) {
-			return start_date.before(search_date);
-		}
-		
-		//TBC
-		private int computeInterval() {
+		return false;
+	}
+	
+}
+
+class DateComparator implements Comparator<DateNode> {
+	public int compare(DateNode d1, DateNode d2) {
+		if (d1.getStartDate().before(d2.getStartDate())) {
 			return -1;
 		}
-		
-		public boolean withinDateRange(Calendar search_start_date, Calendar search_end_date) {
-			if (start_date == null || endsAfter(search_start_date)) {
-				if (end_date == null || startsBefore(search_end_date)) {
-					return true;
-				}
-			}
-			return false;
-		}
+		return 1;
 		
 	}
 }

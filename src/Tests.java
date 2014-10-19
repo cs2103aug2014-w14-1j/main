@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Calendar;
 
 
@@ -7,7 +8,6 @@ public class Tests {
 	public static void main(String[] args) {
 		
 		try {
-			Storage storage = new Storage();
 			
 			//Task tests**********************************************************
 			
@@ -28,13 +28,13 @@ public class Tests {
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 			
 			test(task1.getTaskName(), "Task 1: CS2103T finals");
-			test(task1.getTaskStartDateTime(), task1_date);
-			test(task1.getTaskEndDateTime(), task1_date);
 			test(task1.withinDateRange(task1_test_start_date, task1_test_end_date), true);
 			test(task1.getTaskTags().size(), 3);
 			test(task1.getTaskTags().get(0), "school");
 			test(task1.getTaskTags().get(1), "CS2103T");
 			test(task1.getTaskTags().get(2), "exams");
+			test(task1.getTaskDatesSorted().size(), 1);
+			test(task1.getTaskDatesSorted().getFirst(), task1_date.getTime().toString());
 			
 			//Task 2: Task with interval
 			System.out.println("Task 2");
@@ -54,14 +54,16 @@ public class Tests {
 			Calendar task2_test_end_date = Calendar.getInstance();
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
 			
-			test(task2.getTaskStartDateTime(), task2_start_date);
-			test(task2.getTaskEndDateTime(), task2_end_date);
 			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			
 			task2_test_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 30, 00);
 			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
 			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			
+			test(task2.getTaskDatesSorted().size(), 1);
+			test(task2.getTaskDatesSorted().getFirst(), task2_start_date.getTime().toString()
+					+ " - " + task2_end_date.getTime().toString());
 			
 			//Task 3: Overdue Task
 			System.out.println("Task 3");
@@ -100,6 +102,7 @@ public class Tests {
 			task5.setTaskCompleted(task5_completed);
 			task5.updateRecur();		//this is a redundant check, it should auto-update
 			test(task5.getTaskDateTime(0).size(), 3);
+			test(task5.getTaskDateCompleted(), task5_completed.getTime().toString());
 			
 			//Task 6: Recurring Task (MONTH)
 			
@@ -159,9 +162,18 @@ public class Tests {
 			test(task9.getTaskDateTime(0).size(), 14);
 			test(task9.getTaskDateTime(1).size(), 14);
 			
+			//Visual check to see if dates are sorted correctly
+			
+			/*
+			LinkedList<String> task9_sorted_dates = task9.getTaskDatesSorted();
+			for (String date : task9_sorted_dates) {
+				System.out.println(date);
+			}
+			*/
 			
 			//Storage tests*****************************************************
 			
+			Storage storage = new Storage();
 			storage.clearAll();
 			
 			//testing insertion
@@ -195,6 +207,11 @@ public class Tests {
 			storage.insert(task9);
 			test(storage.getTasksFile().size(), 7);
 			
+			//testing deletion
+			
+			storage.delete(task3);
+			test(storage.getOverdueTasksFile().size(), 0);
+			
 			/*
 			//insert an already existing task
 			storage.insert(task1);
@@ -221,10 +238,6 @@ public class Tests {
 		return a == b;
 	}
 	
-	private static boolean checkEquals(Calendar a, Calendar b) {
-		return a.equals(b);
-	}
-	
 	private static void test(String a, String b) {
 		if(!checkEquals(a, b)) {
 			System.out.println("MISMATCH");
@@ -248,15 +261,6 @@ public class Tests {
 			System.out.println("MISMATCH");
 			System.out.println(a);
 			System.out.println(b);
-			System.exit(1);
-		}
-	}
-	
-	private static void test(Calendar a, Calendar b) {
-		if(!checkEquals(a, b)) {
-			System.out.println("MISMATCH");
-			System.out.println(a.getTime());
-			System.out.println(b.getTime());
 			System.exit(1);
 		}
 	}
