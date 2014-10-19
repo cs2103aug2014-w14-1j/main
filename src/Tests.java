@@ -14,7 +14,7 @@ public class Tests {
 			//Task 1: Normal task
 			System.out.println("Task 1");
 			Task task1 = new Task();
-			task1.setTaskName("Task 1: CS2103T finals");
+			task1.setTaskName("CS2103T finals");
 			Calendar task1_date = Calendar.getInstance();
 			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
 			task1.addTaskDatesTimes(task1_date);
@@ -27,7 +27,7 @@ public class Tests {
 			Calendar task1_test_end_date = Calendar.getInstance();
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 			
-			test(task1.getTaskName(), "Task 1: CS2103T finals");
+			test(task1.getTaskName(), "CS2103T finals");
 			test(task1.withinDateRange(task1_test_start_date, task1_test_end_date), true);
 			test(task1.getTaskTags().size(), 3);
 			test(task1.getTaskTags().get(0), "school");
@@ -35,19 +35,20 @@ public class Tests {
 			test(task1.getTaskTags().get(2), "exams");
 			test(task1.getTaskDatesSorted().size(), 1);
 			test(task1.getTaskDatesSorted().getFirst(), task1_date.getTime().toString());
+			test(task1.withinDateRange(null, null), true);
 			
 			//Task 2: Task with interval
 			System.out.println("Task 2");
 			Task task2 = new Task();
-			task2.setTaskName("Task 2: MA3110 Finals");
+			task2.setTaskName("MA3110 finals");
 			Calendar task2_start_date = Calendar.getInstance();
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
 			task2.addTaskDatesTimes(task2_start_date, task2_end_date);
-			task1.addTaskTags("school");
-			task1.addTaskTags("MA3110");
-			task1.addTaskTags("exams");
+			task2.addTaskTags("school");
+			task2.addTaskTags("MA3110");
+			task2.addTaskTags("exams");
 			
 			Calendar task2_test_start_date = Calendar.getInstance();
 			task2_test_start_date.set(2014, Calendar.NOVEMBER, 24, 12, 59, 59);
@@ -177,6 +178,7 @@ public class Tests {
 			storage.clearAll();
 			
 			//testing insertion
+			System.out.println("Insertion");
 			storage.insert(task1);
 			test(storage.getTasksFile().size(), 1);
 			
@@ -208,6 +210,7 @@ public class Tests {
 			test(storage.getTasksFile().size(), 7);
 			
 			//testing deletion
+			System.out.println("Deletion");
 			
 			storage.delete(task3);
 			test(storage.getOverdueTasksFile().size(), 0);
@@ -229,16 +232,71 @@ public class Tests {
 			//testing search
 			
 			//search with no date
-			
-			for (int i = 0; i < storage.getTasksFile().size(); i++) {
-				System.out.println(storage.getTasksFile().get(i).getTaskName());
-			}
+			System.out.println("Search");
 			
 			ArrayList<String> search1_keywords = new ArrayList<String>();
 			search1_keywords.add("Casey");
 			ArrayList<Task> search1 = storage.search(search1_keywords, null, null, null);
 			test(search1.size(), 1);
 			test(search1.get(0).getTaskName(), "Casey's birthday");
+			
+			//search no date, multiple keywords, from multiple lists
+			ArrayList<String> search2_keywords = new ArrayList<String>();
+			search2_keywords.add("1");
+			search2_keywords.add("2");
+			ArrayList<Task> search2 = storage.search(search2_keywords, null, null, null);
+			test(search2.size(), 2);
+			test(search2.get(0).getTaskName(), "CS2103T finals");
+			test(search2.get(1).getTaskName(), "ST2132 Lecture");
+			search2_keywords.remove(1);
+			search2 = storage.search(search2_keywords, null, null, null);
+			test(search2.size(), 6);
+			test(search2.get(0).getTaskName(), "100 pushups");
+			test(search2.get(1).getTaskName(), "CS2103T finals");
+			test(search2.get(2).getTaskName(), "MA3110 finals");
+			test(search2.get(3).getTaskName(), "1st of month");
+			test(search2.get(4).getTaskName(), "Go to sleep by 11");
+			test(search2.get(5).getTaskName(), "ST2132 Lecture");
+			
+			//now search tags
+			ArrayList<String> search2_tags = new ArrayList<String>();
+			search2_tags.add("school");
+			search2 = storage.search(search2_keywords, search2_tags, null, null);
+			test(search2.size(), 3);
+			test(search2.get(0).getTaskName(), "CS2103T finals");
+			
+			//search date
+			Calendar search3_start = Calendar.getInstance();
+			search3_start.set(2014, Calendar.OCTOBER, 1, 00, 00, 00);
+			Calendar search3_end = Calendar.getInstance();
+			search3_end.set(2014, Calendar.NOVEMBER, 1, 00, 00, 00);
+			ArrayList<Task> search3 = storage.search(null, null, search3_start, search3_end);
+			test(search3.size(), 5);
+			test(search3.get(0).getTaskName(), "100 pushups");
+			test(search3.get(1).getTaskName(), "Bake chocolate cake");
+			
+			//search with all fields. Expect nothing
+			Calendar search4_start = Calendar.getInstance();
+			search4_start.set(2014, Calendar.DECEMBER, 1, 00, 00, 00);
+			Calendar search4_end = Calendar.getInstance();
+			search4_end.set(2015, Calendar.JANUARY, 1, 00, 00, 00);
+			ArrayList<String> search4_keywords = new ArrayList<String>();
+			search4_keywords.add("finals");
+			ArrayList<String> search4_tags = new ArrayList<String>();
+			search4_tags.add("CS2103T");
+			ArrayList<Task> search4 = storage.search(search4_keywords, search4_tags, search4_start, search4_end);
+			test(search4.size(),0);
+			
+			//delete, then search
+			//then insert, search
+			ArrayList<String> search5_keywords = new ArrayList<String>();
+			search5_keywords.add("birthday");
+			storage.delete(task5);
+			ArrayList<Task> search5 = storage.search(search5_keywords, null, null, null);
+			test(search5.size(), 0);
+			storage.insert(task5);
+			search5 = storage.search(search5_keywords, null, null, null);
+			test(search5.size(), 1);
 			
 			/*
 			//insert an already existing task
