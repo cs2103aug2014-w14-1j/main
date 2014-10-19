@@ -40,7 +40,7 @@ public class Display {
 		} else {
 			for (String key: treeMap.keySet()) {
 				println("Task id: " + key);
-				toDisplay(treeMap.get(key));
+				toDisplay(treeMap.get(key)); 
 			}
 		}
 	}
@@ -50,12 +50,11 @@ public class Display {
 		println("-- Task name: " + task.getTaskName());
 
 		println("-- Task date(s): ");
-		LinkedList<Calendar> dates = task.getTaskDatesTimes();
-		for (Calendar date : dates) {
-			printDate(date);
+		LinkedList<String> dates = task.getTaskDatesSorted();
+		for (String date : dates) {
+			println(date);
 			}
 		println("");
-
 	}
 	
 	public void print(Object obj) {
