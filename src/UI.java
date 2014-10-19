@@ -38,7 +38,7 @@ public class UI extends Application {
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
-	private ArrayList<Task> test;
+	private ArrayList<Task> displayTasks;
 	
 
 	public static void main(String[] args) {
@@ -48,12 +48,13 @@ public class UI extends Application {
 	@Override
 	public void start(Stage stage) throws Exception {
 		// Test
-		test = new ArrayList<Task>();
+		displayTasks = new ArrayList<Task>();
 		for (int i = 0; i < 30; i++) {
 			Task t = new Task();
 			t.setTaskId(i);
 			t.setTaskName("Task" + i);
-			test.add(t);
+			t.setDisplayId("t" + i);
+			displayTasks.add(t);
 		}
 		initStage(stage);
 		initObservers();
@@ -87,7 +88,7 @@ public class UI extends Application {
 		taskTable.setPrefHeight(500);
 	
 				
-		dataToDisplay = FXCollections.observableArrayList(test);
+		dataToDisplay = FXCollections.observableArrayList(displayTasks);
 		
 		//width adds to 710
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
@@ -95,7 +96,7 @@ public class UI extends Application {
 		taskLblCol.setPrefWidth(60);
 		taskLblCol.setResizable(false);
 		taskLblCol.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"taskId"));
+				"taskDisplayId"));
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
@@ -229,6 +230,10 @@ public class UI extends Application {
 		messagesToUser.clear();
 		messagesToUser.appendText(msg);
 		messagesToUser.setDisable(true);
+	}
+	
+	public void displayTasks(ArrayList<Task> taskAL){
+		this.displayTasks = taskAL;		
 	}
 	// ****************************************************************************
 }
