@@ -3,6 +3,7 @@ import java.util.LinkedList;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.TreeMap;
 
 public class Display {
 	
@@ -29,6 +30,17 @@ public class Display {
 			for (int i = 0; i < tasklist.size(); i++) {
 				println("Task id: " + ids.get(i));
 				toDisplay(tasklist.get(i));
+			}
+		}
+	}
+	
+	public void toDisplay(TreeMap<String,Task> treeMap) {
+		if (treeMap.isEmpty()) {
+			println("-- Found no tasks");
+		} else {
+			for (String key: treeMap.keySet()) {
+				println("Task id: " + key);
+				toDisplay(treeMap.get(key));
 			}
 		}
 	}
