@@ -3,14 +3,17 @@ import java.util.LinkedList;
 
 public class Command {
 	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, TAG, INVALID
+		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, INVALID, EXIT
 	}
 
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
 	private Calendar taskDueDate;
+	private Calendar searchStartDate;
+	private Calendar searchEndDate;
 	private String[] taskIDsToDelete;
+	private String[] taskIDsToComplete;
 	private LinkedList<String> taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
@@ -51,5 +54,28 @@ public class Command {
 
 	public String[] getTaskIDsToDelete() {
 		return taskIDsToDelete;
+	}
+	public void setTaskIDsToComplete(String[] IDs) {
+		taskIDsToComplete = IDs;
+	}
+
+	public String[] getTaskIDsToComplete() {
+		return taskIDsToComplete;
+	}
+
+	public Calendar getSearchStartDate() {
+		return searchStartDate;
+	}
+
+	public void setSearchStartDate(Calendar searchStartDate) {
+		this.searchStartDate = searchStartDate;
+	}
+
+	public Calendar getSearchEndDate() {
+		return searchEndDate;
+	}
+
+	public void setSearchEndDate(Calendar searchEndDate) {
+		this.searchEndDate = searchEndDate;
 	}
 }

@@ -192,14 +192,14 @@ public class Controller {
 		while (UI_.hasNextLine()) {
 			
 			inputCommand_= UI_.get();
-			parser_.parseCommand(inputCommand_);
+			currentCommand_ = parser_.parseCommand(inputCommand_);
 			
-			if (!parser_.isValidCommand()) {
-				UI_.println("Invalid command.");
-			} else {
-				currentCommand_ = parser_.getCommandObj();
+			if (currentCommand_.getCommandType() != Command.COMMAND_TYPE.INVALID) {
 				proceedCommand();
+			} else {
+				UI_.println("Invalid Command");
 			}
+	
 			
 			UI_.print("Please insert command: ");
 		}

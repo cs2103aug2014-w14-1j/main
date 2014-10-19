@@ -9,8 +9,17 @@
 	-fx-font-weight: bold;
 }
 
+#messageToUserText {
+	-fx-background-color: #faebd7;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Red;
+	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
+}
+
+
 .label {
-	-fx-font:15px Verdana;
+	-fx-font:12px Verdana;
 	-fx-text-fill: Darkblue;
 	-fx-font-weight : bold;
 	
