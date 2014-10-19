@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.TreeMap;
 
 import javafx.application.Application;
 import javafx.collections.FXCollections;
@@ -38,23 +39,15 @@ public class UI extends Application {
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
-	private ArrayList<Task> test;
+	private ArrayList<Task> displayArrayList;
 	
-
 	public static void main(String[] args) {
 		launch(args);
 	}
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		// Test
-		test = new ArrayList<Task>();
-		for (int i = 0; i < 30; i++) {
-			Task t = new Task();
-			t.setTaskId(i);
-			t.setTaskName("Task" + i);
-			test.add(t);
-		}
+		displayArrayList = new ArrayList<Task>();
 		initStage(stage);
 		initObservers();
 		initUserCommands();
@@ -87,7 +80,7 @@ public class UI extends Application {
 		taskTable.setPrefHeight(500);
 	
 				
-		dataToDisplay = FXCollections.observableArrayList(test);
+		dataToDisplay = FXCollections.observableArrayList(displayArrayList);
 		
 		//width adds to 710
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
@@ -116,7 +109,7 @@ public class UI extends Application {
 
 		taskTable.setItems(dataToDisplay);
 		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskReminderCol,
-				taskDeadlineCol);//, taskTags);
+				taskDeadlineCol);
 		
 		taskTableView.getChildren().add(taskTable);
 		
@@ -229,6 +222,10 @@ public class UI extends Application {
 		messagesToUser.clear();
 		messagesToUser.appendText(msg);
 		messagesToUser.setDisable(true);
+	}
+	
+	public void displayTasks(ArrayList<Task> displayAL){
+		this.displayArrayList = displayAL;
 	}
 	// ****************************************************************************
 }
