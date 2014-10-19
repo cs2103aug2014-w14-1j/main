@@ -49,7 +49,7 @@ public class Task {
 	
 	// Task DisplayID************************************
 
-	public void setDisplayId(int id) {
+	public void setDisplayId(String id) {
 		this.taskDisplayId = "" + id;
 	}
 
@@ -98,15 +98,21 @@ public class Task {
 		return taskDates.get(i).getDates();
 	}
 	
-	public LinkedList<String> getTaskDatesSorted() {
-		LinkedList<DateNode> taskStartDates = new LinkedList<DateNode>();
+	private LinkedList<DateNode> sortedTaskDates() {
+		LinkedList<DateNode> taskSortedDates = new LinkedList<DateNode>();
 		DateComparator dateComparator = new DateComparator();
-		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
+		
 		for(int i = 0; i < taskDates.size(); i++) {
-			taskStartDates.addAll(taskDates.get(i).getDateNodes());
+			taskSortedDates.addAll(taskDates.get(i).getDateNodes());
 		}
-		Collections.sort(taskStartDates, dateComparator);
-		for (DateNode date : taskStartDates) {
+		Collections.sort(taskSortedDates, dateComparator);
+		return taskSortedDates;
+	}
+	
+	public LinkedList<String> getTaskDatesSorted() {
+		LinkedList<DateNode> taskDates = sortedTaskDates(); 
+		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
+		for (DateNode date : taskDates) {
 			taskStartDatesTranslated.add(date.getDates());
 		}
 		return taskStartDatesTranslated;
@@ -198,6 +204,9 @@ public class Task {
 	}
 	
 	public boolean containsKeywords(ArrayList<String> keywords) {
+		if (keywords==null) {
+			return true;
+		}
 		for (String keyword : keywords) {
 			if (!containsKeyword(keyword)) {
 				return false;
@@ -207,6 +216,9 @@ public class Task {
 	}
 	
 	public boolean containsTags(ArrayList<String> tags) {
+		if (tags == null) {
+			return true;
+		}
 		for (String tag : tags) {
 			if (!containsTag(tag)) {
 				return false;
