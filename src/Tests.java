@@ -212,6 +212,22 @@ public class Tests {
 			storage.delete(task3);
 			test(storage.getOverdueTasksFile().size(), 0);
 			
+			//deleting from empty list/non-existent task
+			storage.delete(task3);
+			test(storage.getOverdueTasksFile().size(), 0);
+			
+			//testing reinsert after modification
+			task3.setTaskCompleted(Calendar.getInstance());
+			storage.insert(task3);
+			test(storage.getCompletedTasksFile().size(), 1);
+			storage.delete(task3);
+			test(storage.getCompletedTasksFile().size(), 0);
+			task3.setTaskCompleted(null);
+			storage.insert(task3);
+			test(storage.getOverdueTasksFile().size(), 1);
+			
+			//testing search
+			
 			/*
 			//insert an already existing task
 			storage.insert(task1);

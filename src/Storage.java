@@ -34,6 +34,7 @@ public class Storage {
 	
 	public void insert(Task task) throws JSONException, IOException {
 		insert(task, retrieveTaskList(task));
+		save();
 	}
 
 	private void insert(Task task, ArrayList<Task> list) throws JSONException,
@@ -60,7 +61,8 @@ public class Storage {
 	 */
 	
 	public void delete(Task task) throws IOException{
-		delete(task, retrieveTaskList(task));		
+		delete(task, retrieveTaskList(task));
+		save();
 	}
 
 	private void delete(Task task, ArrayList<Task> list) throws IOException {

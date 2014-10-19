@@ -9,6 +9,7 @@ public class Task {
 	private String taskName;
 	private String taskId;
 	private LinkedList<TaskDate> taskDates;
+	private LinkedList<Calendar> taskReminderDates;
 	private Calendar taskDateCompleted;
 	private ArrayList<String> taskTag;
 	
@@ -16,14 +17,15 @@ public class Task {
 	 * No input constructor
 	 */
 	public Task() {
-		this("", "", new LinkedList<TaskDate>(), "", null, new ArrayList<String>());
+		this("", "", new LinkedList<TaskDate>(), new LinkedList<Calendar>(), null, new ArrayList<String>());
 	}
 	
 	private Task(String taskId, String taskName, LinkedList<TaskDate> taskDatesTimes,
-			String taskRecur, Calendar taskDateCompleted, ArrayList<String> taskTag) {
+			LinkedList<Calendar> reminderDates, Calendar taskDateCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
 		this.taskName = taskName;
 		this.taskDates = taskDatesTimes;
+		this.taskReminderDates = reminderDates;
 		this.taskDateCompleted = taskDateCompleted;
 		this.taskTag = taskTag;
 	}
@@ -100,7 +102,13 @@ public class Task {
 
 	// Task Reminder Dates Times***********************************
 
+	public void addTaskReminderDate(Calendar date) {
+		taskReminderDates.add(date);
+	}
 	
+	public LinkedList<Calendar> getTaskReminderDates() {
+		return taskReminderDates;
+	}
 
 	// Task Reminder Dates Times***********************************
 
