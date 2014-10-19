@@ -24,3 +24,12 @@
 	-fx-font-weight : bold;
 	
 }
+
+#view2Split {
+	-fx-background-color: #faebd7;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
+}
+

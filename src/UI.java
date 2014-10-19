@@ -6,8 +6,10 @@ import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
@@ -22,11 +24,12 @@ public class UI extends Application {
 	private VBox taskView;
 	
 	private HBox split;
+	//view 1
 	private VBox taskTableView;
 	private TableView<Task> taskTable;
-	
+	//view 2
 	private VBox taskDetailsView;
-	
+	//rest of taskView
 	private TextField userCommands;
 	private TextField messagesToUser;
 
@@ -36,6 +39,7 @@ public class UI extends Application {
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
 	private ArrayList<Task> test;
+	
 
 	public static void main(String[] args) {
 		launch(args);
@@ -80,6 +84,7 @@ public class UI extends Application {
 		// taskTable
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(720);
+		taskTable.setPrefHeight(500);
 	
 				
 		dataToDisplay = FXCollections.observableArrayList(test);
@@ -118,10 +123,40 @@ public class UI extends Application {
 		// View 2 of split 
 		taskDetailsView = new VBox();
 		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
-		TextField taskName = new TextField("Task Name");
-		//taskName.set
+		taskDetailsView.setSpacing(10);
+				
+		Label taskIDLbl = new Label("Task ID: ");
+		TextField taskIDtf = new TextField("");
+		taskIDtf.setId("view2Split");
+		taskIDtf.setDisable(true);
 		
-		taskDetailsView.getChildren().add(taskName);
+		Label taskNameLbl = new Label("Task Name: ");
+		TextField taskNametf = new TextField("test");
+		taskNametf.setId("view2Split");
+		taskNametf.setDisable(true);
+		
+		Label taskStartDtesLbl = new Label("Task Dates: ");
+		TextArea taskStartDtesta = new TextArea();
+		taskStartDtesta.setId("view2Split");
+		taskStartDtesta.setPrefHeight(90);
+		taskStartDtesta.setDisable(true);
+		
+		Label taskReminderDtesLbl = new Label("Reminder Dates: ");
+		TextArea taskReminderDtesta = new TextArea();
+		taskReminderDtesta.setId("view2Split");
+		taskReminderDtesta.setPrefHeight(90);
+		taskReminderDtesta.setDisable(true);
+		
+		Label taskTagsLbl = new Label("Task Tags: ");
+		TextArea taskTagsta = new TextArea();
+		taskTagsta.setId("view2Split");
+		taskTagsta.setPrefHeight(90);
+		taskTagsta.setDisable(true);
+		
+		taskDetailsView.getChildren().addAll(taskIDLbl,taskIDtf, taskNameLbl, taskNametf,  
+				taskStartDtesLbl, taskStartDtesta, taskReminderDtesLbl, taskReminderDtesta,
+				taskTagsLbl, taskTagsta);
+		
 		
 		//adding split pane
 		split.getChildren().addAll(taskTableView, taskDetailsView);
@@ -192,7 +227,7 @@ public class UI extends Application {
 	public void setMessageToUser(String msg){
 		messagesToUser.setDisable(false);
 		messagesToUser.clear();
-		messagesToUser.appendText("* " + msg);
+		messagesToUser.appendText(msg);
 		messagesToUser.setDisable(true);
 	}
 	// ****************************************************************************
