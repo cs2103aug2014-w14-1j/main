@@ -228,6 +228,18 @@ public class Tests {
 			
 			//testing search
 			
+			//search with no date
+			
+			for (int i = 0; i < storage.getTasksFile().size(); i++) {
+				System.out.println(storage.getTasksFile().get(i).getTaskName());
+			}
+			
+			ArrayList<String> search1_keywords = new ArrayList<String>();
+			search1_keywords.add("Casey");
+			ArrayList<Task> search1 = storage.search(search1_keywords, null, null, null);
+			test(search1.size(), 1);
+			test(search1.get(0).getTaskName(), "Casey's birthday");
+			
 			/*
 			//insert an already existing task
 			storage.insert(task1);
