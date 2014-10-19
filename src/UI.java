@@ -47,7 +47,16 @@ public class UI extends Application {
 
 	@Override
 	public void start(Stage stage) throws Exception {
+	//test
 		displayArrayList = new ArrayList<Task>();
+		for(int i = 0; i < 5; i ++){
+			Task test = new Task();
+			test.setTaskId(i);
+			test.setTaskName("Test Name" + i);
+			test.setDisplayId("t" + i);
+			displayArrayList.add(test);
+		}
+		
 		initStage(stage);
 		initObservers();
 		initUserCommands();
@@ -59,7 +68,7 @@ public class UI extends Application {
 	@SuppressWarnings("unchecked")
 	private void initStage(Stage stage) {
 		// ******************************************************************
-		
+		//displayArrayList = new ArrayList<Task>();
 		
 		//taskView: root view
 		taskView = new VBox();
@@ -78,8 +87,7 @@ public class UI extends Application {
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(720);
 		taskTable.setPrefHeight(500);
-	
-				
+		
 		dataToDisplay = FXCollections.observableArrayList(displayArrayList);
 		
 		//width adds to 710
@@ -88,7 +96,7 @@ public class UI extends Application {
 		taskLblCol.setPrefWidth(60);
 		taskLblCol.setResizable(false);
 		taskLblCol.setCellValueFactory(new PropertyValueFactory<Task, String>(
-				"taskId"));
+				"taskDisplayId"));
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
@@ -226,6 +234,8 @@ public class UI extends Application {
 	
 	public void displayTasks(ArrayList<Task> displayAL){
 		this.displayArrayList = displayAL;
+		
 	}
+	
 	// ****************************************************************************
 }
