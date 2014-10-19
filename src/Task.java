@@ -6,8 +6,9 @@ import org.ocpsoft.prettytime.shade.edu.emory.mathcs.backport.java.util.Collecti
 
 public class Task {
 	
-	private String taskName;
 	private String taskId;
+	private String taskDisplayId;
+	private String taskName;
 	private LinkedList<TaskDate> taskDates;
 	private LinkedList<Calendar> taskReminderDates;
 	private Calendar taskDateCompleted;
@@ -17,12 +18,13 @@ public class Task {
 	 * No input constructor
 	 */
 	public Task() {
-		this("", "", new LinkedList<TaskDate>(), new LinkedList<Calendar>(), null, new ArrayList<String>());
+		this("", "", "", new LinkedList<TaskDate>(), new LinkedList<Calendar>(), null, new ArrayList<String>());
 	}
 	
-	private Task(String taskId, String taskName, LinkedList<TaskDate> taskDatesTimes,
+	private Task(String taskId, String displayId, String taskName, LinkedList<TaskDate> taskDatesTimes,
 			LinkedList<Calendar> reminderDates, Calendar taskDateCompleted, ArrayList<String> taskTag) {
 		this.taskId = taskId;
+		this.taskDisplayId = displayId;
 		this.taskName = taskName;
 		this.taskDates = taskDatesTimes;
 		this.taskReminderDates = reminderDates;
@@ -44,6 +46,18 @@ public class Task {
 	}
 
 	// Task ID************************************
+	
+	// Task DisplayID************************************
+
+	public void setDisplayId(int id) {
+		this.taskDisplayId = "" + id;
+	}
+
+	public String getDisplayId() {
+		return this.taskDisplayId;
+	}
+	
+	// Task DisplayID************************************
 
 	// Task Name ************************************
 	public void setTaskName(String taskname) {
