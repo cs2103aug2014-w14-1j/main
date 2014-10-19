@@ -64,7 +64,6 @@ public class Controller {
 		}
 	
 		storage_.insert(newTask);
-		storage_.save();
 		UI_.println("Added to Calendar: ");
 		UI_.toDisplay(newTask);
 		
@@ -94,8 +93,7 @@ public class Controller {
 		
 		Task deletedTask = searchResults_.get(index);
 		storage_.delete(deletedTask);
-		storage_.save();
-		
+	
 		UI_.println("Deleted from Calendar :");
 		UI_.toDisplay(deletedTask);
 	}
@@ -121,13 +119,9 @@ public class Controller {
 		}
 		
 		if (currentCommand_.getTaskDueDate()!=null) {
-			LinkedList<Calendar> dates = new LinkedList<Calendar>();
-			dates.add(currentCommand_.getTaskDueDate());
-			task.setTaskDatesTimes(dates);
+			Calendar date = currentCommand_.getTaskDueDate();
+			task.addTaskDatesTimes(date);
 		}
-		
-		storage_.save();
-		
 	}
 	private static void viewToday() {
 		ArrayList<String> keywords = new ArrayList<String>();
@@ -177,7 +171,7 @@ public class Controller {
 		for (int i=0; i<searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
 			String c = getChar(task);
-			if (c.equals("r")) {
+			if (c.equals("o")) {
 				String key = c + Integer.toString(r);
 				taskIDmap_.put(key, task);
 				r++;
@@ -194,8 +188,8 @@ public class Controller {
 	}
 	
 	private static String getChar(Task task) {
-		if (task.isRecur()) {
-			return "r";
+		if (task.isOverdue()) {
+			return "o";
 		} else if (task.isFloating()) {
 			return "f";
 		} else {
