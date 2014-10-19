@@ -1,8 +1,6 @@
-import java.io.*;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Calendar;
-
-import org.json.JSONException;
 
 
 public class Tests {
@@ -10,106 +8,235 @@ public class Tests {
 	public static void main(String[] args) {
 		
 		try {
+			
+			//Task tests**********************************************************
+			
+			//Task 1: Normal task
+			System.out.println("Task 1");
+			Task task1 = new Task();
+			task1.setTaskName("Task 1: CS2103T finals");
+			Calendar task1_date = Calendar.getInstance();
+			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
+			task1.addTaskDatesTimes(task1_date);
+			task1.addTaskTags("school");
+			task1.addTaskTags("CS2103T");
+			task1.addTaskTags("exams");
+			
+			Calendar task1_test_start_date = Calendar.getInstance();
+			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 12, 59, 59);
+			Calendar task1_test_end_date = Calendar.getInstance();
+			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
+			
+			test(task1.getTaskName(), "Task 1: CS2103T finals");
+			test(task1.withinDateRange(task1_test_start_date, task1_test_end_date), true);
+			test(task1.getTaskTags().size(), 3);
+			test(task1.getTaskTags().get(0), "school");
+			test(task1.getTaskTags().get(1), "CS2103T");
+			test(task1.getTaskTags().get(2), "exams");
+			test(task1.getTaskDatesSorted().size(), 1);
+			test(task1.getTaskDatesSorted().getFirst(), task1_date.getTime().toString());
+			
+			//Task 2: Task with interval
+			System.out.println("Task 2");
+			Task task2 = new Task();
+			task2.setTaskName("Task 2: MA3110 Finals");
+			Calendar task2_start_date = Calendar.getInstance();
+			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
+			Calendar task2_end_date = Calendar.getInstance();
+			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
+			task2.addTaskDatesTimes(task2_start_date, task2_end_date);
+			task1.addTaskTags("school");
+			task1.addTaskTags("MA3110");
+			task1.addTaskTags("exams");
+			
+			Calendar task2_test_start_date = Calendar.getInstance();
+			task2_test_start_date.set(2014, Calendar.NOVEMBER, 24, 12, 59, 59);
+			Calendar task2_test_end_date = Calendar.getInstance();
+			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
+			
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			
+			task2_test_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 30, 00);
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
+			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
+			
+			test(task2.getTaskDatesSorted().size(), 1);
+			test(task2.getTaskDatesSorted().getFirst(), task2_start_date.getTime().toString()
+					+ " - " + task2_end_date.getTime().toString());
+			
+			//Task 3: Overdue Task
+			System.out.println("Task 3");
+			Task task3 = new Task();
+			task3.setTaskName("100 pushups");
+			Calendar task3_date = Calendar.getInstance();
+			task3_date.set(2014, Calendar.OCTOBER, 8, 10, 00, 00);
+			task3.addTaskDatesTimes(task3_date);
+			task3.addTaskTags("exercise");
+			
+			test(task3.isOverdue(),true);
+			
+			System.out.println("Task 4");
+			//Task 4: Floating Task
+			Task task4 = new Task();
+			task4.setTaskName("Bake chocolate cake");
+			task4.addTaskTags("baking");
+			
+			test(task4.isFloating(),true);
+			
+			//Task 5: Recurring Task (YEAR) + Date completed
+			
+			System.out.println("Task 5");
+			Task task5 = new Task();
+			task5.setTaskName("Casey's birthday");
+			task5.addTaskTags("Casey");
+			task5.addTaskTags("birthdays");
+			Calendar task5_start_date = Calendar.getInstance();
+			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
+			Calendar task5_end_date = Calendar.getInstance();
+			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
+			Calendar task5_limit = Calendar.getInstance();
+			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
+			task5.addTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
+			Calendar task5_completed = Calendar.getInstance();
+			task5.setTaskCompleted(task5_completed);
+			task5.updateRecur();		//this is a redundant check, it should auto-update
+			test(task5.getTaskDateTime(0).size(), 3);
+			test(task5.getTaskDateCompleted(), task5_completed.getTime().toString());
+			
+			//Task 6: Recurring Task (MONTH)
+			
+			System.out.println("Task 6");
+			Task task6 = new Task();
+			task6.setTaskName("1st of month");
+			Calendar task6_date = Calendar.getInstance();
+			task6_date.set(2014, Calendar.JANUARY, 1, 00, 00, 00);
+			Calendar task6_limit = Calendar.getInstance();
+			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
+			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
+			test(task6.getTaskDateTime(0).size(), 24);
+			
+			
+			//Task 7: Recurring Task (WEEK)
+			
+			System.out.println("Task 7");
+			Task task7 = new Task();
+			task7.setTaskName("Go jogging");
+			task7.addTaskTags("exercise");
+			Calendar task7_date = Calendar.getInstance();
+			task7_date.set(2014, Calendar.OCTOBER, 5, 00, 00, 00);
+			Calendar task7_limit = Calendar.getInstance();
+			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
+			task7.addTaskDatesTimes(task7_date, "week", task7_limit);
+			test(task7.getTaskDateTime(0).size(), 17);
+			
+			//Task 8: Recurring Task (DAY)
+			System.out.println("Task 8");
+			Task task8 = new Task();
+			task8.setTaskName("Go to sleep by 11");
+			Calendar task8_date = Calendar.getInstance();
+			task8_date.set(2014, Calendar.NOVEMBER, 1, 23, 00, 00);
+			Calendar task8_limit = Calendar.getInstance();
+			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
+			task8.addTaskDatesTimes(task8_date, "day", task8_limit);
+			test(task8.getTaskDateTime(0).size(), 31);
+			
+			//Task 9: Task with two different dates (RECURRING)
+			System.out.println("Task 9");
+			Task task9 = new Task();
+			task9.setTaskName("ST2132 Lecture");
+			task9.addTaskTags("school");
+			task9.addTaskTags("ST2132");
+			Calendar task9_tue_date1 = Calendar.getInstance();
+			task9_tue_date1.set(2014, Calendar.AUGUST, 12, 8, 00, 00);
+			Calendar task9_tue_date2 = Calendar.getInstance();
+			task9_tue_date2.set(2014, Calendar.AUGUST, 12, 10, 00, 00);
+			Calendar task9_fri_date1 = Calendar.getInstance();
+			task9_fri_date1.set(2014, Calendar.AUGUST, 15, 8, 00, 00);
+			Calendar task9_fri_date2 = Calendar.getInstance();
+			task9_fri_date2.set(2014, Calendar.AUGUST, 15, 10, 00, 00);
+			Calendar task9_limit = Calendar.getInstance();
+			task9_limit.set(2014, Calendar.NOVEMBER, 15, 00, 00, 00);
+			task9.addTaskDatesTimes(task9_tue_date1, task9_tue_date2, "week", task9_limit);
+			task9.addTaskDatesTimes(task9_fri_date1, task9_fri_date2, "week", task9_limit);
+			test(task9.getTaskDateTime(0).size(), 14);
+			test(task9.getTaskDateTime(1).size(), 14);
+			
+			//Visual check to see if dates are sorted correctly
+			
+			/*
+			LinkedList<String> task9_sorted_dates = task9.getTaskDatesSorted();
+			for (String date : task9_sorted_dates) {
+				System.out.println(date);
+			}
+			*/
+			
+			//Storage tests*****************************************************
+			
 			Storage storage = new Storage();
 			storage.clearAll();
 			
+			//testing insertion
+			storage.insert(task1);
+			test(storage.getTasksFile().size(), 1);
 			
-			//Search tests*****************************************************************
-			ArrayList<String> empty_keywords = new ArrayList<String>();
-			ArrayList<String> empty_tags = new ArrayList<String>();
+			storage.insert(task2);
+			test(storage.getTasksFile().size(), 2);
 			
+			//insert overdue task
+			storage.insert(task3);
+			test(storage.getOverdueTasksFile().size(), 1);
 			
-			Task task1 = new Task();
-			task1.setTaskName("do 2103t tutorial");
-			task1.addTaskDatesTimes(Calendar.getInstance());
-			task1.addTaskTags("2103t");
+			//insert floating task
+			storage.insert(task4);
+			test(storage.getFloatingTasksFile().size(), 1);
 			
+			//insert recurring task
+			storage.insert(task5);
+			test(storage.getTasksFile().size(), 3);
 			
-			Task task2 = new Task();
-			task2.setTaskName("complete search function");
-			task2.addTaskDatesTimes(Calendar.getInstance());
-			task2.addTaskTags("2103t");
-			task2.addTaskTags("search");
+			storage.insert(task6);
+			test(storage.getTasksFile().size(), 4);
 			
-			Task task3 = new Task();
-			task3.setTaskName("ia ia");
-			task3.addTaskTags("cthulhu");
+			storage.insert(task7);
+			test(storage.getTasksFile().size(), 5);
 			
-			Task task4 = new Task();
-			task4.setTaskName("ST2132 lecture");
-			task4.addTaskTags("ST2132");
-			Calendar tuesday = Calendar.getInstance();
-			Calendar friday = Calendar.getInstance();
-			tuesday.set(2014, Calendar.OCTOBER, 7, 8, 0, 0);
-			friday.set(2014, Calendar.OCTOBER, 10, 8, 0, 0);
-			task4.addTaskDatesTimes(tuesday);
-			task4.addTaskDatesTimes(friday);
+			storage.insert(task8);
+			test(storage.getTasksFile().size(), 6);
 			
-			ArrayList<String> keywords1 = new ArrayList<String>();
-			keywords1.add("complete");
-			ArrayList<String> keywords2 = new ArrayList<String>();
-			keywords2.add("ia");
+			storage.insert(task9);
+			test(storage.getTasksFile().size(), 7);
 			
-			ArrayList<String> tags = new ArrayList<String>();
-			tags.add("2103t");
+			//testing deletion
 			
-			try {
-				storage.insert(task1);
-				storage.insert(task2);
-				storage.insert(task3);
-				storage.insert(task4);
-			}
-			catch (JSONException e) {
-				e.printStackTrace();
-			}
+			storage.delete(task3);
+			test(storage.getOverdueTasksFile().size(), 0);
 			
-			//search 1 keyword
-			ArrayList<Task> search1 = storage.search(keywords1, empty_tags, null, null);
-			System.out.println(checkEquals("complete search function", search1.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search1.size()));
+			//deleting from empty list/non-existent task
+			storage.delete(task3);
+			test(storage.getOverdueTasksFile().size(), 0);
 			
-			//search 1 tag
-			ArrayList<Task> search2 = storage.search(empty_keywords, tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial\ncomplete search function",
-					search2.get(0).getTaskName() + "\n" + search2.get(1).getTaskName()));
-			System.out.println(checkEquals(2, search2.size()));
+			//testing reinsert after modification
+			task3.setTaskCompleted(Calendar.getInstance());
+			storage.insert(task3);
+			test(storage.getCompletedTasksFile().size(), 1);
+			storage.delete(task3);
+			test(storage.getCompletedTasksFile().size(), 0);
+			task3.setTaskCompleted(null);
+			storage.insert(task3);
+			test(storage.getOverdueTasksFile().size(), 1);
 			
-			//search keyword found in multiple tasks
-			ArrayList<Task> search3 = storage.search(keywords2, empty_tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial\nia ia",
-					search3.get(0).getTaskName() + "\n" + search3.get(1).getTaskName()));
-			System.out.println(checkEquals(2,search3.size()));
+			//testing search
 			
-			//search 2+ keywords
-			keywords2.add("tutorial");
-			ArrayList<Task> search4 = storage.search(keywords2, empty_tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial",
-					search4.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search4.size()));
-			
-			//search keywords and tags together
-			keywords2.remove(1);
-			ArrayList<Task> search5 = storage.search(keywords2, tags, null, null);
-			System.out.println(checkEquals("do 2103t tutorial",
-					search5.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search5.size()));
-			
-			//search date
-			Calendar start_date = Calendar.getInstance();
-			start_date.set(2014, Calendar.OCTOBER, 6, 0, 00, 00);
-			Calendar end_date = Calendar.getInstance();
-			end_date.set(2014, Calendar.NOVEMBER, 1, 00, 00);
-			
-			//search date and tag
-			tags.remove(0);
-			tags.add("ST2132");
-			ArrayList<Task> search7 = storage.search(empty_keywords, tags, start_date, end_date);
-			System.out.println(checkEquals("ST2132 lecture",
-					search7.get(0).getTaskName()));
-			System.out.println(checkEquals(1, search7.size()));
+			/*
+			//insert an already existing task
+			storage.insert(task1);
+			test(storage.getTasksFile().size(), 7);
+			*/
+			System.out.println("All tests successful");
 		}
 		
-		catch (IOException e) {
+		catch (Exception e) {
 			e.printStackTrace();
 		}
 		
@@ -118,9 +245,39 @@ public class Tests {
 	private static boolean checkEquals(String a, String b) {
 		return a.equals(b);
 	}
+
+	private static boolean checkEquals(boolean a, boolean b) {
+		return a == b;
+	}
 	
 	private static boolean checkEquals(int a, int b) {
 		return a == b;
 	}
+	
+	private static void test(String a, String b) {
+		if(!checkEquals(a, b)) {
+			System.out.println("MISMATCH");
+			System.out.println(a);
+			System.out.println(b);
+			System.exit(1);
+		}
+	}
+	
+	private static void test(boolean a, boolean b) {
+		if(!checkEquals(a, b)) {
+			System.out.println("MISMATCH");
+			System.out.println(a);
+			System.out.println(b);
+			System.exit(1);
+		}
+	}
 
+	private static void test(int a, int b) {
+		if(!checkEquals(a, b)) {
+			System.out.println("MISMATCH");
+			System.out.println(a);
+			System.out.println(b);
+			System.exit(1);
+		}
+	}
 }
