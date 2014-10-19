@@ -1,3 +1,4 @@
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,9 +36,12 @@ public class Controller {
 			add();
 			return;
 			}
-		
 		case DELETE: {
 			delete();
+			return;
+			}
+		case EDIT: {
+			update();
 			return;
 			}
 		}	
@@ -69,6 +73,8 @@ public class Controller {
 			String id = ids[i];
 			delete(id);
 		}
+		
+		viewToday();
 	}
 	
 	private static void delete(String id) throws IOException {
@@ -88,10 +94,37 @@ public class Controller {
 		
 		UI_.println("Deleted from Calendar :");
 		UI_.toDisplay(deletedTask);
+	}
+	
+	private static void update() throws FileNotFoundException {
 		
+		String id = currentCommand_.getTaskID();
+		int index = displayIDs_.indexOf(id);
+		if (index < 0) {
+			UI_.println("Invalid index to update.");
+		} else {
+			update(index);
+		}
 		viewToday();
 	}
-
+	
+	private static void update(int index) throws FileNotFoundException {
+		
+		Task task = searchResults_.get(index);
+		
+		if (!currentCommand_.getTaskName().equals("")) {
+			task.setTaskName(currentCommand_.getTaskName());
+		}
+		
+		if (currentCommand_.getTaskDueDate()!=null) {
+			LinkedList<Calendar> dates = new LinkedList<Calendar>();
+			dates.add(currentCommand_.getTaskDueDate());
+			task.setTaskDatesTimes(dates);
+		}
+		
+		storage_.save();
+		
+	}
 	private static void viewToday() {
 		ArrayList<String> keywords = new ArrayList<String>();
 		ArrayList<String> tags = new ArrayList<String>();
@@ -100,15 +133,16 @@ public class Controller {
 		
 		Calendar start_date = Calendar.getInstance();
 		start_date.setTime(c.getTime());
-		start_date.set(start_date.HOUR, 0);
+		start_date.set(start_date.HOUR, -12);
 		start_date.set(start_date.MINUTE, 0);
 		start_date.set(start_date.SECOND, 0);
-		
+
 		Calendar end_date = Calendar.getInstance();
 		end_date.setTime(c.getTime());
-		end_date.set(end_date.HOUR, 23);
+		end_date.set(end_date.HOUR, 11);
 		end_date.set(end_date.MINUTE, 59);
 		end_date.set(end_date.SECOND, 59);
+	
 		
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
 		
