@@ -76,43 +76,35 @@ public class Controller {
 			String id = ids[i];
 			delete(id);
 		}
-		
 		viewToday();
 	}
 	
 	private static void delete(String id) throws IOException {
-		int index = displayIDs_.indexOf(id);
-		if (index < 0) {
+		if (!taskIDmap_.containsKey(id)) {
 			UI_.println("Invalid index to delete: " + id);
 		} else {
-			delete(index);
+			delete(taskIDmap_.get(id));
 		}
 	}
 	
-	private static void delete(int index) throws IOException  {
-		
-		Task deletedTask = searchResults_.get(index);
-		storage_.delete(deletedTask);
-	
+	private static void delete(Task task) throws IOException  {
+		storage_.delete(task);
 		UI_.println("Deleted from Calendar :");
-		UI_.toDisplay(deletedTask);
+		UI_.toDisplay(task);
 	}
 	
 	private static void update() throws FileNotFoundException {
 		
 		String id = currentCommand_.getTaskID();
-		int index = displayIDs_.indexOf(id);
-		if (index < 0) {
+		if (!taskIDmap_.containsKey(id)) {
 			UI_.println("Invalid index to update.");
 		} else {
-			update(index);
+			update(taskIDmap_.get(id));
 		}
 		viewToday();
 	}
 	
-	private static void update(int index) throws FileNotFoundException {
-		
-		Task task = searchResults_.get(index);
+	private static void update(Task task) throws FileNotFoundException {
 		
 		if (!currentCommand_.getTaskName().equals("")) {
 			task.setTaskName(currentCommand_.getTaskName());
@@ -145,9 +137,9 @@ public class Controller {
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
 		
 		UI_.println("Today Tasks: ");
-		createDisplayIDs();
+		
 		createTaskIDmap();
-		UI_.toDisplay(taskIDmap_);
+		UI_.toDisplay(searchResults_);
 	}
 	
 	private static void createDisplayIDs() {
@@ -165,23 +157,26 @@ public class Controller {
 	private static void createTaskIDmap() {
 		taskIDmap_ = new TreeMap<String,Task>(); 
 		int f = 1;
-		int r = 1;
+		int o = 1;
 		int t = 1;
 		
 		for (int i=0; i<searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
 			String c = getChar(task);
 			if (c.equals("o")) {
-				String key = c + Integer.toString(r);
+				String key = c + Integer.toString(o);
 				taskIDmap_.put(key, task);
-				r++;
+				task.setDisplayId(key);
+				o++;
 			} else if (c.equals("t")) {
 				String key = c + Integer.toString(t);
 				taskIDmap_.put(key, task);
+				task.setDisplayId(key);
 				t++;
 			} else {
 				String key = c + Integer.toString(f);
 				taskIDmap_.put(key, task);
+				task.setDisplayId(key);
 				f++;
 			}
 		}
@@ -213,8 +208,8 @@ public class Controller {
 		Calendar end_date = currentCommand_.getSearchEndDate();
 		
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-		createDisplayIDs();
-		UI_.toDisplay(searchResults_, displayIDs_);
+		createTaskIDmap();
+		UI_.toDisplay(searchResults_);
 	}
 
 	public static void main(String args[]) throws Exception {
@@ -224,6 +219,7 @@ public class Controller {
 		viewToday();
 		
 		UI_.print("Please insert command: ");
+		
 		
 		while (UI_.hasNextLine()) {
 			

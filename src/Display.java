@@ -23,24 +23,14 @@ public class Display {
 		return scan.nextLine();
 	}
 	
-	public void toDisplay(ArrayList<Task> tasklist, ArrayList<String> ids) {
+	public void toDisplay(ArrayList<Task> tasklist) {
 		if (tasklist.isEmpty()) {
 			println("-- Found no tasks");
 		} else {
 			for (int i = 0; i < tasklist.size(); i++) {
-				println("Task id: " + ids.get(i));
-				toDisplay(tasklist.get(i));
-			}
-		}
-	}
-	
-	public void toDisplay(TreeMap<String,Task> treeMap) {
-		if (treeMap.isEmpty()) {
-			println("-- Found no tasks");
-		} else {
-			for (String key: treeMap.keySet()) {
-				println("Task id: " + key);
-				toDisplay(treeMap.get(key)); 
+				Task task = tasklist.get(i);
+				println("Task ID: " + task.getDisplayId());
+				toDisplay(task);
 			}
 		}
 	}
