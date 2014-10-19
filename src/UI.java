@@ -39,7 +39,6 @@ public class UI extends Application {
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
 	private ArrayList<Task> displayTasks;
-	
 
 	public static void main(String[] args) {
 		launch(args);
@@ -67,7 +66,7 @@ public class UI extends Application {
 	@SuppressWarnings("unchecked")
 	private void initStage(Stage stage) {
 		// ******************************************************************
-		
+		//displayArrayList = new ArrayList<Task>();
 		
 		//taskView: root view
 		taskView = new VBox();
@@ -86,8 +85,7 @@ public class UI extends Application {
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(720);
 		taskTable.setPrefHeight(500);
-	
-				
+
 		dataToDisplay = FXCollections.observableArrayList(displayTasks);
 		
 		//width adds to 710
@@ -117,7 +115,7 @@ public class UI extends Application {
 
 		taskTable.setItems(dataToDisplay);
 		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskReminderCol,
-				taskDeadlineCol);//, taskTags);
+				taskDeadlineCol);
 		
 		taskTableView.getChildren().add(taskTable);
 		
@@ -235,5 +233,6 @@ public class UI extends Application {
 	public void displayTasks(ArrayList<Task> taskAL){
 		this.displayTasks = taskAL;		
 	}
+
 	// ****************************************************************************
 }
