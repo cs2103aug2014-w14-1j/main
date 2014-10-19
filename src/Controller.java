@@ -2,9 +2,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.LinkedList;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 
@@ -18,6 +18,7 @@ public class Controller {
 	private static ArrayList<Task> searchResults_;
 	private static Parser parser_;
 	private static ArrayList<String> displayIDs_;
+	private static TreeMap<String,Task> taskIDmap_;
 	private static Storage storage_;
 	
 	public static void init() throws Exception {
@@ -44,6 +45,9 @@ public class Controller {
 			update();
 			return;
 			}
+		case LIST:
+			list();
+			return;
 		}	
 	}
 
@@ -148,7 +152,8 @@ public class Controller {
 		
 		UI_.println("Today Tasks: ");
 		createDisplayIDs();
-		UI_.toDisplay(searchResults_,displayIDs_);
+		createTaskIDmap();
+		UI_.toDisplay(taskIDmap_);
 	}
 	
 	private static void createDisplayIDs() {
@@ -161,6 +166,31 @@ public class Controller {
 			ids.add(id);
 		}
 		displayIDs_ = ids;
+	}
+	
+	private static void createTaskIDmap() {
+		taskIDmap_ = new TreeMap<String,Task>(); 
+		int f = 1;
+		int r = 1;
+		int t = 1;
+		
+		for (int i=0; i<searchResults_.size(); i++) {
+			Task task = searchResults_.get(i);
+			String c = getChar(task);
+			if (c.equals("r")) {
+				String key = c + Integer.toString(r);
+				taskIDmap_.put(key, task);
+				r++;
+			} else if (c.equals("t")) {
+				String key = c + Integer.toString(t);
+				taskIDmap_.put(key, task);
+				t++;
+			} else {
+				String key = c + Integer.toString(f);
+				taskIDmap_.put(key, task);
+				f++;
+			}
+		}
 	}
 	
 	private static String getChar(Task task) {
@@ -181,6 +211,17 @@ public class Controller {
 	
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
 	}
+	
+	private static void list() {
+		ArrayList<String> keywords = new ArrayList<String>();
+		ArrayList<String> tags = new ArrayList<String> ();
+		Calendar start_date = currentCommand_.getSearchStartDate();
+		Calendar end_date = currentCommand_.getSearchEndDate();
+		
+		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
+		createDisplayIDs();
+		UI_.toDisplay(searchResults_, displayIDs_);
+	}
 
 	public static void main(String args[]) throws Exception {
 		
@@ -193,39 +234,15 @@ public class Controller {
 		while (UI_.hasNextLine()) {
 			
 			inputCommand_= UI_.get();
-			parser_.parseCommand(inputCommand_);
+			currentCommand_ = parser_.parseCommand(inputCommand_);
 			
-			if (!parser_.isValidCommand()) {
-				UI_.println("Invalid command.");
-			} else {
-				currentCommand_ = parser_.getCommandObj();
+			if (currentCommand_.getCommandType() != Command.COMMAND_TYPE.INVALID) {
 				proceedCommand();
+			} else {
+				UI_.println("Invalid Command");
 			}
-			
+	
 			UI_.print("Please insert command: ");
 		}
 	}
-	
-	/*
-	private static void handleCommand() {
-		COMMAND_TYPE commandType = currentCommand_.getCommandType();
-		switch (commandType) {
-		case COMMAND_TYPE.ADD: {
-			genericAdd();
-			}
-		case COMMAND_TYPE
-			delete();
-		
-
-		}
-	}
-	*/
-
-	/*
-	private static void addNormal(Task newTask) {
-		
-		newTask.setTaskId(taskID_++);
-		newTask.setTaskName(currentCommand_.getTaskName());
-	}
-	*/
 }
