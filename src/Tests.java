@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Calendar;
 
 
@@ -85,7 +84,7 @@ public class Tests {
 			
 			test(task4.isFloating(),true);
 			
-			//Task 5: Recurring Task (YEAR) + Date completed
+			//Task 5: Recurring Task (YEAR)
 			
 			System.out.println("Task 5");
 			Task task5 = new Task();
@@ -99,11 +98,7 @@ public class Tests {
 			Calendar task5_limit = Calendar.getInstance();
 			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
 			task5.addTaskDatesTimes(task5_start_date, task5_end_date, "year", task5_limit);
-			Calendar task5_completed = Calendar.getInstance();
-			task5.setTaskCompleted(task5_completed);
-			task5.updateRecur();		//this is a redundant check, it should auto-update
-			test(task5.getTaskDateTime(0).size(), 3);
-			test(task5.getTaskDateCompleted(), task5_completed.getTime().toString());
+			test(task5.getTaskDatesSorted().size(), 4);
 			
 			//Task 6: Recurring Task (MONTH)
 			
@@ -172,6 +167,8 @@ public class Tests {
 			}
 			*/
 			
+			//completed tasks
+			
 			//Storage tests*****************************************************
 			
 			Storage storage = new Storage();
@@ -219,15 +216,19 @@ public class Tests {
 			storage.delete(task3);
 			test(storage.getOverdueTasksFile().size(), 0);
 			
-			//testing reinsert after modification
-			task3.setTaskCompleted(Calendar.getInstance());
+			//testing reinsert after modification. Also tests setting taskDateCompleted
+			task3.setTaskCompleted(Calendar.getInstance());		//warning, old date has been purged
 			storage.insert(task3);
 			test(storage.getCompletedTasksFile().size(), 1);
 			storage.delete(task3);
 			test(storage.getCompletedTasksFile().size(), 0);
-			task3.setTaskCompleted(null);
+			task3.setTaskCompleted(null);						//this has now become a floating task
 			storage.insert(task3);
-			test(storage.getOverdueTasksFile().size(), 1);
+			test(storage.getFloatingTasksFile().size(), 2);
+			storage.delete(task3);
+			test(storage.getFloatingTasksFile().get(0).getTaskName(), "Bake chocolate cake");
+			task3.addTaskDatesTimes(task3_date);
+			storage.insert(task3);
 			
 			//testing search
 			

@@ -44,20 +44,16 @@ public class Task {
 	public boolean hasNoID() {
 		return taskId.equals("");
 	}
-
-	// Task ID************************************
 	
 	// Task DisplayID************************************
 
 	public void setDisplayId(String id) {
-		this.taskDisplayId = "" + id;
+		this.taskDisplayId = id;
 	}
 
 	public String getDisplayId() {
 		return this.taskDisplayId;
 	}
-	
-	// Task DisplayID************************************
 
 	// Task Name ************************************
 	public void setTaskName(String taskname) {
@@ -67,8 +63,6 @@ public class Task {
 	public String getTaskName() {
 		return this.taskName;
 	}
-
-	// Task Name ************************************
 
 	// Task Dates and Times ********************************
 
@@ -98,6 +92,15 @@ public class Task {
 		return taskDates.get(i).getDates();
 	}
 	
+	public LinkedList<String> getTaskDatesSorted() {
+		LinkedList<DateNode> taskDates = sortedTaskDates(); 
+		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
+		for (DateNode date : taskDates) {
+			taskStartDatesTranslated.add(date.getDates());
+		}
+		return taskStartDatesTranslated;
+	}
+
 	private LinkedList<DateNode> sortedTaskDates() {
 		LinkedList<DateNode> taskSortedDates = new LinkedList<DateNode>();
 		DateComparator dateComparator = new DateComparator();
@@ -109,17 +112,6 @@ public class Task {
 		return taskSortedDates;
 	}
 	
-	public LinkedList<String> getTaskDatesSorted() {
-		LinkedList<DateNode> taskDates = sortedTaskDates(); 
-		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
-		for (DateNode date : taskDates) {
-			taskStartDatesTranslated.add(date.getDates());
-		}
-		return taskStartDatesTranslated;
-	}
-	
-	// Task Dates and Times ********************************
-
 	// Task Reminder Dates Times***********************************
 
 	public void addTaskReminderDate(Calendar date) {
@@ -130,32 +122,24 @@ public class Task {
 		return taskReminderDates;
 	}
 
-	// Task Reminder Dates Times***********************************
-
 	// Task Floating*******************************
 
 	public boolean isFloating() {
-		return this.taskDates.isEmpty();
+		return this.taskDates.isEmpty() && this.taskDateCompleted == null;
 	}
-
-	// Task Floating*******************************
 
 	// Task Recur***************************************
 	
 	public void updateRecur() {
 		for (TaskDate date : taskDates) {
 			date.updateRecur();
-			if (taskDateCompleted != null) {
-				date.removeOldDates(taskDateCompleted);
-			}
 		}
 	}
-
-	// Task Recur***************************************
 
 	// Task Completed*********************************************
 	public void setTaskCompleted(Calendar c) {
 		this.taskDateCompleted = c;
+		removeOldDates();
 	}
 
 	public String getTaskDateCompleted() {
@@ -166,7 +150,21 @@ public class Task {
 		if (taskDateCompleted == null) {
 			return false;
 		}
+		if (taskDates.isEmpty()) {
+			return true;
+		}
 		return taskDateCompleted.after(taskDates.getLast().getEndDate());
+	}
+	
+	private void removeOldDates() {
+		if (taskDateCompleted != null) {
+			for (TaskDate date : taskDates) {
+				date.removeOldDates(taskDateCompleted);
+				if (date.isEmpty()) {
+					taskDates.remove(date);
+				}
+			}
+		}
 	}
 	
 	public boolean isOverdue() {
@@ -179,8 +177,6 @@ public class Task {
 		}
 		return false;
 	}
-
-	// Task Completed*********************************************
 
 	// Task Tags**************************************
 	public void addTaskTags(String str) {

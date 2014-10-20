@@ -85,7 +85,7 @@ public class TaskDate {
 	
 	public void removeOldDates(Calendar dateCompleted) {
 		assert dateCompleted != null;
-		while (nodes.getFirst().getEndDate().before(dateCompleted)) {
+		while (!nodes.isEmpty() && nodes.getFirst().getEndDate().before(dateCompleted)) {
 			nodes.removeFirst();
 		}
 	}
@@ -97,6 +97,10 @@ public class TaskDate {
 			}
 		}
 		return false;
+	}
+	
+	public boolean isEmpty() {
+		return nodes.isEmpty();
 	}
 	
 	public LinkedList<String> getDates() {
