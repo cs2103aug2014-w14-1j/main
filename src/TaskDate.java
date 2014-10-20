@@ -85,7 +85,7 @@ public class TaskDate {
 	
 	public void removeOldDates(Calendar dateCompleted) {
 		assert dateCompleted != null;
-		while (nodes.getFirst().getEndDate().before(dateCompleted)) {
+		while (!nodes.isEmpty() && nodes.getFirst().getEndDate().before(dateCompleted)) {
 			nodes.removeFirst();
 		}
 	}
@@ -97,6 +97,10 @@ public class TaskDate {
 			}
 		}
 		return false;
+	}
+	
+	public boolean isEmpty() {
+		return nodes.isEmpty();
 	}
 	
 	public LinkedList<String> getDates() {
@@ -172,8 +176,8 @@ class DateNode {
 	}
 	
 	public boolean withinDateRange(Calendar search_start_date, Calendar search_end_date) {
-		if (start_date == null || endsAfter(search_start_date)) {
-			if (end_date == null || startsBefore(search_end_date)) {
+		if (search_start_date == null || endsAfter(search_start_date)) {
+			if (search_end_date == null || startsBefore(search_end_date)) {
 				return true;
 			}
 		}

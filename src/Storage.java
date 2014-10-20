@@ -127,9 +127,10 @@ public class Storage {
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		ArrayList<Task> search_results = new ArrayList<Task>();
 				
-		searchList(search_results, al_task, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
 		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task, keywords, tags, start_date, end_date);
+		
 		
 		return search_results;
 	}
