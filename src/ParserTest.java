@@ -77,4 +77,30 @@ public class ParserTest {
 		assertEquals(expectedCal.get(Calendar.MONTH), actualCal.get(Calendar.MONTH));
 		assertEquals(expectedCal.get(Calendar.DAY_OF_MONTH)+1, actualCal.get(Calendar.DAY_OF_MONTH));
 	}
+
+	@Test
+	public void testBasicDeleteCommand() throws Exception {
+		String basicAddInput = "delete t1";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
+	}
+
+	@Test
+	public void testMultipleDeleteCommand() throws Exception {
+		String basicAddInput = "delete t1 r2 f3";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1", "r2", "f3"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
+	}
+
+	@Test
+	public void testInvalidIDDeleteCommand() throws Exception {
+		String basicAddInput = "delete z3";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		assertNull(addCommand.getTaskIDsToDelete());
+	}
 }
