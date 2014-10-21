@@ -84,6 +84,8 @@ public class StorageTest {
 			task4.addTaskTags("baking");
 			
 			test(task4.isFloating(),true);
+			test(task4.getTaskDatesSorted().size(), 1);
+			test(task4.getTaskDatesSorted().get(0), "");
 			
 			//Task 5: Recurring Task (YEAR)
 			

@@ -97,8 +97,11 @@ public class Task {
 	}
 	
 	public LinkedList<String> getTaskDatesSorted() {
-		LinkedList<DateNode> taskDates = getDateNodesSorted(); 
 		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
+		if (isFloating()) {
+			taskStartDatesTranslated.add("");
+		}
+		LinkedList<DateNode> taskDates = getDateNodesSorted(); 
 		for (DateNode date : taskDates) {
 			taskStartDatesTranslated.add(date.getDatesAsString());
 		}
