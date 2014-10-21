@@ -7,8 +7,8 @@ import org.ocpsoft.prettytime.shade.edu.emory.mathcs.backport.java.util.Collecti
 public class Task {
 	
 	private String taskId;
-	private String taskDisplayId;
 	private String taskName;
+	private String taskDisplayId;
 	private LinkedList<TaskDate> taskDates;
 	private LinkedList<Calendar> taskReminderDates;
 	private Calendar taskDateCompleted;
