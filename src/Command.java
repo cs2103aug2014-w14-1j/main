@@ -1,6 +1,5 @@
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedList;
 
 public class Command {
 	public enum COMMAND_TYPE {
@@ -16,7 +15,7 @@ public class Command {
 	private ArrayList<String> searchKeywords;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
-	private LinkedList<String> taskTags;
+	private String[] taskTags;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;
@@ -87,5 +86,13 @@ public class Command {
 
 	public void setSearchKeywords(ArrayList<String> keywords) {
 		searchKeywords = keywords;
+	}
+
+	public String[] getTaskTags() {
+		return taskTags;
+	}
+
+	public void setTaskTags(String[] tags) {
+		taskTags = tags;
 	}
 }

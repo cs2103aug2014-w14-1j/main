@@ -139,6 +139,8 @@ public class Parser {
 
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
@@ -148,6 +150,8 @@ public class Parser {
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
+		commandObj.setTaskTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
@@ -264,6 +268,14 @@ public class Parser {
 
 	private String removeTaskID(String commandDetails) {
 		return commandDetails.split("\\s+", 2)[1];
+	}
+
+	private String[] parseTaskTags(String commandDetails) {
+		return match(commandDetails, "/(\\B@[a-zA-Z0-9-]+)/g");
+	}
+
+	private String removeTaskTags(String commandDetails) {
+		return commandDetails.replaceAll("\\B@[a-zA-Z0-9-]+", "");
 	}
 
 	private String removeLeadingAndClosingPunctuation(String input) {
