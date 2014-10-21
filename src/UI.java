@@ -47,13 +47,16 @@ public class UI extends FlowPane {
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
 	private ArrayList<Task> displayTasks = new ArrayList<Task>();
+	
+	//Parameters
+	private static final int EARLIEST_DATE = 0;
 
 	public UI() {
 		taskView = new VBox();
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
 		taskView.setSpacing(SPACING);
-
+	
 		// Split: HBox containing 2 views
 		split = new HBox();
 		split.setSpacing(SPACING);
@@ -174,34 +177,22 @@ public class UI extends FlowPane {
 					}
 				});
 
-		TableColumn<Task, String> taskStartDate = new TableColumn<Task, String>(
-				"Task Start Date");
-		taskStartDate.setResizable(false);
-		taskStartDate.setPrefWidth(150);
-		taskStartDate
+		TableColumn<Task, String> taskStartEndDate = new TableColumn<Task, String>(
+				"Task Date");
+		taskStartEndDate.setResizable(false);
+		taskStartEndDate.setPrefWidth(300);
+		taskStartEndDate
 				.setCellValueFactory(new Callback<CellDataFeatures<Task,  String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task,  String> p) {						
-						return new SimpleStringProperty((p.getValue().getTaskDatesSorted().get(0)));
-					}
-				});
-		
-		TableColumn<Task, String> taskDeadlineDate = new TableColumn<Task, String>(
-				"Task Due Date");
-		taskDeadlineDate.setResizable(false);
-		taskDeadlineDate.setPrefWidth(150);
-		taskDeadlineDate
-				.setCellValueFactory(new Callback<CellDataFeatures<Task,  String>, ObservableValue<String>>() {
-					@Override
-					public ObservableValue<String> call(
-							CellDataFeatures<Task,  String> p) {						
-						return new SimpleStringProperty((p.getValue().getTaskDatesSorted().get(0)));
+							CellDataFeatures<Task,  String> p) {	
+						
+						return new SimpleStringProperty((p.getValue().getTaskDatesSorted().get(EARLIEST_DATE)));
 					}
 				});
 		
 		taskTable.getColumns().removeAll(taskTable.getColumns());
-		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskStartDate, taskDeadlineDate);
+		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskStartEndDate);
 
 	}
 
