@@ -190,4 +190,11 @@ public class ParserTest {
 		Command addCommand = parser.parseCommand(basicAddInput);
 		assertEquals(Command.COMMAND_TYPE.UNDO, addCommand.getCommandType());
 	}
+
+	@Test
+	public void testExitCommand() throws Exception {
+		String basicAddInput = "quit";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.EXIT, addCommand.getCommandType());
+	}
 }
