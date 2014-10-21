@@ -10,16 +10,16 @@ public class ParserTest {
 
 	@Test
 	public void testBasicAddCommand() throws Exception {
-		String basicAddInput = "add unit testing";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "add unit testing";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
 	}
 
 	@Test
 	public void testAddCommandWithDate() throws Exception {
-		String basicAddInput = "add unit testing 10 Oct 2014";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "add unit testing 10 Oct 2014";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
 		Calendar actualCal = addCommand.getTaskDueDate();
@@ -30,8 +30,8 @@ public class ParserTest {
 
 	@Test
 	public void testAddCommandWithDateAndTime12Hours() throws Exception {
-		String basicAddInput = "add unit testing 10 Oct 2014 10.45pm";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "add unit testing 10 Oct 2014 10.45pm";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
 		Calendar actualCal = addCommand.getTaskDueDate();
@@ -44,8 +44,8 @@ public class ParserTest {
 
 	@Test
 	public void testAddCommandWithDateAndTime24Hours() throws Exception {
-		String basicAddInput = "add unit testing 10 Oct 2014 2245";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "add unit testing 10 Oct 2014 2245";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
 		Calendar actualCal = addCommand.getTaskDueDate();
@@ -58,8 +58,8 @@ public class ParserTest {
 
 	@Test
 	public void testEditCommandName() throws Exception {
-		String basicAddInput = "edit t1 unit testing";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "edit t1 unit testing";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
 		assertEquals("t1", addCommand.getTaskID());
 		assertEquals("unit testing", addCommand.getTaskName());
@@ -67,8 +67,8 @@ public class ParserTest {
 
 	@Test
 	public void testEditCommandDate() throws Exception {
-		String basicAddInput = "edit t1 tomorrow";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "edit t1 tomorrow";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
 		assertEquals("t1", addCommand.getTaskID());
 		Calendar expectedCal = Calendar.getInstance();
@@ -80,8 +80,8 @@ public class ParserTest {
 
 	@Test
 	public void testBasicDeleteCommand() throws Exception {
-		String basicAddInput = "delete t1";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "delete t1";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
 		String[] expectedArray = {"t1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
@@ -89,8 +89,8 @@ public class ParserTest {
 
 	@Test
 	public void testMultipleDeleteCommand() throws Exception {
-		String basicAddInput = "delete t1 r2 f3";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "delete t1 r2 f3";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
 		String[] expectedArray = {"t1", "r2", "f3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
@@ -98,16 +98,16 @@ public class ParserTest {
 
 	@Test
 	public void testInvalidIDDeleteCommand() throws Exception {
-		String basicAddInput = "delete z3";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "delete z3";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
 		assertNull(addCommand.getTaskIDsToDelete());
 	}
 
 	@Test
 	public void testListCommandSingleDate() throws Exception {
-		String basicAddInput = "list today";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "list today";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
 		Calendar expectedDate = Calendar.getInstance();
 		Calendar actualStartDate = addCommand.getSearchStartDate();
@@ -128,8 +128,8 @@ public class ParserTest {
 
 	@Test
 	public void testListCommandDateRange() throws Exception {
-		String basicAddInput = "list today to 2 days after";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "list today to 2 days after";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
 		Calendar expectedDate = Calendar.getInstance();
 		Calendar actualStartDate = addCommand.getSearchStartDate();
@@ -150,8 +150,8 @@ public class ParserTest {
 
 	@Test
 	public void testBasicSearchCommand() throws Exception {
-		String basicAddInput = "search hello";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "search hello";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
 		String[] expectedArray = {"hello"};
 		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
@@ -159,8 +159,8 @@ public class ParserTest {
 
 	@Test
 	public void testMultipleSearchCommand() throws Exception {
-		String basicAddInput = "search hello world";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "search hello world";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
 		String[] expectedArray = {"hello", "world"};
 		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
@@ -168,8 +168,8 @@ public class ParserTest {
 
 	@Test
 	public void testBasicCompleteCommand() throws Exception {
-		String basicAddInput = "complete t1";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "complete t1";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
 		String[] expectedArray = {"t1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
@@ -177,8 +177,8 @@ public class ParserTest {
 
 	@Test
 	public void testMultipleCompleteCommand() throws Exception {
-		String basicAddInput = "complete t1 r2 f3";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "complete t1 r2 f3";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
 		String[] expectedArray = {"t1", "r2", "f3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
@@ -186,15 +186,15 @@ public class ParserTest {
 
 	@Test
 	public void testUndoCommand() throws Exception {
-		String basicAddInput = "undo";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "undo";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.UNDO, addCommand.getCommandType());
 	}
 
 	@Test
 	public void testExitCommand() throws Exception {
-		String basicAddInput = "quit";
-		Command addCommand = parser.parseCommand(basicAddInput);
+		String input = "quit";
+		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.EXIT, addCommand.getCommandType());
 	}
 }
