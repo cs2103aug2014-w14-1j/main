@@ -17,7 +17,7 @@ public class Parser {
 	private String[] editCommands = {"edit","update","change","modify"};
 	private String[] deleteCommands = {"delete","remove","destroy"};
 	private String[] listCommands = {"list"};
-	private String[] searchCommands = {"search"};
+	private String[] searchCommands = {"search","find"};
 	private String[] completeCommands = {"complete"};
 	private String[] undoCommands = {"undo"};
 	private String[] exitCommands = {"quit"};
@@ -116,6 +116,9 @@ public class Parser {
 				case LIST:
 					generateListCommandObj(commandDetails);
 					break;
+				case SEARCH:
+					generateSearchCommandObj(commandDetails);
+					break;
 				case COMPLETE:
 					generateCompleteCommandObj(commandDetails);
 					break;
@@ -166,6 +169,16 @@ public class Parser {
 			commandObj.setSearchStartDate(dates.get(0));
 			commandObj.setSearchEndDate(dates.get(dates.size()-1));
 		}
+	}
+
+	private void generateSearchCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		String[] array = commandDetails.split("\\s+");
+		ArrayList<String> keywords = new ArrayList<String>();
+		for (String keyword: array) {
+			keywords.add(removeLeadingAndClosingPunctuation(keyword));
+		}
+		commandObj.setSearchKeywords(keywords);
 	}
 
 	private void generateCompleteCommandObj(String commandDetails) {

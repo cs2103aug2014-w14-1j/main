@@ -1,3 +1,4 @@
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.LinkedList;
 
@@ -12,6 +13,7 @@ public class Command {
 	private Calendar taskDueDate;
 	private Calendar searchStartDate;
 	private Calendar searchEndDate;
+	private ArrayList<String> searchKeywords;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
 	private LinkedList<String> taskTags;
@@ -77,5 +79,13 @@ public class Command {
 
 	public void setSearchEndDate(Calendar searchEndDate) {
 		this.searchEndDate = searchEndDate;
+	}
+
+	public ArrayList<String> getSearchKeywords() {
+		return searchKeywords;
+	}
+
+	public void setSearchKeywords(ArrayList<String> keywords) {
+		searchKeywords = keywords;
 	}
 }
