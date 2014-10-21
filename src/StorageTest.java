@@ -1,12 +1,15 @@
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Calendar;
 
 
-public class Tests {
+public class StorageTest {
 
 	public static void main(String[] args) {
 		
 		try {
+			SimpleDateFormat sdf = new SimpleDateFormat("EE dd-MMM-YY HH:mm");
 			
 			//Task tests**********************************************************
 			
@@ -33,7 +36,7 @@ public class Tests {
 			test(task1.getTaskTags().get(1), "CS2103T");
 			test(task1.getTaskTags().get(2), "exams");
 			test(task1.getTaskDatesSorted().size(), 1);
-			test(task1.getTaskDatesSorted().getFirst(), task1_date.getTime().toString());
+			test(task1.getTaskDatesSorted().getFirst(), sdf.format(task1_date.getTime()));
 			test(task1.withinDateRange(null, null), true);
 			
 			//Task 2: Task with interval
@@ -62,8 +65,8 @@ public class Tests {
 			test(task2.withinDateRange(task2_test_start_date, task2_test_end_date), true);
 			
 			test(task2.getTaskDatesSorted().size(), 1);
-			test(task2.getTaskDatesSorted().getFirst(), task2_start_date.getTime().toString()
-					+ " - " + task2_end_date.getTime().toString());
+			test(task2.getTaskDatesSorted().getFirst(), sdf.format(task2_start_date.getTime())
+					+ " - " + sdf.format(task2_end_date.getTime()));
 			
 			//Task 3: Overdue Task
 			System.out.println("Task 3");
@@ -83,6 +86,8 @@ public class Tests {
 			task4.addTaskTags("baking");
 			
 			test(task4.isFloating(),true);
+			test(task4.getTaskDatesSorted().size(), 1);
+			test(task4.getTaskDatesSorted().get(0), "");
 			
 			//Task 5: Recurring Task (YEAR)
 			
@@ -160,12 +165,17 @@ public class Tests {
 			
 			//Visual check to see if dates are sorted correctly
 			
-			/*
+			
+			LinkedList<String> task1_sorted_dates = task1.getTaskDatesSorted();
+			for (String date : task1_sorted_dates) {
+				System.out.println(date);
+			}
+			
 			LinkedList<String> task9_sorted_dates = task9.getTaskDatesSorted();
 			for (String date : task9_sorted_dates) {
 				System.out.println(date);
 			}
-			*/
+			
 			
 			//completed tasks
 			

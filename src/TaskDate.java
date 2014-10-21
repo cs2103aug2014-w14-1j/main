@@ -1,6 +1,7 @@
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Comparator;
+import java.text.SimpleDateFormat;
 
 //prototype
 public class TaskDate {
@@ -31,11 +32,16 @@ public class TaskDate {
 	
 	//Recurring***********************************************
 	
+	//Checks if this date should be recurred
 	public boolean isRecur() {
 		return !recur.equals("");
 	}
 	
-	//assumes at least one datenode
+	//If String recur is present, updates all dates until the limit
+	//If no dates, no limit or recur is empty, does nothing
+	//Does not plug holes if any (only relevant if user is able to delete specific datenodes)
+	//Does not remove dates if an earlier limit is introduced after the original
+	//Should do minimal work after the first updateRecur()
 	public void updateRecur() {
 		if (recur.equals("") || end_limit == null || nodes.isEmpty()) {
 			return;
@@ -51,6 +57,8 @@ public class TaskDate {
 		
 	}
 	
+	//Creates a datenode with an increased date according to recur.
+	//E.g. If recur is MONTH, increaseDate(6 Oct) -> 6 Nov
 	private DateNode increaseDate(DateNode date) {
 		Calendar before = (Calendar) date.getStartDate().clone();
 		Calendar after = (Calendar) date.getEndDate().clone();
@@ -66,6 +74,7 @@ public class TaskDate {
 		return new DateNode(before, after);
 	}
 	
+	//Returns the field to be modified by recur
 	private int getRecurField(String recur) {
 		if (recur.equals(RECUR_YEAR)) {
 			return Calendar.YEAR;
@@ -83,6 +92,8 @@ public class TaskDate {
 		return -1;
 	}
 	
+	//purges all dates before dateCompleted
+	//THIS IS PERMANENT!
 	public void removeOldDates(Calendar dateCompleted) {
 		assert dateCompleted != null;
 		while (!nodes.isEmpty() && nodes.getFirst().getEndDate().before(dateCompleted)) {
@@ -90,6 +101,7 @@ public class TaskDate {
 		}
 	}
 	
+	//checks if any of the dates is within input date range
 	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
 		for (DateNode date : nodes) {
 			if (date.withinDateRange(start_date, end_date)) {
@@ -99,6 +111,8 @@ public class TaskDate {
 		return false;
 	}
 	
+	//No date
+	//If this is true, the caller should delete this TaskDate
 	public boolean isEmpty() {
 		return nodes.isEmpty();
 	}
@@ -106,7 +120,7 @@ public class TaskDate {
 	public LinkedList<String> getDates() {
 		LinkedList<String> datesTranslated = new LinkedList<String>();
 		for (DateNode date : nodes) {
-			datesTranslated.add(date.getDates());
+			datesTranslated.add(date.getDatesAsString());
 		}
 		return datesTranslated;
 	}
@@ -115,6 +129,7 @@ public class TaskDate {
 		return nodes;
 	}
 	
+	//These are not very useful - may be deleted in the future
 	public Calendar getStartDate() {
 		return nodes.getFirst().getStartDate();
 	}
@@ -124,7 +139,7 @@ public class TaskDate {
 	}
 	
 	public String getFirstDate() {
-		return nodes.getFirst().getDates();
+		return nodes.getFirst().getDatesAsString();
 	}
 	
 }
@@ -151,11 +166,12 @@ class DateNode {
 		return end_date;
 	}
 	
-	public String getDates() {
+	public String getDatesAsString() {
+		SimpleDateFormat sdf = new SimpleDateFormat("EE dd-MMM-YY HH:mm");
 		if (start_date.equals(end_date)) {
-			return start_date.getTime().toString();
+			return sdf.format(start_date.getTime());
 		}
-		return start_date.getTime().toString() + " - " + end_date.getTime().toString();
+		return sdf.format(start_date.getTime()) + " - " + sdf.format(end_date.getTime());
 	}
 	
 	public int getInterval() {
