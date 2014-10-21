@@ -183,4 +183,11 @@ public class ParserTest {
 		String[] expectedArray = {"t1", "r2", "f3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
+
+	@Test
+	public void testUndoCommand() throws Exception {
+		String basicAddInput = "undo";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.UNDO, addCommand.getCommandType());
+	}
 }
