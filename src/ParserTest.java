@@ -103,4 +103,48 @@ public class ParserTest {
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
 		assertNull(addCommand.getTaskIDsToDelete());
 	}
+
+	@Test
+	public void testListCommandSingleDate() throws Exception {
+		String basicAddInput = "list today";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
+		Calendar expectedDate = Calendar.getInstance();
+		Calendar actualStartDate = addCommand.getSearchStartDate();
+		Calendar actualEndDate = addCommand.getSearchEndDate();
+		assertEquals(expectedDate.get(Calendar.YEAR), actualStartDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualStartDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualStartDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
+		assertEquals(0, actualStartDate.get(Calendar.SECOND));
+		assertEquals(expectedDate.get(Calendar.YEAR), actualEndDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualEndDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualEndDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
+		assertEquals(59, actualEndDate.get(Calendar.SECOND));
+	}
+
+	@Test
+	public void testListCommandDateRange() throws Exception {
+		String basicAddInput = "list today to 2 days after";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
+		Calendar expectedDate = Calendar.getInstance();
+		Calendar actualStartDate = addCommand.getSearchStartDate();
+		Calendar actualEndDate = addCommand.getSearchEndDate();
+		assertEquals(expectedDate.get(Calendar.YEAR), actualStartDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualStartDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualStartDate.get(Calendar.DAY_OF_MONTH));
+//		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
+//		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
+//		assertEquals(0, actualStartDate.get(Calendar.SECOND));
+		assertEquals(expectedDate.get(Calendar.YEAR), actualEndDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualEndDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH)+2, actualEndDate.get(Calendar.DAY_OF_MONTH));
+//		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
+//		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
+//		assertEquals(59, actualEndDate.get(Calendar.SECOND));
+	}
 }
