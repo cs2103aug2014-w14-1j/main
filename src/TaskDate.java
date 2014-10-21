@@ -1,6 +1,7 @@
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.Comparator;
+import java.text.SimpleDateFormat;
 
 //prototype
 public class TaskDate {
@@ -166,10 +167,11 @@ class DateNode {
 	}
 	
 	public String getDatesAsString() {
+		SimpleDateFormat sdf = new SimpleDateFormat("EE dd-MMM-YY HH:mm");
 		if (start_date.equals(end_date)) {
-			return start_date.getTime().toString();
+			return sdf.format(start_date.getTime());
 		}
-		return start_date.getTime().toString() + " - " + end_date.getTime().toString();
+		return sdf.format(start_date.getTime()) + " - " + sdf.format(end_date.getTime());
 	}
 	
 	public int getInterval() {
