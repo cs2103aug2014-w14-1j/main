@@ -55,4 +55,26 @@ public class ParserTest {
 		assertEquals(22, actualCal.get(Calendar.HOUR_OF_DAY));
 		assertEquals(45, actualCal.get(Calendar.MINUTE));
 	}
+
+	@Test
+	public void testEditCommandName() throws Exception {
+		String basicAddInput = "edit t1 unit testing";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
+		assertEquals("t1", addCommand.getTaskID());
+		assertEquals("unit testing", addCommand.getTaskName());
+	}
+
+	@Test
+	public void testEditCommandDate() throws Exception {
+		String basicAddInput = "edit t1 tomorrow";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
+		assertEquals("t1", addCommand.getTaskID());
+		Calendar expectedCal = Calendar.getInstance();
+		Calendar actualCal = addCommand.getTaskDueDate();
+		assertEquals(expectedCal.get(Calendar.YEAR), actualCal.get(Calendar.YEAR));
+		assertEquals(expectedCal.get(Calendar.MONTH), actualCal.get(Calendar.MONTH));
+		assertEquals(expectedCal.get(Calendar.DAY_OF_MONTH)+1, actualCal.get(Calendar.DAY_OF_MONTH));
+	}
 }
