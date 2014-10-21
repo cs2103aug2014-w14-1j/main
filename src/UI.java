@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -39,6 +40,8 @@ public class UI extends FlowPane {
 	// rest of components of taskView
 	private TextField userCommands;
 	private TextField messagesToUser;
+	
+	private Task taskUserSelected = null;
 
 	// Dimensions
 	private static final double WIDTH_OF_PROGRAM = 1100;
@@ -47,8 +50,8 @@ public class UI extends FlowPane {
 	private static final double SPACING = 20;
 	private ObservableList<Task> dataToDisplay;
 	private ArrayList<Task> displayTasks = new ArrayList<Task>();
-	
-	//Parameters
+
+	// Parameters
 	private static final int EARLIEST_DATE = 0;
 
 	public UI() {
@@ -56,7 +59,7 @@ public class UI extends FlowPane {
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
 		taskView.setSpacing(SPACING);
-	
+
 		// Split: HBox containing 2 views
 		split = new HBox();
 		split.setSpacing(SPACING);
@@ -144,11 +147,29 @@ public class UI extends FlowPane {
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(800);
 		taskTable.setPrefHeight(500);
+		taskTable.getSelectionModel().selectedItemProperty()
+				.addListener(new ChangeListener<Task>() {
+					@Override
+					public void changed(
+							ObservableValue<? extends Task> selectedTask,
+							Task arg1, Task arg2) {
+						try {
+							taskUserSelected = (Task) selectedTask;
+							initView2(taskUserSelected);
+						} catch (Exception e) {
+							//the exception catches the temporary null value when table display changes
+							taskUserSelected = null;
+							initView2(taskUserSelected);
+							//ignore
+						}
+					}
+
+				});
 	}
 
 	@SuppressWarnings("unchecked")
 	private void buildColumns(ObservableList<Task> data) {
-		
+
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
 				"Task ID");
 		taskLblCol.setPrefWidth(60);
@@ -182,20 +203,26 @@ public class UI extends FlowPane {
 		taskStartEndDate.setResizable(false);
 		taskStartEndDate.setPrefWidth(300);
 		taskStartEndDate
-				.setCellValueFactory(new Callback<CellDataFeatures<Task,  String>, ObservableValue<String>>() {
+				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task,  String> p) {	
-						
-						return new SimpleStringProperty((p.getValue().getTaskDatesSorted().get(EARLIEST_DATE)));
+							CellDataFeatures<Task, String> p) {
+
+						return new SimpleStringProperty((p.getValue()
+								.getTaskDatesSorted().get(EARLIEST_DATE)));
 					}
 				});
-		
+
 		taskTable.getColumns().removeAll(taskTable.getColumns());
-		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskStartEndDate);
+		taskTable.getColumns()
+				.addAll(taskLblCol, taskNameCol, taskStartEndDate);
 
 	}
-
+	// End Build taskTable and taskTableView
+	
+	private void initView2(Task task){
+		
+	}
 	private void initUserCommands() {
 		userCommands.setText("");
 		userCommands.requestFocus();
