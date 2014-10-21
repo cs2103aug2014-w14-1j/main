@@ -165,4 +165,22 @@ public class ParserTest {
 		String[] expectedArray = {"hello", "world"};
 		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
 	}
+
+	@Test
+	public void testBasicCompleteCommand() throws Exception {
+		String basicAddInput = "complete t1";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
+	}
+
+	@Test
+	public void testMultipleCompleteCommand() throws Exception {
+		String basicAddInput = "complete t1 r2 f3";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1", "r2", "f3"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
+	}
 }
