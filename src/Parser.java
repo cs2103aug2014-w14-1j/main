@@ -177,6 +177,8 @@ public class Parser {
 
 	private void generateSearchCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setSearchTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
 		String[] array = commandDetails.split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
 		for (String keyword: array) {

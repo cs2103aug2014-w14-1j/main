@@ -13,6 +13,7 @@ public class Command {
 	private Calendar searchStartDate;
 	private Calendar searchEndDate;
 	private ArrayList<String> searchKeywords;
+	private String[] searchTags;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
 	private String[] taskTags;
@@ -86,6 +87,14 @@ public class Command {
 
 	public void setSearchKeywords(ArrayList<String> keywords) {
 		searchKeywords = keywords;
+	}
+
+	public String[] getSearchTags() {
+		return searchTags;
+	}
+
+	public void setSearchTags(String[] tags) {
+		searchTags = tags;
 	}
 
 	public String[] getTaskTags() {
