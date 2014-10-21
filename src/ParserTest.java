@@ -147,4 +147,22 @@ public class ParserTest {
 //		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
 //		assertEquals(59, actualEndDate.get(Calendar.SECOND));
 	}
+
+	@Test
+	public void testBasicSearchCommand() throws Exception {
+		String basicAddInput = "search hello";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
+		String[] expectedArray = {"hello"};
+		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
+	}
+
+	@Test
+	public void testMultipleSearchCommand() throws Exception {
+		String basicAddInput = "search hello world";
+		Command addCommand = parser.parseCommand(basicAddInput);
+		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
+		String[] expectedArray = {"hello", "world"};
+		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
+	}
 }
