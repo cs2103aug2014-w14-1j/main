@@ -47,7 +47,10 @@ public class UITest extends Application implements UIObserver {
 			t.setTaskName("2nd Iteration Task" + i);
 			Calendar task1_test_start_date = Calendar.getInstance();
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 20, 12, 59, 59);
-			t.addTaskDatesTimes(task1_test_start_date);
+			Calendar task1_test_end_date = Calendar.getInstance();
+			task1_test_end_date.set(2014, Calendar.NOVEMBER, 20, 13, 59, 59);
+			
+			t.addTaskDatesTimes(task1_test_start_date, task1_test_end_date);
 			t.setDisplayId("t");
 			displayTasks.add(t);
 		}
