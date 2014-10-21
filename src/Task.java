@@ -65,6 +65,8 @@ public class Task {
 	}
 
 	// Task Dates and Times ********************************
+	
+	//only Controller accesses setters: date input is in Calendar format
 
 	//recurring adds
 	public void addTaskDatesTimes(Calendar start_date, Calendar end_date, String recur, Calendar limit) {
@@ -88,20 +90,22 @@ public class Task {
 		taskDates.clear();
 	}
 	
+	//Only UI accesses getters: Date output is in String format
+	
 	public LinkedList<String> getTaskDateTime(int i) {
 		return taskDates.get(i).getDates();
 	}
 	
 	public LinkedList<String> getTaskDatesSorted() {
-		LinkedList<DateNode> taskDates = sortedTaskDates(); 
+		LinkedList<DateNode> taskDates = getDateNodesSorted(); 
 		LinkedList<String> taskStartDatesTranslated = new LinkedList<String>();
 		for (DateNode date : taskDates) {
-			taskStartDatesTranslated.add(date.getDates());
+			taskStartDatesTranslated.add(date.getDatesAsString());
 		}
 		return taskStartDatesTranslated;
 	}
 
-	private LinkedList<DateNode> sortedTaskDates() {
+	private LinkedList<DateNode> getDateNodesSorted() {
 		LinkedList<DateNode> taskSortedDates = new LinkedList<DateNode>();
 		DateComparator dateComparator = new DateComparator();
 		

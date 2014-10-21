@@ -1,8 +1,9 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Calendar;
 
 
-public class Tests {
+public class StorageTest {
 
 	public static void main(String[] args) {
 		
@@ -161,11 +162,17 @@ public class Tests {
 			//Visual check to see if dates are sorted correctly
 			
 			/*
+			LinkedList<String> task1_sorted_dates = task1.getTaskDatesSorted();
+			for (String date : task1_sorted_dates) {
+				System.out.println(date);
+			}
+			
 			LinkedList<String> task9_sorted_dates = task9.getTaskDatesSorted();
 			for (String date : task9_sorted_dates) {
 				System.out.println(date);
 			}
 			*/
+			
 			
 			//completed tasks
 			
