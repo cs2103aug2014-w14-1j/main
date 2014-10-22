@@ -1,0 +1,35 @@
+@CHARSET "ISO-8859-1";
+
+.root{
+	-fx-background-color:#faebd7
+}
+
+#inputText {
+	-fx-font: 20px Verdana;
+	-fx-font-weight: bold;
+}
+
+#messageToUserText {
+	-fx-background-color: #faebd7;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Red;
+	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
+}
+
+
+.label {
+	-fx-font:12px Verdana;
+	-fx-text-fill: Darkblue;
+	-fx-font-weight : bold;
+	
+}
+
+#view2Split {
+	-fx-background-color: #faebd7;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
+}
+

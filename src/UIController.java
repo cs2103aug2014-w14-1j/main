@@ -6,121 +6,127 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.TreeMap;
 
+import javafx.application.Application;
+import javafx.stage.Stage;
+
 import org.json.JSONException;
 
-public class Controller {
-	
-	private static String inputCommand_;
-	private static Command currentCommand_;
-	private static Command lastCommand_;
-	private static int taskID_;
-	private static Display UI_;
-	private static ArrayList<Task> searchResults_;
-	private static Parser parser_;
-	private static ArrayList<String> displayIDs_;
-	private static TreeMap<String,Task> taskIDmap_;
-	private static Storage storage_;
-	
-	public static void init() throws Exception {
-		currentCommand_ =  null;
-		lastCommand_ = null;
-		UI_ = new Display();
-		parser_ = new Parser();
-		storage_ = new Storage();
-	}
+public class UIController extends Application implements UIObserver {
 
-	public static void proceedCommand() throws Exception {
+	private String inputCommand_;
+	private Command currentCommand_ = null;
+	private Command lastSearchCommand_ = null;
+	private int taskID_;
+	private UI UI_;
+	private ArrayList<Task> searchResults_;
+	private Parser parser_;
+	private TreeMap<String, Task> taskIDmap_;
+	private Storage storage_;
+	private ArrayList<String> displayIDs_;
+
+	public void proceedCommand() throws Exception {
 		Command.COMMAND_TYPE commandType = currentCommand_.getCommandType();
-		
+
 		switch (commandType) {
 		case ADD: {
 			add();
 			return;
-			}
+		}
 		case DELETE: {
 			delete();
 			return;
-			}
+		}
 		case EDIT: {
-			update();
+			edit();
 			return;
-			}
+		}
 		case LIST:
 			list();
+			lastSearchCommand_ = currentCommand_;
 			return;
-		}	
+		}
 	}
 
-	private static void display(Object result) {
-		UI_.println(result);
+	private void display(String result) {
+		UI_.setMessageToUser(result);
 	}
-	
-	private static void add() throws JSONException, IOException {
+
+	private void add() throws Exception {
 		Task newTask = new Task();
 		newTask.setTaskName(currentCommand_.getTaskName());
-		
-		if (currentCommand_.getTaskDueDate()!= null) {
+
+		if (currentCommand_.getTaskDueDate() != null) {
 			newTask.addTaskDatesTimes(currentCommand_.getTaskDueDate());
 		}
-	
+
 		storage_.insert(newTask);
-		UI_.println("Added to Calendar: ");
-		UI_.toDisplay(newTask);
-		
-		viewToday();
+		display("Added new task to Calendar: " + newTask.getTaskName());
+
+		repeatLastSearch();
 	}
-	
-	private static void delete() throws Exception {
+
+	private void delete() throws Exception {
 		String[] ids = currentCommand_.getTaskIDsToDelete();
 		for (int i = 0; i < ids.length; i++) {
 			String id = ids[i];
 			delete(id);
 		}
-		viewToday();
+		repeatLastSearch();
 	}
-	
-	private static void delete(String id) throws IOException {
+
+	private void delete(String id) throws IOException {
 		if (!taskIDmap_.containsKey(id)) {
-			UI_.println("Invalid index to delete: " + id);
+			display("Invalid index to delete: " + id);
 		} else {
-			delete(taskIDmap_.get(id));
+			Task task = taskIDmap_.get(id);
+			delete(task);
+			display("Deleted from Calendar: " + task.getTaskName());
 		}
 	}
-	
-	private static void delete(Task task) throws IOException  {
+
+	private void delete(Task task) throws IOException {
 		storage_.delete(task);
-		UI_.println("Deleted from Calendar :");
-		UI_.toDisplay(task);
 	}
-	
-	private static void update() throws FileNotFoundException {
-		
+
+	private void edit() throws Exception {
+
 		String id = currentCommand_.getTaskID();
 		if (!taskIDmap_.containsKey(id)) {
-			UI_.println("Invalid index to update.");
+			display("Invalid index to update.");
 		} else {
 			update(taskIDmap_.get(id));
 		}
-		viewToday();
+
+		repeatLastSearch();
 	}
-	
-	private static void update(Task task) throws FileNotFoundException {
-		
+
+	private void update(Task task) throws FileNotFoundException {
+
 		if (!currentCommand_.getTaskName().equals("")) {
 			task.setTaskName(currentCommand_.getTaskName());
 		}
-		
-		if (currentCommand_.getTaskDueDate()!=null) {
+
+		if (currentCommand_.getTaskDueDate() != null) {
 			Calendar date = currentCommand_.getTaskDueDate();
 			task.addTaskDatesTimes(date);
 		}
 	}
-	private static void viewToday() {
+
+	private void repeatLastSearch() throws Exception {
+		if (lastSearchCommand_ == null) {
+			viewToday();
+		} else {
+			currentCommand_ = lastSearchCommand_;
+			proceedCommand();
+		}
+	}
+
+	private void viewToday() {
 		ArrayList<String> keywords = new ArrayList<String>();
 		ArrayList<String> tags = new ArrayList<String>();
-		
+
 		Calendar c = new GregorianCalendar();
-		
+
 		Calendar start_date = Calendar.getInstance();
 		start_date.setTime(c.getTime());
 		start_date.set(start_date.HOUR, -12);
@@ -132,42 +138,39 @@ public class Controller {
 		end_date.set(end_date.HOUR, 11);
 		end_date.set(end_date.MINUTE, 59);
 		end_date.set(end_date.SECOND, 59);
-	
-		
+
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-		
-		UI_.println("Today Tasks: ");
-		
+
 		createTaskIDmap();
-		UI_.toDisplay(searchResults_);
+		UI_.displayTasks(searchResults_);
 	}
-	
-	private static void createDisplayIDs() {
-		
+
+	private void createDisplayIDs() {
+
 		ArrayList<String> ids = new ArrayList<String>();
-		
-		for (int i=0; i < searchResults_.size(); i++) {
+
+		for (int i = 0; i < searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
-			String id = getChar(task) + Integer.toString(i+1);
+			String id = getChar(task) + Integer.toString(i + 1);
 			ids.add(id);
 		}
 		displayIDs_ = ids;
 	}
-	
-	private static void createTaskIDmap() {
-		taskIDmap_ = new TreeMap<String,Task>(); 
+
+	private void createTaskIDmap() {
+		taskIDmap_ = new TreeMap<String, Task>();
 		int f = 1;
-		int o = 1;
+		int r = 1;
 		int t = 1;
-		
-		for (int i=0; i<searchResults_.size(); i++) {
+
+		for (int i = 0; i < searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
 			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
+			if (c.equals("r")) {
+				String key = c + Integer.toString(r);
 				taskIDmap_.put(key, task);
 				task.setDisplayId(key);
-				o++;
+				r++;
 			} else if (c.equals("t")) {
 				String key = c + Integer.toString(t);
 				taskIDmap_.put(key, task);
@@ -181,58 +184,62 @@ public class Controller {
 			}
 		}
 	}
-	
-	private static String getChar(Task task) {
+
+	private String getChar(Task task) {
 		if (task.isOverdue()) {
-			return "o";
+			return "r";
 		} else if (task.isFloating()) {
 			return "f";
 		} else {
 			return "t";
 		}
 	}
-	
-	private static void search() {
+
+	private void search() {
 		ArrayList<String> keywords = new ArrayList<String>();
 		ArrayList<String> tags = new ArrayList<String>();
 		Calendar start_date = null;
 		Calendar end_date = null;
-	
+
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-	}
-	
-	private static void list() {
-		ArrayList<String> keywords = new ArrayList<String>();
-		ArrayList<String> tags = new ArrayList<String> ();
-		Calendar start_date = currentCommand_.getSearchStartDate();
-		Calendar end_date = currentCommand_.getSearchEndDate();
-		
-		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-		createTaskIDmap();
-		UI_.toDisplay(searchResults_);
 	}
 
-	public static void main(String args[]) throws Exception {
-		
-		init();
-		
-		viewToday();
-		
-		UI_.print("Please insert command: ");
-		
-		
-		while (UI_.hasNextLine()) {
-			
-			inputCommand_= UI_.get();
-			currentCommand_ = parser_.parseCommand(inputCommand_);
-			
-			if (currentCommand_.getCommandType() != Command.COMMAND_TYPE.INVALID) {
-				proceedCommand();
-			} else {
-				UI_.println("Invalid Command");
-			}
-	
-			UI_.print("Please insert command: ");
+	private void list() {
+		ArrayList<String> keywords = new ArrayList<String>();
+		ArrayList<String> tags = new ArrayList<String>();
+		Calendar start_date = currentCommand_.getSearchStartDate();
+		Calendar end_date = currentCommand_.getSearchEndDate();
+
+		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
+	}
+
+	@Override
+	public void update() {
+		inputCommand_ = UI_.getUserInput();
+
+		currentCommand_ = parser_.parseCommand(inputCommand_);
+
+		try {
+			proceedCommand();
+		} catch (Exception e) {
+			UI_.setMessageToUser(e.getMessage());
 		}
+	}
+
+	public static void main(String[] args) {
+		launch(args);
+	}
+
+	@Override
+	public void start(Stage stage) throws Exception {
+		this.storage_ = new Storage();
+		this.parser_ = new Parser();
+		this.UI_ = new UI();
+
+		UI_.addUIObserver(this);
+		UI_.showStage(stage);
+		viewToday();
 	}
 }

@@ -7,81 +7,66 @@ import com.google.gson.Gson;
 
 
 public class Storage {
+	
 	private ArrayList<Task> al_task;
 	private ArrayList<Task> al_task_floating;
 	private ArrayList<Task> al_task_overdue;
 	private ArrayList<Task> al_task_completed;
-	private ArrayList<Task> al_task_recurring;
 	private FileHandler filehandler;
 	private int counter;
-
-	// Index for if the task does not exist in the ArrayList.
-	private static final int DOES_NOT_EXIST = -1;
 
 	public Storage() throws IOException {
 		al_task = new ArrayList<Task>();
 		al_task_floating = new ArrayList<Task>();
 		al_task_overdue = new ArrayList<Task>();
 		al_task_completed = new ArrayList<Task>();
-		al_task_recurring = new ArrayList<Task>();
 		filehandler = new FileHandler();
 		initFiles();
+		checkForOverdueTasks();
 	}
+
+	//Insert methods*********************************************************
+	
+	/*
+	 * Assumption: This task is unique and does not already exist inside the
+	 * lists. If it was an existing task, it should have been deleted
+	 */
 	
 	public void insert(Task task) throws JSONException, IOException {
-		if (task.getTaskDatesTimes().isEmpty()) {
-			task.setTaskFloating(true);
-			insert(task, al_task_floating);
-		}
-		//recurring
-		else if (task.isRecur()) {
-			insert(task, al_task_recurring);
-		}
-		//overdue
-		else {
-			insert(task, al_task);
-		}
+		insert(task, retrieveTaskList(task));
+		save();
 	}
 
-	// if exists, replace task. Else add task.
-	private void insert(Task task, ArrayList<Task> file) throws JSONException,
+	private void insert(Task task, ArrayList<Task> list) throws JSONException,
 			IOException {
-		filehandler.readFile(file);
-		int taskIndex = getIndex(file, task);
-		// add
-		if (taskIndex == DOES_NOT_EXIST) {
-			counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
-			task.setTaskId(counter);
-			file.add(task);
-			filehandler.writeTaskCounter(counter);
+		
+		if (task.hasNoID()) {
+			assignID(task);
 		}
-		// insert
-		else {
-			file.set(taskIndex, task);
-		}
-		filehandler.writeFile(file);
-	}
-	
-	public void delete(Task task) throws IOException{
-		if (task.getTaskDatesTimes().isEmpty()) {
-			delete(task, al_task_floating);
-		}
-		//recurring
-		else if (task.isRecur()) {
-			delete(task, al_task_recurring);
-		}
-		//overdue
-		else {
-			delete(task, al_task);
-		}
+		list.add(task);
 		
 	}
+	
+	private void assignID(Task task) throws IOException {
+		counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
+		task.setTaskId(counter);
+		filehandler.writeTaskCounter(counter);
+	}
+	
+	//Delete methods***************************************************
+	
+	/*
+	 * Assumption: Task either does not exist in any of the lists, or exists
+	 * only in 1 list. Insertion should not insert any duplicates
+	 */
+	
+	public void delete(Task task) throws IOException{
+		delete(task, retrieveTaskList(task));
+		save();
+	}
 
-	private void delete(Task task, ArrayList<Task> file) throws IOException {
-		int taskIndex = getIndex(file, task);
-		if (taskIndex != DOES_NOT_EXIST) {
-			file.remove(taskIndex);
-		}
+	private void delete(Task task, ArrayList<Task> list) throws IOException {
+		list.remove(task);
 	}
 
 	public ArrayList<Task> getTasksFile() {
@@ -100,26 +85,26 @@ public class Storage {
 		return this.al_task_overdue;
 	}
 	
-	public ArrayList<Task> getRecurringTasksFile() {
-		return this.al_task_recurring;
-	}
+	//Search methods**********************************
 	
-	//Search method**********************************
-	
-	//returns only 1 task as Id is unique. Return null if empty.
+	/*
+	 * Assumption: All tasks are unique. Only one result should be found
+	 */
 	public Task searchTaskByID(String id){
 		ArrayList<Task> search_results = new ArrayList<Task>();
 		
 		searchForID(id, al_task, search_results);
 		searchForID(id, al_task_floating, search_results);
 		searchForID(id, al_task_overdue, search_results);
-		searchForID(id, al_task_recurring, search_results);
 		
 		if(search_results.isEmpty()){
 			return null;
 		}
+		
+		assert search_results.size() == 1;
+		
 		//only one item so index 0.
-		return search_results.get(0);		
+		return search_results.get(0);
 	}
 	
 	private ArrayList<Task> searchForID(String id,ArrayList<Task> list, ArrayList<Task> resultsList){
@@ -131,6 +116,7 @@ public class Storage {
 		
 		return resultsList;
 	}
+	
 	/*
 	 * Driver search method. Search for all tasks with the specified parameters
 	 * Current limitations:
@@ -141,10 +127,10 @@ public class Storage {
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		ArrayList<Task> search_results = new ArrayList<Task>();
 				
-		searchList(search_results, al_task, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
 		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_recurring, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
+		searchList(search_results, al_task, keywords, tags, start_date, end_date);
+		
 		
 		return search_results;
 	}
@@ -165,13 +151,13 @@ public class Storage {
 		}
 	}
 	
-	//Clear method**********************************
+	//Clear methods**************************************************************
 	
 	public void clearAll() throws FileNotFoundException {
 		clear(al_task);
 		clear(al_task_floating);
 		clear(al_task_overdue);
-		clear(al_task_recurring);
+		clear(al_task_completed);
 		save();
 	}
 	
@@ -179,33 +165,50 @@ public class Storage {
 		filelist.clear();
 	}
 	
-	public void save() throws FileNotFoundException {
+	//Save methods**********************************************************
+	
+	private void save() throws FileNotFoundException {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
-		filehandler.writeFile(al_task_recurring);
+		filehandler.writeFile(al_task_completed);
 	}
 	
-	//Methods Not Accessible to Storage instance.****************************
+	//Miscellaneous methods*************************************************
+	
+	private void checkForOverdueTasks() throws FileNotFoundException {
+		ArrayList<Task> task_to_overdue = new ArrayList<Task>();
+		for (Task task : al_task) {
+			if (task.isOverdue()) {
+				task_to_overdue.add(task);
+			}
+		}
+		al_task_overdue.addAll(task_to_overdue);
+		al_task.removeAll(task_to_overdue);
+		save();
+	}
+	
 	private void initFiles() throws IOException {
 		filehandler.readFile(al_task);
 		filehandler.readFile(al_task_floating);
 		filehandler.readFile(al_task_completed);
 		filehandler.readFile(al_task_overdue);
-		filehandler.readFile(al_task_recurring);
 	}
 
-	private int getIndex(ArrayList<Task> file, Task task) {
-		for (int i = 0; i < file.size(); i++) {
-			if (task.getTaskId().equals(file.get(i).getTaskId())) {
-				return i;
-			}
+	private ArrayList<Task> retrieveTaskList(Task task) {
+		if (task.isFloating()) {
+			return al_task_floating;
 		}
-		return DOES_NOT_EXIST;
+		else if (task.isOverdue()) {
+			return al_task_overdue;
+		}
+		else if (task.isCompleted()) {
+			return al_task_completed;
+		}
+		return al_task;
 	}
-
-
 	
+	//File Operations********************************************************
 	
 	class FileHandler {
 		
@@ -215,7 +218,6 @@ public class Storage {
 		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
 		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 		private static final String TASK_FILENAME = "Task.txt";
-		private static final String RECURRING_TASK_FILENAME = "RecurringTask.txt";
 		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 		
 		// Interfaces with the textFiles(databases)*************************
@@ -286,8 +288,6 @@ public class Storage {
 				filename = COMPLETED_TASK_FILENAME;
 			} else if (fileToWrite == al_task_overdue) {
 				filename = OVERDUE_TASK_FILENAME;
-			} else if (fileToWrite == al_task_recurring) {
-				filename = RECURRING_TASK_FILENAME;
 			} else {
 				throw new Error("Invalid file to write to");
 			}
