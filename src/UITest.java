@@ -25,7 +25,7 @@ public class UITest extends Application implements UIObserver {
 		ArrayList<Task> displayTasks = new ArrayList<Task>();
 		for (int i = 0; i < 30; i++) {
 			Task t = new Task();
-			t.setId(i);
+			t.setTaskId(i);
 			t.setTaskName("Task" + i);
 			Calendar task1_test_start_date = Calendar.getInstance();
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 12, 59, 59);
@@ -43,7 +43,7 @@ public class UITest extends Application implements UIObserver {
 		if(command.equalsIgnoreCase("2"));
 		for(int i = 0; i < 10; i ++ ){
 			Task t = new Task();
-			t.setId(i);
+			t.setTaskId(i);
 			t.setTaskName("2nd Iteration Task" + i);
 			Calendar task1_test_start_date = Calendar.getInstance();
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 20, 12, 59, 59);

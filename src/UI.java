@@ -1,5 +1,8 @@
 import java.util.ArrayList;
+import java.util.LinkedList;
+
 import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -36,6 +39,22 @@ public class UI extends FlowPane {
 	// view 2 of split
 	private VBox taskDetailsView;
 
+	private ObservableList<Task> dataToDisplay;
+	private ArrayList<Task> displayTasks = new ArrayList<Task>();
+
+	private final Label taskIDLbl = new Label("Task ID: ");
+	private final TextField taskIDtf = new TextField();
+	private final Label taskNameLbl = new Label("Task Name: ");
+	private final TextField taskNametf = new TextField();
+	private final Label taskStartDtesLbl = new Label("Task Dates: ");
+	private final TextArea taskStartDtesta = new TextArea();
+	private final Label taskReminderDtesLbl = new Label("Reminder Dates: ");
+	private final TextArea taskReminderDtesta = new TextArea();
+	private final Label taskTagsLbl = new Label("Task Tags: ");
+	private final TextArea taskTagsta = new TextArea();
+	private Task taskUserSelected = null;
+	//
+
 	// rest of components of taskView
 	private TextField userCommands;
 	private TextField messagesToUser;
@@ -45,10 +64,8 @@ public class UI extends FlowPane {
 	private static final double WIDTH_OF_SPLIT2 = 300;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
-	private ObservableList<Task> dataToDisplay;
-	private ArrayList<Task> displayTasks = new ArrayList<Task>();
-	
-	//Parameters
+
+	// Parameters
 	private static final int EARLIEST_DATE = 0;
 
 	public UI() {
@@ -56,7 +73,7 @@ public class UI extends FlowPane {
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
 		taskView.setSpacing(SPACING);
-	
+
 		// Split: HBox containing 2 views
 		split = new HBox();
 		split.setSpacing(SPACING);
@@ -69,42 +86,7 @@ public class UI extends FlowPane {
 		taskTableView.getChildren().add(taskTable);
 
 		// View 2 of split
-		taskDetailsView = new VBox();
-		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
-		taskDetailsView.setSpacing(10);
-
-		Label taskIDLbl = new Label("Task ID: ");
-		TextField taskIDtf = new TextField("");
-		taskIDtf.setId("view2Split");
-		taskIDtf.setDisable(true);
-
-		Label taskNameLbl = new Label("Task Name: ");
-		TextField taskNametf = new TextField("test");
-		taskNametf.setId("view2Split");
-		taskNametf.setDisable(true);
-
-		Label taskStartDtesLbl = new Label("Task Dates: ");
-		TextArea taskStartDtesta = new TextArea();
-		taskStartDtesta.setId("view2Split");
-		taskStartDtesta.setPrefHeight(90);
-		taskStartDtesta.setDisable(true);
-
-		Label taskReminderDtesLbl = new Label("Reminder Dates: ");
-		TextArea taskReminderDtesta = new TextArea();
-		taskReminderDtesta.setId("view2Split");
-		taskReminderDtesta.setPrefHeight(90);
-		taskReminderDtesta.setDisable(true);
-
-		Label taskTagsLbl = new Label("Task Tags: ");
-		TextArea taskTagsta = new TextArea();
-		taskTagsta.setId("view2Split");
-		taskTagsta.setPrefHeight(90);
-		taskTagsta.setDisable(true);
-
-		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
-				taskNametf, taskStartDtesLbl, taskStartDtesta,
-				taskReminderDtesLbl, taskReminderDtesta, taskTagsLbl,
-				taskTagsta);
+		initTaskDetailsView();
 
 		// adding split pane
 		split.getChildren().addAll(taskTableView, taskDetailsView);
@@ -144,11 +126,31 @@ public class UI extends FlowPane {
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(800);
 		taskTable.setPrefHeight(500);
+		buildColumns(dataToDisplay);
+
+		taskTable.getSelectionModel().selectedItemProperty()
+				.addListener(new ChangeListener<Task>() {
+					@Override
+					public void changed(ObservableValue<? extends Task> arg0,
+							Task arg1, Task arg2) {
+						try {
+							if (taskTable.getSelectionModel().getSelectedItem() != null) {
+								taskUserSelected = taskTable
+										.getSelectionModel().getSelectedItem();
+								bindTaskDetails(taskUserSelected);
+							}
+						} catch (Exception e) {
+							System.out.println("UI" + e);
+							// ignore
+						}
+					}
+
+				});
 	}
 
 	@SuppressWarnings("unchecked")
 	private void buildColumns(ObservableList<Task> data) {
-		
+
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
 				"Task ID");
 		taskLblCol.setPrefWidth(60);
@@ -182,19 +184,98 @@ public class UI extends FlowPane {
 		taskStartEndDate.setResizable(false);
 		taskStartEndDate.setPrefWidth(300);
 		taskStartEndDate
-				.setCellValueFactory(new Callback<CellDataFeatures<Task,  String>, ObservableValue<String>>() {
+				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task,  String> p) {	
-						
-						return new SimpleStringProperty((p.getValue().getTaskDatesSorted().get(EARLIEST_DATE)));
+							CellDataFeatures<Task, String> p) {
+
+						return new SimpleStringProperty((p.getValue()
+								.getTaskDatesSorted().get(EARLIEST_DATE)));
 					}
 				});
-		
+
 		taskTable.getColumns().removeAll(taskTable.getColumns());
-		taskTable.getColumns().addAll(taskLblCol, taskNameCol, taskStartEndDate);
+		taskTable.getColumns()
+				.addAll(taskLblCol, taskNameCol, taskStartEndDate);
 
 	}
+
+	// End Build taskTable and taskTableView
+
+	// Displays view 2 of split.
+	private void initTaskDetailsView() {
+		taskDetailsView = new VBox();
+		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
+		taskDetailsView.setSpacing(10);
+
+		taskIDtf.setId("view2Split");
+		taskIDtf.setDisable(true);
+
+		taskNametf.setId("view2Split");
+		taskNametf.setDisable(true);
+
+		taskStartDtesta.setId("view2Split");
+		taskStartDtesta.setPrefHeight(90);
+		taskStartDtesta.setDisable(true);
+
+		taskReminderDtesta.setId("view2Split");
+		taskReminderDtesta.setPrefHeight(90);
+		taskReminderDtesta.setDisable(true);
+
+		taskTagsta.setId("view2Split");
+		taskTagsta.setPrefHeight(90);
+		taskTagsta.setDisable(true);
+
+		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
+				taskNametf, taskStartDtesLbl, taskStartDtesta,
+				taskReminderDtesLbl, taskReminderDtesta, taskTagsLbl,
+				taskTagsta);
+	}
+
+	// Binds row to task detail
+	private void blankTaskDetails() {
+		taskIDtf.setDisable(false);
+		taskIDtf.setText("");
+		taskIDtf.setDisable(true);
+
+		taskNametf.setDisable(false);
+		taskNametf.setText("");
+		taskNametf.setDisable(true);
+
+		taskStartDtesta.setDisable(false);
+		taskStartDtesta.setText("");
+		taskStartDtesta.setDisable(true);
+		
+//		taskReminderDtesta.setDisable(false);
+//		taskReminderDtesta.setText("");
+//		taskReminderDtesta.setDisable(true);
+	}
+
+	private void bindTaskDetails(Task task) {
+		taskIDtf.setDisable(false);
+		taskIDtf.setText(taskUserSelected.getDisplayId());
+		taskIDtf.setDisable(true);
+
+		taskNametf.setDisable(false);
+		taskNametf.setText(taskUserSelected.getTaskName());
+		taskNametf.setDisable(true);
+
+		taskStartDtesta.setDisable(false);
+		LinkedList<String> taskDates = taskUserSelected.getTaskDatesSorted();
+		String taskdateStr = "";
+		for (String s : taskDates) {
+			taskdateStr = s + "\n";
+		}
+		taskStartDtesta.setText(taskdateStr);
+		taskStartDtesta.setDisable(true);
+		
+		
+		// private TextArea taskReminderDtesta = new TextArea();
+		// private TextArea taskTagsta = new TextArea();
+
+	}
+
+	// End Displaying View 2
 
 	private void initUserCommands() {
 		userCommands.setText("");
@@ -207,8 +288,7 @@ public class UI extends FlowPane {
 
 	public void setMessageToUser(String msg) {
 		messagesToUser.setDisable(false);
-		messagesToUser.clear();
-		messagesToUser.appendText(msg);
+		messagesToUser.setText(msg);
 		messagesToUser.setDisable(true);
 	}
 
@@ -216,9 +296,17 @@ public class UI extends FlowPane {
 	public void displayTasks(ArrayList<Task> taskAL) {
 		this.displayTasks = taskAL;
 		dataToDisplay = FXCollections.observableArrayList(displayTasks);
-		buildColumns(dataToDisplay);
 		taskTable.setItems(dataToDisplay);
-		userCommands.requestFocus();
+
+		if (dataToDisplay.size() > 0) {
+			this.taskUserSelected = dataToDisplay.get(0);
+			bindTaskDetails(taskUserSelected);
+
+		} else {
+			blankTaskDetails();
+		}
+
+		initUserCommands();
 
 	}
 
