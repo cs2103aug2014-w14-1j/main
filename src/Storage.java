@@ -8,6 +8,8 @@ import com.google.gson.Gson;
 
 public class Storage {
 	
+	private static final int RECUR_YEAR_LIMIT = 3;
+	
 	private ArrayList<Task> al_task;
 	private ArrayList<Task> al_task_floating;
 	private ArrayList<Task> al_task_overdue;
@@ -33,23 +35,45 @@ public class Storage {
 	 */
 	
 	public void insert(Task task) throws JSONException, IOException {
+		if (task.hasNoID()) {
+			assignID(task);
+		}
 		insert(task, retrieveTaskList(task));
+		if (task.isRecur()) {
+			Calendar limit = task.getRecurLimit();
+			if (limit == null) {
+				limit = Calendar.getInstance();
+				limit.add(Calendar.YEAR, RECUR_YEAR_LIMIT);
+			}
+			while (task.getEndDate().before(limit)) {		//assumption: recur must have enddate
+				task = task.clone();
+				Calendar start = task.getStartDate();
+				if (start != null) {
+					start.add(task.getRecur(), 1);
+				}
+				Calendar end = task.getEndDate();
+				if (end != null) {
+					end.add(task.getRecur(), 1);
+					if (end.after(limit)) {
+						break;
+					}
+				}
+				//increase date
+				task.setDates(start, end);
+				insert(task, retrieveTaskList(task));
+			}
+		}
 		save();
 	}
 
 	private void insert(Task task, ArrayList<Task> list) throws JSONException,
 			IOException {
-		
-		if (task.hasNoID()) {
-			assignID(task);
-		}
 		list.add(task);
-		
 	}
 	
 	private void assignID(Task task) throws IOException {
 		counter = Integer.parseInt(filehandler.getTaskCounter()) + 1;
-		task.setTaskId(counter);
+		task.setId(counter);
 		filehandler.writeTaskCounter(counter);
 	}
 	
@@ -62,6 +86,12 @@ public class Storage {
 	
 	public void delete(Task task) throws IOException{
 		delete(task, retrieveTaskList(task));
+		if (task.isRecur()) {
+			ArrayList<Task> recur_chain = searchTaskByID(task.getId());
+			for (Task other_task : recur_chain) {
+				delete(other_task, retrieveTaskList(other_task));
+			}
+		}
 		save();
 	}
 
@@ -90,8 +120,12 @@ public class Storage {
 	/*
 	 * Assumption: All tasks are unique. Only one result should be found
 	 */
-	public Task searchTaskByID(String id){
+	public ArrayList<Task> searchTaskByID(Integer id){
+		
 		ArrayList<Task> search_results = new ArrayList<Task>();
+		if (id == null) {
+			return search_results;
+		}
 		
 		searchForID(id, al_task, search_results);
 		searchForID(id, al_task_floating, search_results);
@@ -101,15 +135,12 @@ public class Storage {
 			return null;
 		}
 		
-		assert search_results.size() == 1;
-		
-		//only one item so index 0.
-		return search_results.get(0);
+		return search_results;
 	}
 	
-	private ArrayList<Task> searchForID(String id,ArrayList<Task> list, ArrayList<Task> resultsList){
+	private ArrayList<Task> searchForID(Integer id,ArrayList<Task> list, ArrayList<Task> resultsList){
 		for(Task task: list){
-			if(task.getTaskId().equals(id)){
+			if(task.getId() == id){
 				resultsList.add(task);
 			}
 		}

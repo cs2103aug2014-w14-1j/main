@@ -190,7 +190,7 @@ public class UI extends FlowPane {
 							CellDataFeatures<Task, String> p) {
 
 						return new SimpleStringProperty((p.getValue()
-								.getTaskDatesSorted().get(EARLIEST_DATE)));
+								.UIgetDate()));
 					}
 				});
 
@@ -261,12 +261,7 @@ public class UI extends FlowPane {
 		taskNametf.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
-		LinkedList<String> taskDates = taskUserSelected.getTaskDatesSorted();
-		String taskdateStr = "";
-		for (String s : taskDates) {
-			taskdateStr = s + "\n";
-		}
-		taskStartDtesta.setText(taskdateStr);
+		taskStartDtesta.setText(taskUserSelected.UIgetDate());
 		taskStartDtesta.setDisable(true);
 		
 		

@@ -1,11 +1,7 @@
 import static org.junit.Assert.*;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.LinkedList;
-import java.io.IOException;
-
 import org.junit.Test;
 
 public class StorageJUnitTest {
@@ -13,7 +9,6 @@ public class StorageJUnitTest {
 	@Test
 	public void test() {
 		try {
-			SimpleDateFormat sdf = new SimpleDateFormat("EE dd-MMM-YY HH:mm");
 
 			// Task tests**********************************************************
 			
@@ -23,36 +18,43 @@ public class StorageJUnitTest {
 			 * reduce the number of combinations required.
 			 * 
 			 * In addition, these tasks will be reused for later tests
+			 * 
+			 * WARNING: Due to time sensitivity of overdue tasks, it is assumed
+			 * these tests are not used by 2015. Also all recurring tasks will
+			 * only contribute to the normal tasks file (no overdue). However
+			 * since retrieveTaskFile() is independent of recurrence generation,
+			 * it is assumed that the result is the same for overdue tasks.
 			*/
 			
 			System.out.println("Task tests");
 			
 			// Task 1: Normal task
 			// Also checks methods related to taskName, keywords, tags are working
+			// Assumes 1 date
 			Task task1 = new Task();
-			task1.setTaskName("CS2103T finals");
+			task1.setTaskName("Submit Developer Guide");
 			Calendar task1_date = Calendar.getInstance();
 			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			task1.addTaskDatesTimes(task1_date);
-			task1.addTaskTags("school");
-			task1.addTaskTags("CS2103T");
-			task1.addTaskTags("exams");
+			task1.setDate(task1_date);
+			task1.addTag("school");
+			task1.addTag("CS2101");
+			task1.addTag("CS2103T");
 
 			Calendar task1_test_start_date = Calendar.getInstance();
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 12, 59, 59);
 			Calendar task1_test_end_date = Calendar.getInstance();
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 
-			test(task1.getTaskName(), "CS2103T finals");
-			test(task1.getTaskTags().size(), 3);
-			test(task1.getTaskTags().get(0), "school");
-			test(task1.getTaskTags().get(1), "CS2103T");
-			test(task1.getTaskTags().get(2), "exams");
+			test(task1.getTaskName(), "Submit Developer Guide");
+			test(task1.getTags().size(), 3);
+			test(task1.getTags().get(0), "school");
+			test(task1.getTags().get(1), "CS2101");
+			test(task1.getTags().get(2), "CS2103T");
+			test(task1.getStartDate(), task1_date);
+			test(task1.getEndDate(), task1_date);
+			test(task1.getDate(), task1_date);
 			test(task1.withinDateRange(task1_test_start_date,
 					task1_test_end_date), true);
-			test(task1.getTaskDatesSorted().size(), 1);
-			test(task1.getTaskDatesSorted().getFirst(),
-					sdf.format(task1_date.getTime()));
 			test(task1.withinDateRange(null, null), true);
 
 			// Task 2: Task with interval
@@ -62,16 +64,18 @@ public class StorageJUnitTest {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.addTaskDatesTimes(task2_start_date, task2_end_date);
-			task2.addTaskTags("school");
-			task2.addTaskTags("MA3110");
-			task2.addTaskTags("exams");
+			task2.setDates(task2_start_date, task2_end_date);
+			task2.addTag("school");
+			task2.addTag("MA3110");
+			task2.addTag("exams");
 
 			Calendar task2_test_start_date = Calendar.getInstance();
 			task2_test_start_date.set(2014, Calendar.NOVEMBER, 24, 12, 59, 59);
 			Calendar task2_test_end_date = Calendar.getInstance();
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
-
+			
+			test(task2.getStartDate(), task2_start_date);
+			
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);
 			task2_test_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 30, 00);
@@ -80,118 +84,92 @@ public class StorageJUnitTest {
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);
-			test(task2.getTaskDatesSorted().size(), 1);
-			test(task2.getTaskDatesSorted().getFirst(),
-					sdf.format(task2_start_date.getTime()) + " - "
-							+ sdf.format(task2_end_date.getTime()));
+			test(task2.isFloating(), false);
 
 			// Task 3: Overdue Task
 			// Note: Overdue check generates an instance of the current date. Test
-			// may therefore be subject to when it was conducted
+			// may therefore be sensitive to when it was conducted
 			Task task3 = new Task();
 			task3.setTaskName("100 pushups");
 			Calendar task3_date = Calendar.getInstance();
 			task3_date.set(2014, Calendar.OCTOBER, 8, 10, 00, 00);
-			task3.addTaskDatesTimes(task3_date);
-			task3.addTaskTags("exercise");
+			task3.setDate(task3_date);
+			task3.addTag("exercise");
 
 			test(task3.isOverdue(), true);
 
 			// Task 4: Floating Task
 			Task task4 = new Task();
 			task4.setTaskName("Bake chocolate cake");
-			task4.addTaskTags("baking");
+			task4.addTag("baking");
 
+			test(task4.getStartDate(), null);
+			test(task4.getEndDate(), null);
 			test(task4.isFloating(), true);
-			test(task4.getTaskDatesSorted().size(), 1);
-			test(task4.getTaskDatesSorted().get(0), "");
 			
 			/*
+			 * No tests here. All recurring is only activated during Storage insertion
 			 * Due to sensitivity of Calendar fields, tests will check all
 			 * fields that can be recurred (YEAR, MONTH, WEEK, DAY)
 			 */
 
 			// Task 5: Recurring Task (YEAR)
-
+			// no recur limit: Storage uses its own (TIME SENSITIVE)
 			Task task5 = new Task();
 			task5.setTaskName("Casey's birthday");
-			task5.addTaskTags("Casey");
-			task5.addTaskTags("birthdays");
+			task5.addTag("Casey");
+			task5.addTag("birthdays");
 			Calendar task5_start_date = Calendar.getInstance();
 			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
 			Calendar task5_end_date = Calendar.getInstance();
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
-			Calendar task5_limit = Calendar.getInstance();
-			task5_limit.set(2017, Calendar.SEPTEMBER, 30, 00, 00, 00);
-			task5.addTaskDatesTimes(task5_start_date, task5_end_date, "year",
-					task5_limit);
-			test(task5.getTaskDatesSorted().size(), 4);
+			Calendar task5_completed = Calendar.getInstance();
+			task5_completed.set(2014, Calendar.OCTOBER, 21, 00, 00, 00);
+			task5.setDates(task5_start_date, task5_end_date);
+			task5.setRecur(Calendar.YEAR);
+			task5.setDateCompleted(task5_completed);
 
 			// Task 6: Recurring Task (MONTH)
-
+			//contains a limit
 			Task task6 = new Task();
-			task6.setTaskName("1st of month");
+			task6.setTaskName("Get pay");
 			Calendar task6_date = Calendar.getInstance();
-			task6_date.set(2014, Calendar.JANUARY, 1, 00, 00, 00);
+			task6_date.set(2016, Calendar.JANUARY, 1, 00, 00, 00);
 			Calendar task6_limit = Calendar.getInstance();
-			task6_limit.set(2015, Calendar.DECEMBER, 30, 00, 00, 00);
-			task6.addTaskDatesTimes(task6_date, "month", task6_limit);
-			test(task6.getTaskDateTime(0).size(), 24);
+			task6_limit.set(2017, Calendar.DECEMBER, 30, 00, 00, 00);
+			task6.setDate(task6_date);
+			task6.setRecur(Calendar.MONTH);
+			task6.setRecurLimit(task6_limit);
 
 			// Task 7: Recurring Task (WEEK)
 
 			Task task7 = new Task();
 			task7.setTaskName("Go jogging");
-			task7.addTaskTags("exercise");
+			task7.addTag("exercise");
 			Calendar task7_date = Calendar.getInstance();
-			task7_date.set(2014, Calendar.OCTOBER, 5, 00, 00, 00);
+			task7_date.set(2015, Calendar.OCTOBER, 5, 8, 00, 00);
 			Calendar task7_limit = Calendar.getInstance();
-			task7_limit.set(2015, Calendar.JANUARY, 30, 00, 00, 00);
-			task7.addTaskDatesTimes(task7_date, "week", task7_limit);
-			test(task7.getTaskDateTime(0).size(), 17);
+			task7_limit.set(2016, Calendar.JANUARY, 30, 00, 00, 00);
+			task7.setDate(task7_date);
+			task7.setRecur(Calendar.WEEK_OF_YEAR);
+			task7.setRecurLimit(task7_limit);
 
 			// Task 8: Recurring Task (DAY)
 			Task task8 = new Task();
 			task8.setTaskName("Go to sleep by 11");
 			Calendar task8_date = Calendar.getInstance();
-			task8_date.set(2014, Calendar.NOVEMBER, 1, 23, 00, 00);
+			task8_date.set(2015, Calendar.NOVEMBER, 1, 23, 00, 00);
 			Calendar task8_limit = Calendar.getInstance();
-			task8_limit.set(2014, Calendar.DECEMBER, 1, 23, 00, 01);
-			task8.addTaskDatesTimes(task8_date, "day", task8_limit);
-			test(task8.getTaskDateTime(0).size(), 31);
-
-			// Task 9: Task with two different dates (RECURRING)
-			Task task9 = new Task();
-			task9.setTaskName("ST2132 Lecture");
-			task9.addTaskTags("school");
-			task9.addTaskTags("ST2132");
-			Calendar task9_tue_date1 = Calendar.getInstance();
-			task9_tue_date1.set(2014, Calendar.AUGUST, 12, 8, 00, 00);
-			Calendar task9_tue_date2 = Calendar.getInstance();
-			task9_tue_date2.set(2014, Calendar.AUGUST, 12, 10, 00, 00);
-			Calendar task9_fri_date1 = Calendar.getInstance();
-			task9_fri_date1.set(2014, Calendar.AUGUST, 15, 8, 00, 00);
-			Calendar task9_fri_date2 = Calendar.getInstance();
-			task9_fri_date2.set(2014, Calendar.AUGUST, 15, 10, 00, 00);
-			Calendar task9_limit = Calendar.getInstance();
-			task9_limit.set(2014, Calendar.NOVEMBER, 15, 00, 00, 00);
-			task9.addTaskDatesTimes(task9_tue_date1, task9_tue_date2, "week",
-					task9_limit);
-			task9.addTaskDatesTimes(task9_fri_date1, task9_fri_date2, "week",
-					task9_limit);
-			test(task9.getTaskDateTime(0).size(), 14);
-			test(task9.getTaskDateTime(1).size(), 14);
+			task8_limit.set(2015, Calendar.DECEMBER, 1, 23, 00, 01);
+			task8.setDate(task8_date);
+			task8.setRecur(Calendar.DAY_OF_YEAR);
+			task8.setRecurLimit(task8_limit);
 
 			// Visual check to see if dates are sorted correctly
 
 			/*
 			LinkedList<String> task1_sorted_dates = task1.getTaskDatesSorted();
 			for (String date : task1_sorted_dates) {
-				System.out.println(date);
-			}
-
-			LinkedList<String> task9_sorted_dates = task9.getTaskDatesSorted();
-			for (String date : task9_sorted_dates) {
 				System.out.println(date);
 			}
 			*/
@@ -220,14 +198,26 @@ public class StorageJUnitTest {
 			storage.insert(task4);
 			test(storage.getFloatingTasksFile().size(), 1);
 
-			// insert the remaining tasks. They should end up
-			// in the normal task file
+			// insert recurring tasks. Storage should automatically generate
+			// all recurring instances according to their or the default limit
 			storage.insert(task5);
+			test(storage.getCompletedTasksFile().size(), 1);
+			test(storage.getCompletedTasksFile().get(0).getTaskName(), "Casey's birthday");
+			test(storage.getCompletedTasksFile().get(0).UIgetDate(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
+			test(storage.getTasksFile().size(), 5);
+			test(storage.getTasksFile().get(2).getTaskName(), "Casey's birthday");
+			test(storage.getTasksFile().get(2).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(storage.getTasksFile().get(2).getId(), storage.getCompletedTasksFile().get(0).getId());
+			test(storage.getTasksFile().get(3).getTaskName(), "Casey's birthday");
+			test(storage.getTasksFile().get(3).UIgetDate(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
+			test(storage.getTasksFile().get(4).getTaskName(), "Casey's birthday");
+			test(storage.getTasksFile().get(4).UIgetDate(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
 			storage.insert(task6);
+			test(storage.getTasksFile().size(), 29);
 			storage.insert(task7);
+			test(storage.getTasksFile().size(), 46);
 			storage.insert(task8);
-			storage.insert(task9);
-			test(storage.getTasksFile().size(), 7);
+			test(storage.getTasksFile().size(), 77);
 
 			// Deletion tests**********************************
 			System.out.println("Deletion tests");
@@ -242,18 +232,28 @@ public class StorageJUnitTest {
 			// testing reinsertion after modification
 			// ***This is how the controller should modify task: delete, modify, then reinsert
 			
-			task3.setTaskCompleted(Calendar.getInstance()); // warning, old date has been purged
-			storage.insert(task3);
-			test(storage.getCompletedTasksFile().size(), 1);
-			storage.delete(task3);
-			task3.setTaskCompleted(null); 					// this has now become a floating task
+			task3.setDates(null, null);
 			storage.insert(task3);
 			test(storage.getFloatingTasksFile().size(), 2);
 			storage.delete(task3);
-			task3.addTaskDatesTimes(task3_date);			//reset to original task3
+			test(storage.getFloatingTasksFile().size(), 1);
+			
+			task3.setDateCompleted(Calendar.getInstance());
 			storage.insert(task3);
+			test(storage.getCompletedTasksFile().size(), 2);
+			storage.delete(task3);
+			task3.setDateCompleted(null);
+			storage.insert(task3);
+			test(storage.getFloatingTasksFile().size(), 2);
+			storage.delete(task3);
+			task3.setDate(task3_date);
+			storage.insert(task3);
+			test(task3.isOverdue(), true);
 
 			// Search tests********************************
+			
+			// Note: search does not check completed tasks
+			
 			System.out.println("Search tests");
 			
 			// search with no date
@@ -262,48 +262,44 @@ public class StorageJUnitTest {
 			search1_keywords.add("Casey");
 			ArrayList<Task> search1 = storage.search(search1_keywords, null,
 					null, null);
-			test(search1.size(), 1);
+			test(search1.size(), 3);
 			test(search1.get(0).getTaskName(), "Casey's birthday");
+			test(search1.get(1).getTaskName(), "Casey's birthday");
+			test(search1.get(2).getTaskName(), "Casey's birthday");
 
 			// search no date, multiple keywords, from multiple lists
 			// checks the order of the tasks (overdue, floating, normal)
 			ArrayList<String> search2_keywords = new ArrayList<String>();
 			search2_keywords.add("1");
-			search2_keywords.add("2");
+			search2_keywords.add("0");
 			ArrayList<Task> search2 = storage.search(search2_keywords, null,
 					null, null);
 			test(search2.size(), 2);
-			test(search2.get(0).getTaskName(), "CS2103T finals");
-			test(search2.get(1).getTaskName(), "ST2132 Lecture");
-			search2_keywords.remove(1);
-			search2 = storage.search(search2_keywords, null, null, null);
-			test(search2.size(), 6);
 			test(search2.get(0).getTaskName(), "100 pushups");
-			test(search2.get(1).getTaskName(), "CS2103T finals");
-			test(search2.get(2).getTaskName(), "MA3110 finals");
-			test(search2.get(3).getTaskName(), "1st of month");
-			test(search2.get(4).getTaskName(), "Go to sleep by 11");
-			test(search2.get(5).getTaskName(), "ST2132 Lecture");
+			test(search2.get(1).getTaskName(), "MA3110 finals");
 
-			// search tags
+			// search tags in comination with keywords
 			ArrayList<String> search2_tags = new ArrayList<String>();
 			search2_tags.add("school");
 			search2 = storage
 					.search(search2_keywords, search2_tags, null, null);
-			test(search2.size(), 3);
-			test(search2.get(0).getTaskName(), "CS2103T finals");			//checking one is sufficient
+			test(search2.size(), 1);
+			test(search2.get(0).getTaskName(), "MA3110 finals");
 
 			// search date
 			Calendar search3_start = Calendar.getInstance();
 			search3_start.set(2014, Calendar.OCTOBER, 1, 00, 00, 00);
 			Calendar search3_end = Calendar.getInstance();
-			search3_end.set(2014, Calendar.NOVEMBER, 1, 00, 00, 00);
+			search3_end.set(2015, Calendar.OCTOBER, 1, 00, 00, 00);
 			ArrayList<Task> search3 = storage.search(null, null, search3_start,
 					search3_end);
 			test(search3.size(), 5);
 			test(search3.get(0).getTaskName(), "100 pushups");				//can find overdue through date
 			test(search3.get(1).getTaskName(), "Bake chocolate cake");		//can find floating through date
-			test(search3.get(2).getTaskName(), "1st of month");
+			test(search3.get(4).getTaskName(), "Casey's birthday");
+			test(search3.get(4).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			
+			
 
 			// search parameters that should not find any task
 			Calendar search4_start = Calendar.getInstance();
@@ -328,7 +324,7 @@ public class StorageJUnitTest {
 			test(search5.size(), 0);
 			storage.insert(task5);
 			search5 = storage.search(search5_keywords, null, null, null);
-			test(search5.size(), 1);
+			test(search5.size(), 3);
 
 			/*
 			 * //insert an already existing task storage.insert(task1);
@@ -343,14 +339,18 @@ public class StorageJUnitTest {
 	}
 
 	public void test(String a, String b) {
-		assertEquals(a, b);
+		assertEquals(b, a);
 	}
 
 	public void test(boolean a, boolean b) {
-		assertEquals(a, b);
+		assertEquals(b, a);
 	}
 
 	private void test(int a, int b) {
-		assertEquals(a, b);
+		assertEquals(b, a);
+	}
+	
+	private void test(Calendar a, Calendar b) {
+		assertEquals(b, a);
 	}
 }

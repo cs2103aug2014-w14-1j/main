@@ -56,7 +56,7 @@ public class UIController extends Application implements UIObserver {
 		newTask.setTaskName(currentCommand_.getTaskName());
 
 		if (currentCommand_.getTaskDueDate() != null) {
-			newTask.addTaskDatesTimes(currentCommand_.getTaskDueDate());
+			newTask.setDate(currentCommand_.getTaskDueDate());
 		}
 
 		storage_.insert(newTask);
@@ -108,7 +108,7 @@ public class UIController extends Application implements UIObserver {
 
 		if (currentCommand_.getTaskDueDate() != null) {
 			Calendar date = currentCommand_.getTaskDueDate();
-			task.addTaskDatesTimes(date);
+			task.setDate(date);
 		}
 	}
 
