@@ -187,64 +187,64 @@ public class StorageJUnitTest {
 			System.out.println("Insertion tests");
 			
 			storage.insert(task1);
-			test(storage.getTasksFile().size(), 1);
+			test(storage.getTasksList().size(), 1);
 			storage.insert(task2);
 
 			// insert overdue task
 			storage.insert(task3);
-			test(storage.getOverdueTasksFile().size(), 1);
+			test(storage.getOverdueTasksList().size(), 1);
 
 			// insert floating task
 			storage.insert(task4);
-			test(storage.getFloatingTasksFile().size(), 1);
+			test(storage.getFloatingTasksList().size(), 1);
 
 			// insert recurring tasks. Storage should automatically generate
 			// all recurring instances according to their or the default limit
 			storage.insert(task5);
-			test(storage.getCompletedTasksFile().size(), 1);
-			test(storage.getCompletedTasksFile().get(0).getTaskName(), "Casey's birthday");
-			test(storage.getCompletedTasksFile().get(0).UIgetDate(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
-			test(storage.getTasksFile().size(), 5);
-			test(storage.getTasksFile().get(2).getTaskName(), "Casey's birthday");
-			test(storage.getTasksFile().get(2).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
-			test(storage.getTasksFile().get(2).getId(), storage.getCompletedTasksFile().get(0).getId());
-			test(storage.getTasksFile().get(3).getTaskName(), "Casey's birthday");
-			test(storage.getTasksFile().get(3).UIgetDate(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
-			test(storage.getTasksFile().get(4).getTaskName(), "Casey's birthday");
-			test(storage.getTasksFile().get(4).UIgetDate(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
+			test(storage.getCompletedTasksList().size(), 1);
+			test(storage.getCompletedTasksList().get(0).getTaskName(), "Casey's birthday");
+			test(storage.getCompletedTasksList().get(0).UIgetDate(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
+			test(storage.getTasksList().size(), 5);
+			test(storage.getTasksList().get(2).getTaskName(), "Casey's birthday");
+			test(storage.getTasksList().get(2).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(storage.getTasksList().get(2).getId(), storage.getCompletedTasksList().get(0).getId());
+			test(storage.getTasksList().get(3).getTaskName(), "Casey's birthday");
+			test(storage.getTasksList().get(3).UIgetDate(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
+			test(storage.getTasksList().get(4).getTaskName(), "Casey's birthday");
+			test(storage.getTasksList().get(4).UIgetDate(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
 			storage.insert(task6);
-			test(storage.getTasksFile().size(), 29);
+			test(storage.getTasksList().size(), 29);
 			storage.insert(task7);
-			test(storage.getTasksFile().size(), 46);
+			test(storage.getTasksList().size(), 46);
 			storage.insert(task8);
-			test(storage.getTasksFile().size(), 77);
+			test(storage.getTasksList().size(), 77);
 
 			// Deletion tests**********************************
 			System.out.println("Deletion tests");
 
 			storage.delete(task3);
-			test(storage.getOverdueTasksFile().size(), 0);
+			test(storage.getOverdueTasksList().size(), 0);
 
 			// deleting from empty list/non-existent task
 			storage.delete(task3);
-			test(storage.getOverdueTasksFile().size(), 0);
+			test(storage.getOverdueTasksList().size(), 0);
 
 			// testing reinsertion after modification
 			// ***This is how the controller should modify task: delete, modify, then reinsert
 			
 			task3.setDates(null, null);
 			storage.insert(task3);
-			test(storage.getFloatingTasksFile().size(), 2);
+			test(storage.getFloatingTasksList().size(), 2);
 			storage.delete(task3);
-			test(storage.getFloatingTasksFile().size(), 1);
+			test(storage.getFloatingTasksList().size(), 1);
 			
 			task3.setDateCompleted(Calendar.getInstance());
 			storage.insert(task3);
-			test(storage.getCompletedTasksFile().size(), 2);
+			test(storage.getCompletedTasksList().size(), 2);
 			storage.delete(task3);
 			task3.setDateCompleted(null);
 			storage.insert(task3);
-			test(storage.getFloatingTasksFile().size(), 2);
+			test(storage.getFloatingTasksList().size(), 2);
 			storage.delete(task3);
 			task3.setDate(task3_date);
 			storage.insert(task3);

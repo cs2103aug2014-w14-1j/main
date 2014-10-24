@@ -87,7 +87,8 @@ public class Task {
 	}
 	
 	public void setDate(Calendar date) {
-		this.startDate = this.endDate = date;
+		this.startDate = date;
+		this.endDate = (Calendar) date.clone();
 	}
 	
 	public Calendar getStartDate() {
