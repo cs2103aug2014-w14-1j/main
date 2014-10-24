@@ -175,6 +175,24 @@ public class StorageJUnitTest {
 			*/
 
 			// completed tasks
+			
+			task3.setDateCompleted(Calendar.getInstance());
+			test(task3.isCompleted(), true);
+			test(task3.isOverdue(), false);
+			test(task3.isFloating(), false);
+			task3.setDateCompleted(null);
+			test(task3.isCompleted(), false);
+			test(task3.isOverdue(), true);
+			
+			task4.setDateCompleted(Calendar.getInstance());
+			test(task4.isFloating(), false);
+			test(task4.isCompleted(), true);
+			task4.setDateCompleted(null);
+			
+			
+			// TaskComparator test
+			
+			
 
 			// Storage
 			// tests*********************************************************************

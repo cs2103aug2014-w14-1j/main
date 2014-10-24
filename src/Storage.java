@@ -11,18 +11,18 @@ public class Storage {
 	private static final int RECUR_YEAR_LIMIT = 3;
 	private static final int RECUR_INTERVAL = 1;
 	
-	private ArrayList<Task> al_task;
-	private ArrayList<Task> al_task_floating;
-	private ArrayList<Task> al_task_overdue;
-	private ArrayList<Task> al_task_completed;
+	private PriorityQueue<Task> al_task;
+	private PriorityQueue<Task> al_task_floating;
+	private PriorityQueue<Task> al_task_overdue;
+	private PriorityQueue<Task> al_task_completed;
 	private FileHandler filehandler;
 	private int id_counter;
 
 	public Storage() throws IOException {
-		al_task = new ArrayList<Task>();
-		al_task_floating = new ArrayList<Task>();
-		al_task_overdue = new ArrayList<Task>();
-		al_task_completed = new ArrayList<Task>();
+		al_task = new PriorityQueue<Task>(new TaskComparator());
+		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
+		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
+		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
 		filehandler = new FileHandler();
 		initFiles();
 		checkForOverdueTasks();
@@ -48,7 +48,7 @@ public class Storage {
 		save();
 	}
 
-	private void insert(Task task, ArrayList<Task> list) throws JSONException,
+	private void insert(Task task, PriorityQueue<Task> list) throws JSONException,
 			IOException {
 		list.add(task);
 	}
@@ -104,7 +104,7 @@ public class Storage {
 		save();
 	}
 
-	private void delete(Task task, ArrayList<Task> list) throws IOException {
+	private void delete(Task task, PriorityQueue<Task> list) throws IOException {
 		list.remove(task);
 	}
 	
@@ -118,19 +118,39 @@ public class Storage {
 	//Retrieval/search methods**********************************
 	
 	public ArrayList<Task> getTasksList() {
-		return this.al_task;
+		ArrayList<Task> task = new ArrayList<Task>();
+		Iterator<Task> iter = al_task.iterator();
+		while (iter.hasNext()) {
+			task.add(iter.next());
+		}
+		return task;
 	}
 
 	public ArrayList<Task> getFloatingTasksList() {
-		return this.al_task_floating;
+		ArrayList<Task> float_task = new ArrayList<Task>();
+		Iterator<Task> iter = al_task_floating.iterator();
+		while (iter.hasNext()) {
+			float_task.add(iter.next());
+		}
+		return float_task;
 	}
 
 	public ArrayList<Task> getCompletedTasksList() {
-		return this.al_task_completed;
+		ArrayList<Task> completed_task = new ArrayList<Task>();
+		Iterator<Task> iter = al_task_completed.iterator();
+		while (iter.hasNext()) {
+			completed_task.add(iter.next());
+		}
+		return completed_task;
 	}
 
 	public ArrayList<Task> getOverdueTasksList() {
-		return this.al_task_overdue;
+		ArrayList<Task> overdue_task = new ArrayList<Task>();
+		Iterator<Task> iter = al_task_overdue.iterator();
+		while (iter.hasNext()) {
+			overdue_task.add(iter.next());
+		}
+		return overdue_task;
 	}
 	
 	/*
@@ -154,7 +174,7 @@ public class Storage {
 		return search_results;
 	}
 	
-	private ArrayList<Task> searchForID(Integer id,ArrayList<Task> list, ArrayList<Task> resultsList){
+	private ArrayList<Task> searchForID(Integer id,PriorityQueue<Task> list, ArrayList<Task> resultsList){
 		for(Task task: list){
 			if(task.getId() == id){
 				resultsList.add(task);
@@ -174,7 +194,7 @@ public class Storage {
 		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
 		searchList(search_results, al_task, keywords, tags, start_date, end_date);
 		
-		
+		Collections.sort(search_results, new TaskComparator());
 		return search_results;
 	}
 	
@@ -182,7 +202,8 @@ public class Storage {
 	 * Search function which only searches within a specified list and adds it
 	 * to an input search list. Assumes all parameters are given
 	 */
-	private void searchList(ArrayList<Task> search_result, ArrayList<Task> list,
+	
+	private void searchList(ArrayList<Task> search_result, PriorityQueue<Task> list,
 			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		
 		for (Task task : list) {
@@ -204,7 +225,7 @@ public class Storage {
 		save();
 	}
 	
-	private void clear(ArrayList<Task> filelist) {
+	private void clear(PriorityQueue<Task> filelist) {
 		filelist.clear();
 	}
 	
@@ -240,7 +261,7 @@ public class Storage {
 		id_counter = filehandler.getTaskCounter();
 	}
 
-	private ArrayList<Task> retrieveTaskList(Task task) {
+	private PriorityQueue<Task> retrieveTaskList(Task task) {
 		if (task.isFloating()) {
 			return al_task_floating;
 		}
@@ -292,7 +313,7 @@ public class Storage {
 			printWriter.close();
 		}
 
-		private void readFile(ArrayList<Task> filelist) throws IOException {
+		private void readFile(PriorityQueue<Task> filelist) throws IOException {
 			String fileName = determineFileName(filelist);
 			File file = new File(fileName);
 			if (!file.exists()) {
@@ -308,8 +329,8 @@ public class Storage {
 			}
 
 		}
-
-		private void writeFile(ArrayList<Task> fileToWrite)
+		
+		private void writeFile(PriorityQueue<Task> fileToWrite)
 				throws FileNotFoundException {
 			String filename = determineFileName(fileToWrite);
 			// Start writing
@@ -323,7 +344,7 @@ public class Storage {
 		}
 
 		// Interfaces with the textFiles(databases)*************************
-		private String determineFileName(ArrayList<Task> fileToWrite) {
+		private String determineFileName(PriorityQueue<Task> fileToWrite) {
 			String filename = "";
 			if (fileToWrite == al_task) {
 				filename = TASK_FILENAME;

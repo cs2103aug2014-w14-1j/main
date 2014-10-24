@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Comparator;
 import java.text.SimpleDateFormat;
 
 public class Task {
@@ -303,5 +304,26 @@ public class Task {
 			task.addTag(tag);
 		}
 		return task;
+	}
+}
+
+class TaskComparator implements Comparator<Task> {
+	public int compare(Task a, Task b) {
+		if (a.getStartDate() == null && b.getStartDate() == null) {
+			return 0;
+		}
+		if (a.getStartDate() == null && b.getStartDate() != null) {
+			return -1;
+		}
+		if (a.getStartDate() != null && b.getStartDate() == null) {
+			return 1;
+		}
+		if (a.getStartDate().before(b.getStartDate())) {
+			return -1;
+		}
+		if (a.getStartDate().equals(b.getStartDate())) {
+			return 0;
+		}
+		return 1;
 	}
 }
