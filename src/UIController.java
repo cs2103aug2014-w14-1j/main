@@ -121,6 +121,7 @@ public class UIController extends Application implements UIObserver {
 		}
 	}
 
+	//default view
 	private void viewToday() {
 		ArrayList<String> keywords = new ArrayList<String>();
 		ArrayList<String> tags = new ArrayList<String>();
@@ -138,8 +139,10 @@ public class UIController extends Application implements UIObserver {
 		end_date.set(end_date.HOUR, 11);
 		end_date.set(end_date.MINUTE, 59);
 		end_date.set(end_date.SECOND, 59);
-
-		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
+		
+		searchResults_ = new ArrayList<Task>();
+		searchResults_.addAll(storage_.getOverdueTasksList());
+		searchResults_.addAll(storage_.search(keywords, tags, start_date, end_date));
 
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);

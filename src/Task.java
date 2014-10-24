@@ -266,6 +266,17 @@ public class Task {
 		return false;
 	}
 	
+	public String UIgetTags() {
+		String tagsUI = "";
+		for (int i = 0; i < tags.size(); i++) {
+			tagsUI += tags.get(i);
+			if (i < tags.size() - 1) {
+				tagsUI += ", ";
+			}
+		}
+		return tagsUI;
+	}
+	
 	//Clone methods***************************************************************
 	
 	public Task clone() {
