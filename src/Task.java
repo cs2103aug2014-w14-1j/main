@@ -4,8 +4,9 @@ import java.util.Comparator;
 import java.text.SimpleDateFormat;
 
 public class Task {
-	
-	private static final SimpleDateFormat sdf = new SimpleDateFormat("EE dd-MM-YY HH:mm");
+
+	private static final SimpleDateFormat sdf = new SimpleDateFormat(
+			"EE dd-MM-YY HH:mm");
 	private Integer id;
 	private String taskName;
 	private String displayId;
@@ -16,16 +17,19 @@ public class Task {
 	private Integer recur;
 	private Calendar recurLimit;
 	private ArrayList<String> tags;
-	
+
 	/*
 	 * No input constructor
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, null, null, null, new ArrayList<String>());
+		this(null, "", "", null, null, null, null, null, null,
+				new ArrayList<String>());
 	}
-	
-	private Task(Integer taskId, String displayId, String taskName, Calendar taskStartDate, Calendar taskEndDate,
-			Calendar taskReminderDate, Calendar taskDateCompleted, Integer recur, Calendar recurLimit, ArrayList<String> taskTag) {
+
+	private Task(Integer taskId, String displayId, String taskName,
+			Calendar taskStartDate, Calendar taskEndDate,
+			Calendar taskReminderDate, Calendar taskDateCompleted,
+			Integer recur, Calendar recurLimit, ArrayList<String> taskTag) {
 		this.id = taskId;
 		this.displayId = displayId;
 		this.taskName = taskName;
@@ -46,11 +50,11 @@ public class Task {
 	public int getId() {
 		return this.id;
 	}
-	
+
 	public boolean hasNoID() {
 		return id == null;
 	}
-	
+
 	// Task DisplayID************************************
 
 	public void setDisplayId(String id) {
@@ -71,8 +75,8 @@ public class Task {
 	}
 
 	// Task Dates and Times ********************************
-	
-	//only Controller accesses setters: date input is in Calendar format
+
+	// only Controller accesses setters: date input is in Calendar format
 
 	public void setDates(Calendar startdate, Calendar enddate) {
 		this.startDate = startdate;
@@ -82,44 +86,63 @@ public class Task {
 	public void setStartDate(Calendar startdate) {
 		this.startDate = startdate;
 	}
-	
+
 	public void setEndDate(Calendar enddate) {
 		this.endDate = enddate;
 	}
-	
+
 	public void setDate(Calendar date) {
 		this.startDate = date;
 		this.endDate = (Calendar) date.clone();
 	}
-	
+
 	public Calendar getStartDate() {
 		return this.startDate;
 	}
-	
+
 	public Calendar getEndDate() {
 		return this.endDate;
 	}
-	
+
 	public Calendar getDate() {
 		return this.endDate;
 	}
-		
-	//Only UI accesses getters: Date output is in String format
 	
+	public boolean isFloating() {
+		return this.startDate == null && this.endDate == null
+				&& this.dateCompleted == null;
+	}
+	
+	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
+		if (isFloating()) {
+			return true; // autopass
+		}
+		if (start_date == null || start_date.before(this.endDate)
+				|| start_date.equals(this.endDate)) {
+			if (end_date == null || end_date.after(this.startDate)
+					|| end_date.equals(this.startDate)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	// Only UI accesses getters: Date output is in String format
+
 	public String UIgetStartDate() {
 		if (this.startDate == null) {
 			return "";
 		}
 		return sdf.format(startDate.getTime());
 	}
-	
+
 	public String UIgetEndDate() {
 		if (this.endDate == null) {
 			return "";
 		}
 		return sdf.format(endDate.getTime());
 	}
-	
+
 	public String UIgetDate() {
 		if (isFloating()) {
 			return "";
@@ -127,64 +150,19 @@ public class Task {
 		if (this.startDate.equals(this.endDate)) {
 			return sdf.format(endDate.getTime());
 		}
-		return sdf.format(startDate.getTime()) + " - " + sdf.format(endDate.getTime());
-	}
-	
-	// Task Reminder Dates Times***********************************
-
-	public void setReminderDate(Calendar date) {
-		this.reminderDate = date;
-	}
-	
-	public Calendar getReminderDate() {
-		return this.reminderDate;
-	}
-	
-	public String UIgetReminderDate() {
-		return sdf.format(reminderDate.getTime());
-	}
-
-	// Task Floating*******************************
-
-	public boolean isFloating() {
-		return this.startDate == null && this.endDate == null && this.dateCompleted == null;
-	}
-
-	// Task Recur***************************************
-	
-	public void setRecur(Integer recur) {
-		this.recur = recur;
-	}
-	
-	public Integer getRecur() {
-		return this.recur;
-	}
-	
-	public boolean isRecur() {
-		return this.recur != null;
-	}
-	
-	public void setRecurLimit(Calendar limit) {
-		this.recurLimit = limit;
-	}
-	
-	public Calendar getRecurLimit() {
-		return this.recurLimit;
+		return sdf.format(startDate.getTime()) + " - "
+				+ sdf.format(endDate.getTime());
 	}
 
 	// Task Completed*********************************************
 	public void setDateCompleted(Calendar c) {
 		this.dateCompleted = c;
 	}
-	
+
 	public Calendar getDateCompleted() {
 		return this.dateCompleted;
 	}
 
-	public String UIgetDateCompleted() {
-		return sdf.format(this.dateCompleted.getTime());
-	}
-	
 	public boolean isCompleted() {
 		if (this.dateCompleted == null) {
 			return false;
@@ -194,24 +172,66 @@ public class Task {
 		}
 		return this.dateCompleted.after(this.endDate);
 	}
-	
+
 	public boolean isOverdue() {
 		if (isFloating()) {
 			return false;
 		}
-		
+
 		if (isCompleted()) {
 			return false;
 		}
-		
+
 		Calendar now = Calendar.getInstance();
-		
-		if (this.endDate.before(now) &&
-				(this.dateCompleted == null || this.endDate.after(this.dateCompleted))) {
+
+		if (this.endDate.before(now)
+				&& (this.dateCompleted == null || this.endDate
+						.after(this.dateCompleted))) {
 			return true;
 		}
-		
+
 		return false;
+	}
+
+	public String UIgetDateCompleted() {
+		return sdf.format(this.dateCompleted.getTime());
+	}
+	
+	// Task Reminder Dates Times***********************************
+
+	public void setReminderDate(Calendar date) {
+		this.reminderDate = date;
+	}
+
+	public Calendar getReminderDate() {
+		return this.reminderDate;
+	}
+
+	public String UIgetReminderDate() {
+		return sdf.format(reminderDate.getTime());
+	}
+
+	// Task Recur***************************************
+
+	public void setRecur(Integer field) {
+		this.recur = field;
+	}
+
+	public Integer getRecur() {
+		return this.recur;
+	}
+
+	public boolean isRecur() {
+		return this.recur != null && this.startDate != null
+				&& this.endDate != null;
+	}
+
+	public void setRecurLimit(Calendar limit) {
+		this.recurLimit = limit;
+	}
+
+	public Calendar getRecurLimit() {
+		return this.recurLimit;
 	}
 
 	// Task Tags**************************************
@@ -222,31 +242,11 @@ public class Task {
 	public ArrayList<String> getTags() {
 		return this.tags;
 	}
-	
-	// Additional methods*****************************************
-	
-	// Search function********************
-	
-	private boolean containsKeyword(String keyword) {
-		return taskName.contains(keyword);
-	}
-	
+
 	private boolean containsTag(String tag) {
 		return tags.contains(tag);
 	}
-	
-	public boolean containsKeywords(ArrayList<String> keywords) {
-		if (keywords==null) {
-			return true;
-		}
-		for (String keyword : keywords) {
-			if (!containsKeyword(keyword)) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
+
 	public boolean containsTags(ArrayList<String> tags) {
 		if (tags == null) {
 			return true;
@@ -258,19 +258,7 @@ public class Task {
 		}
 		return true;
 	}
-	
-	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-		if (isFloating()) {
-			return true;		//autopass
-		}
-		if (start_date == null || start_date.before(this.endDate) || start_date.equals(this.endDate)) {
-			if (end_date == null || end_date.after(this.startDate) || end_date.equals(this.startDate)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
+
 	public String UIgetTags() {
 		String tagsUI = "";
 		for (int i = 0; i < tags.size(); i++) {
@@ -281,9 +269,30 @@ public class Task {
 		}
 		return tagsUI;
 	}
+
+	// Additional methods*****************************************
+
+	// Search methods********************
 	
-	//Clone methods***************************************************************
-	
+	private boolean containsKeyword(String keyword) {
+		return taskName.contains(keyword);
+	}
+
+	public boolean containsKeywords(ArrayList<String> keywords) {
+		if (keywords == null) {
+			return true;
+		}
+		for (String keyword : keywords) {
+			if (!containsKeyword(keyword)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	// Clone
+	// methods***************************************************************
+
 	public Task clone() {
 		Task task = new Task();
 		task.setId(this.id);
