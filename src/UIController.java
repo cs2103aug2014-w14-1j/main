@@ -123,26 +123,9 @@ public class UIController extends Application implements UIObserver {
 
 	//default view
 	private void viewToday() {
-		ArrayList<String> keywords = new ArrayList<String>();
-		ArrayList<String> tags = new ArrayList<String>();
-
-		Calendar c = new GregorianCalendar();
-
-		Calendar start_date = Calendar.getInstance();
-		start_date.setTime(c.getTime());
-		start_date.set(start_date.HOUR, -12);
-		start_date.set(start_date.MINUTE, 0);
-		start_date.set(start_date.SECOND, 0);
-
-		Calendar end_date = Calendar.getInstance();
-		end_date.setTime(c.getTime());
-		end_date.set(end_date.HOUR, 11);
-		end_date.set(end_date.MINUTE, 59);
-		end_date.set(end_date.SECOND, 59);
 		
 		searchResults_ = new ArrayList<Task>();
-		searchResults_.addAll(storage_.getOverdueTasksList());
-		searchResults_.addAll(storage_.search(keywords, tags, start_date, end_date));
+		searchResults_.addAll(storage_.defaultView());
 
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);

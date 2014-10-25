@@ -227,7 +227,7 @@ public class Storage {
 	private void searchTaskByReminder(ArrayList<Task> search_results, PriorityQueue<Task> tasklist,
 			Calendar start_date, Calendar end_date) {
 		for (Task task : tasklist) {
-			if (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date)) {
+			if (task.getReminderDate() != null && (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date))) {
 				if (task.getReminderDate().before(end_date) || task.getReminderDate().equals(end_date)) {
 					search_results.add(task);
 				}
@@ -238,8 +238,6 @@ public class Storage {
 
 	public ArrayList<Task> defaultView() {
 		ArrayList<Task> search_results = new ArrayList<Task>();
-		search_results.addAll(getOverdueTasksList());
-		search_results.addAll(getFloatingTasksList());
 		Calendar start = Calendar.getInstance();
 		start.set(Calendar.HOUR_OF_DAY, 0);
 		start.set(Calendar.MINUTE, 0);
@@ -248,7 +246,7 @@ public class Storage {
 		end.set(Calendar.HOUR_OF_DAY, 23);
 		end.set(Calendar.MINUTE, 59);
 		end.set(Calendar.SECOND, 59);
-		search_results.addAll(search(null, null, start, end));
+		search_results.addAll(search(null, null, null, end));
 		search_results.addAll(searchTaskByReminder(start, end));
 		return search_results;
 	}
