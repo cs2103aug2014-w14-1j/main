@@ -214,6 +214,45 @@ public class Storage {
 			}
 		}
 	}
+
+	private ArrayList<Task> searchTaskByReminder(Calendar start_date, Calendar end_date) {
+		ArrayList<Task> search_results = new ArrayList<Task>();
+		searchTaskByReminder(search_results, al_task_overdue, start_date, end_date);
+		searchTaskByReminder(search_results, al_task_floating, start_date, end_date);
+		searchTaskByReminder(search_results, al_task, start_date, end_date);
+		Collections.sort(search_results, new TaskComparator());
+		return search_results;
+	}
+	
+	private void searchTaskByReminder(ArrayList<Task> search_results, PriorityQueue<Task> tasklist,
+			Calendar start_date, Calendar end_date) {
+		for (Task task : tasklist) {
+			if (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date)) {
+				if (task.getReminderDate().before(end_date) || task.getReminderDate().equals(end_date)) {
+					search_results.add(task);
+				}
+			}
+		}
+	}
+
+
+	public ArrayList<Task> defaultView() {
+		ArrayList<Task> search_results = new ArrayList<Task>();
+		search_results.addAll(getOverdueTasksList());
+		search_results.addAll(getFloatingTasksList());
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR_OF_DAY, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.SECOND, 0);
+		Calendar end = Calendar.getInstance();
+		end.set(Calendar.HOUR_OF_DAY, 23);
+		end.set(Calendar.MINUTE, 59);
+		end.set(Calendar.SECOND, 59);
+		search_results.addAll(search(null, null, start, end));
+		search_results.addAll(searchTaskByReminder(start, end));
+		return search_results;
+	}
+
 	
 	//Clear methods**************************************************************
 	

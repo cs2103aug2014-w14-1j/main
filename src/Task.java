@@ -136,7 +136,11 @@ public class Task {
 		this.reminderDate = date;
 	}
 	
-	public String getReminderDate() {
+	public Calendar getReminderDate() {
+		return this.reminderDate;
+	}
+	
+	public String UIgetReminderDate() {
 		return sdf.format(reminderDate.getTime());
 	}
 
