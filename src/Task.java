@@ -259,8 +259,8 @@ public class Task {
 		if (isFloating()) {
 			return true;		//autopass
 		}
-		if (start_date == null || start_date.before(this.endDate)) {
-			if (end_date == null || end_date.after(this.startDate)) {
+		if (start_date == null || start_date.before(this.endDate) || start_date.equals(this.endDate)) {
+			if (end_date == null || end_date.after(this.startDate) || end_date.equals(this.startDate)) {
 				return true;
 			}
 		}

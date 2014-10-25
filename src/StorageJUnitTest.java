@@ -55,6 +55,9 @@ public class StorageJUnitTest {
 			test(task1.getDate(), task1_date);
 			test(task1.withinDateRange(task1_test_start_date,
 					task1_test_end_date), true);
+			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
+			test(task1.withinDateRange(task1_test_start_date,
+					task1_test_end_date), true);
 			test(task1.withinDateRange(null, null), true);
 
 			// Task 2: Task with interval
@@ -312,8 +315,8 @@ public class StorageJUnitTest {
 			ArrayList<Task> search3 = storage.search(null, null, search3_start,
 					search3_end);
 			test(search3.size(), 5);
-			test(search3.get(0).getTaskName(), "100 pushups");				//can find overdue through date
-			test(search3.get(1).getTaskName(), "Bake chocolate cake");		//can find floating through date
+			test(search3.get(0).getTaskName(), "Bake chocolate cake");		//can find floating through date
+			test(search3.get(1).getTaskName(), "100 pushups");				//can find overdue through date
 			test(search3.get(4).getTaskName(), "Casey's birthday");
 			test(search3.get(4).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
 			
