@@ -40,7 +40,7 @@ public class Display {
 		println("-- Task name: " + task.getTaskName());
 
 		println("-- Task date(s): ");
-		println(task.UIgetDate());
+		println(task.getDateAsString());
 	}
 	
 	public void print(Object obj) {

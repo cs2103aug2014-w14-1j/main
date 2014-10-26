@@ -224,15 +224,15 @@ public class StorageJUnitTest {
 			storage.insert(task5);
 			test(storage.getCompletedTasksList().size(), 1);
 			test(storage.getCompletedTasksList().get(0).getTaskName(), "Casey's birthday");
-			test(storage.getCompletedTasksList().get(0).UIgetDate(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
+			test(storage.getCompletedTasksList().get(0).getDateAsString(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
 			test(storage.getTasksList().size(), 5);
 			test(storage.getTasksList().get(2).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(2).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(storage.getTasksList().get(2).getDateAsString(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
 			test(storage.getTasksList().get(2).getId(), storage.getCompletedTasksList().get(0).getId());
 			test(storage.getTasksList().get(3).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(3).UIgetDate(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
+			test(storage.getTasksList().get(3).getDateAsString(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
 			test(storage.getTasksList().get(4).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(4).UIgetDate(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
+			test(storage.getTasksList().get(4).getDateAsString(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
 			storage.insert(task6);
 			test(storage.getTasksList().size(), 29);
 			storage.insert(task7);
@@ -318,7 +318,7 @@ public class StorageJUnitTest {
 			test(search3.get(0).getTaskName(), "Bake chocolate cake");		//can find floating through date
 			test(search3.get(1).getTaskName(), "100 pushups");				//can find overdue through date
 			test(search3.get(4).getTaskName(), "Casey's birthday");
-			test(search3.get(4).UIgetDate(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(search3.get(4).getDateAsString(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
 			
 			
 

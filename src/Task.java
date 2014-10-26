@@ -64,10 +64,6 @@ public class Task {
 	public String getDisplayId() {
 		return this.displayId;
 	}
-	
-	public String UIgetDisplayId() {
-		return this.displayId;
-	}
 
 	// Task Name ************************************
 	public void setTaskName(String taskname) {
@@ -75,10 +71,6 @@ public class Task {
 	}
 
 	public String getTaskName() {
-		return this.taskName;
-	}
-	
-	public String UIgetTaskName() {
 		return this.taskName;
 	}
 
@@ -137,21 +129,21 @@ public class Task {
 
 	// Only UI accesses getters: Date output is in String format
 
-	public String UIgetStartDate() {
+	public String getStartDateAsString() {
 		if (this.startDate == null) {
 			return "";
 		}
 		return sdf.format(startDate.getTime());
 	}
 
-	public String UIgetEndDate() {
+	public String getEndDateAsString() {
 		if (this.endDate == null) {
 			return "";
 		}
 		return sdf.format(endDate.getTime());
 	}
 
-	public String UIgetDate() {
+	public String getDateAsString() {
 		if (isFloating()) {
 			return "";
 		}
@@ -201,7 +193,7 @@ public class Task {
 		return false;
 	}
 
-	public String UIgetDateCompleted() {
+	public String getDateCompletedAsString() {
 		return sdf.format(this.dateCompleted.getTime());
 	}
 	
@@ -215,7 +207,7 @@ public class Task {
 		return this.reminderDate;
 	}
 
-	public String UIgetReminderDate() {
+	public String getReminderDateAsString() {
 		return sdf.format(reminderDate.getTime());
 	}
 
@@ -267,7 +259,7 @@ public class Task {
 		return true;
 	}
 
-	public String UIgetTags() {
+	public String getTagsAsString() {
 		String tagsUI = "";
 		for (int i = 0; i < tags.size(); i++) {
 			tagsUI += tags.get(i);

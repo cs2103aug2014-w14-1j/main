@@ -190,7 +190,7 @@ public class UI extends FlowPane {
 							CellDataFeatures<Task, String> p) {
 
 						return new SimpleStringProperty((p.getValue()
-								.UIgetDate()));
+								.getDateAsString()));
 					}
 				});
 
@@ -263,7 +263,7 @@ public class UI extends FlowPane {
 		taskNametf.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
-		taskStartDtesta.setText(taskUserSelected.UIgetDate());
+		taskStartDtesta.setText(taskUserSelected.getDateAsString());
 		taskStartDtesta.setDisable(true);
 		
 		
@@ -271,7 +271,7 @@ public class UI extends FlowPane {
 		// private TextArea taskTagsta = new TextArea();
 		
 		taskTagsta.setDisable(false);
-		taskTagsta.setText(taskUserSelected.UIgetTags());
+		taskTagsta.setText(taskUserSelected.getTagsAsString());
 		taskTagsta.setDisable(true);
 
 	}
