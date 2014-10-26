@@ -64,6 +64,10 @@ public class Task {
 	public String getDisplayId() {
 		return this.displayId;
 	}
+	
+	public String UIgetDisplayId() {
+		return this.displayId;
+	}
 
 	// Task Name ************************************
 	public void setTaskName(String taskname) {
@@ -71,6 +75,10 @@ public class Task {
 	}
 
 	public String getTaskName() {
+		return this.taskName;
+	}
+	
+	public String UIgetTaskName() {
 		return this.taskName;
 	}
 
