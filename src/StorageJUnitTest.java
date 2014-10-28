@@ -105,9 +105,16 @@ public class StorageJUnitTest {
 			Task task4 = new Task();
 			task4.setTaskName("Bake chocolate cake");
 			task4.addTag("baking");
+			
+			//this is gibberish input and should not affect further tests, until a date is set
+			task4.setRecur(Calendar.YEAR);
+			Calendar task4_recur_limit = Calendar.getInstance();
+			task4_recur_limit.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
+			task4.setRecurLimit(task4_recur_limit);
 
 			test(task4.getStartDate(), null);
 			test(task4.getEndDate(), null);
+			test(task4.isRecur(), false);
 			test(task4.isFloating(), true);
 			
 			/*
@@ -270,6 +277,12 @@ public class StorageJUnitTest {
 			task3.setDate(task3_date);
 			storage.insert(task3);
 			test(task3.isOverdue(), true);
+			
+			//delete recurring task
+			storage.delete(task8);
+			test(storage.getTasksList().size(), 46);
+			storage.insert(task8);
+			test(storage.getTasksList().size(), 77);
 
 			// Search tests********************************
 			

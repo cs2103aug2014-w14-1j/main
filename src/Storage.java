@@ -77,7 +77,7 @@ public class Storage {
 				}
 			}
 			//increase date
-			task.setDates(start, end);
+			task.setDates(start, end, task.getRecur(), task.getRecurLimit());
 			insert(task, retrieveTaskList(task));
 		}
 	}

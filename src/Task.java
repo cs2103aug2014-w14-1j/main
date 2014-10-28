@@ -77,10 +77,19 @@ public class Task {
 	// Task Dates and Times ********************************
 
 	// only Controller accesses setters: date input is in Calendar format
+	
+	public void setDates(Calendar startdate, Calendar enddate, int recur, Calendar limit) {
+		this.startDate = startdate;
+		this.endDate = enddate;
+		this.recur = recur;
+		this.recurLimit = limit;
+	}
 
 	public void setDates(Calendar startdate, Calendar enddate) {
 		this.startDate = startdate;
 		this.endDate = enddate;
+		this.recur = null;
+		this.recurLimit = null;
 	}
 
 	public void setStartDate(Calendar startdate) {
@@ -94,6 +103,15 @@ public class Task {
 	public void setDate(Calendar date) {
 		this.startDate = date;
 		this.endDate = (Calendar) date.clone();
+		this.recur = null;
+		this.recurLimit = null;
+	}
+	
+	public void setDate(Calendar date, int recur, Calendar limit) {
+		this.startDate = date;
+		this.endDate = (Calendar) date.clone();
+		this.recur = recur;
+		this.recurLimit = limit;
 	}
 
 	public Calendar getStartDate() {
@@ -154,6 +172,29 @@ public class Task {
 				+ sdf.format(endDate.getTime());
 	}
 
+	// Task Recur***************************************
+
+	public void setRecur(Integer field) {
+		this.recur = field;
+	}
+
+	public Integer getRecur() {
+		return this.recur;
+	}
+
+	public boolean isRecur() {
+		return this.recur != null && this.startDate != null
+				&& this.endDate != null;
+	}
+
+	public void setRecurLimit(Calendar limit) {
+		this.recurLimit = limit;
+	}
+
+	public Calendar getRecurLimit() {
+		return this.recurLimit;
+	}
+
 	// Task Completed*********************************************
 	public void setDateCompleted(Calendar c) {
 		this.dateCompleted = c;
@@ -209,29 +250,6 @@ public class Task {
 
 	public String getReminderDateAsString() {
 		return sdf.format(reminderDate.getTime());
-	}
-
-	// Task Recur***************************************
-
-	public void setRecur(Integer field) {
-		this.recur = field;
-	}
-
-	public Integer getRecur() {
-		return this.recur;
-	}
-
-	public boolean isRecur() {
-		return this.recur != null && this.startDate != null
-				&& this.endDate != null;
-	}
-
-	public void setRecurLimit(Calendar limit) {
-		this.recurLimit = limit;
-	}
-
-	public Calendar getRecurLimit() {
-		return this.recurLimit;
 	}
 
 	// Task Tags**************************************
