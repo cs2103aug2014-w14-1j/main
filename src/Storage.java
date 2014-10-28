@@ -10,6 +10,7 @@ public class Storage {
 	
 	private static final int RECUR_YEAR_LIMIT = 3;
 	private static final int RECUR_INTERVAL = 1;
+	private static final int COUNTER_INCREASE = 1;
 	
 	private PriorityQueue<Task> al_task;
 	private PriorityQueue<Task> al_task_floating;
@@ -57,10 +58,9 @@ public class Storage {
 	//usage: Same task with multiple dates (split into multiple tasks with different dates)
 	//tentative tasks
 	public void insert(ArrayList<Task> tasks) throws JSONException, IOException {
-		if (tasks.size() == 0) {
+		if (tasks.isEmpty()) {
 			return;
 		}
-		assignID(tasks.get(0));
 		for (Task task : tasks) {
 			task.setId(tasks.get(0).getId());
 			insert(task);
@@ -68,7 +68,7 @@ public class Storage {
 	}
 	
 	private void assignID(Task task) {
-		id_counter += 1;
+		id_counter += COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
 	
@@ -132,39 +132,28 @@ public class Storage {
 	//Retrieval/search methods**********************************
 	
 	public ArrayList<Task> getTasksList() {
-		ArrayList<Task> task = new ArrayList<Task>();
-		Iterator<Task> iter = al_task.iterator();
-		while (iter.hasNext()) {
-			task.add(iter.next());
-		}
-		return task;
+		return translateQueueToList(al_task);
 	}
 
 	public ArrayList<Task> getFloatingTasksList() {
-		ArrayList<Task> float_task = new ArrayList<Task>();
-		Iterator<Task> iter = al_task_floating.iterator();
-		while (iter.hasNext()) {
-			float_task.add(iter.next());
-		}
-		return float_task;
+		return translateQueueToList(al_task_floating);
 	}
 
 	public ArrayList<Task> getCompletedTasksList() {
-		ArrayList<Task> completed_task = new ArrayList<Task>();
-		Iterator<Task> iter = al_task_completed.iterator();
-		while (iter.hasNext()) {
-			completed_task.add(iter.next());
-		}
-		return completed_task;
+		return translateQueueToList(al_task_completed);
 	}
 
 	public ArrayList<Task> getOverdueTasksList() {
-		ArrayList<Task> overdue_task = new ArrayList<Task>();
-		Iterator<Task> iter = al_task_overdue.iterator();
+		return translateQueueToList(al_task_overdue);
+	}
+	
+	private ArrayList<Task> translateQueueToList(PriorityQueue<Task> pq) {
+		ArrayList<Task> list = new ArrayList<Task>();
+		Iterator<Task> iter = pq.iterator();
 		while (iter.hasNext()) {
-			overdue_task.add(iter.next());
+			list.add(iter.next());
 		}
-		return overdue_task;
+		return list;
 	}
 	
 	/*
@@ -276,8 +265,8 @@ public class Storage {
 		save();
 	}
 	
-	private void clear(PriorityQueue<Task> filelist) {
-		filelist.clear();
+	private void clear(PriorityQueue<Task> tasklist) {
+		tasklist.clear();
 	}
 	
 	//Save methods**********************************************************
@@ -338,6 +327,7 @@ public class Storage {
 		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 		
 		// Interfaces with the textFiles(databases)*************************
+		
 		private int getTaskCounter() throws IOException {
 			File countFile = new File(COUNT_TASK_FILENAME);
 			if (!countFile.exists()) {
