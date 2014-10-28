@@ -33,3 +33,10 @@
 	-fx-font-weight: bold;
 }
 
+#floatingTaskRow{
+	-fx-background-color: #00FF00;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+}
+

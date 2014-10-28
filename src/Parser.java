@@ -17,7 +17,7 @@ public class Parser {
 	private String[] editCommands = {"edit","update","change","modify"};
 	private String[] deleteCommands = {"delete","remove","destroy"};
 	private String[] listCommands = {"list"};
-	private String[] searchCommands = {"search"};
+	private String[] searchCommands = {"search","find"};
 	private String[] completeCommands = {"complete"};
 	private String[] undoCommands = {"undo"};
 	private String[] exitCommands = {"quit"};
@@ -116,6 +116,9 @@ public class Parser {
 				case LIST:
 					generateListCommandObj(commandDetails);
 					break;
+				case SEARCH:
+					generateSearchCommandObj(commandDetails);
+					break;
 				case COMPLETE:
 					generateCompleteCommandObj(commandDetails);
 					break;
@@ -136,6 +139,8 @@ public class Parser {
 
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
@@ -145,6 +150,8 @@ public class Parser {
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
+		commandObj.setTaskTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
 		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
 		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
 	}
@@ -166,6 +173,18 @@ public class Parser {
 			commandObj.setSearchStartDate(dates.get(0));
 			commandObj.setSearchEndDate(dates.get(dates.size()-1));
 		}
+	}
+
+	private void generateSearchCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setSearchTags(parseTaskTags(commandDetails));
+		commandDetails = removeTaskTags(commandDetails);
+		String[] array = commandDetails.split("\\s+");
+		ArrayList<String> keywords = new ArrayList<String>();
+		for (String keyword: array) {
+			keywords.add(removeLeadingAndClosingPunctuation(keyword));
+		}
+		commandObj.setSearchKeywords(keywords);
 	}
 
 	private void generateCompleteCommandObj(String commandDetails) {
@@ -251,6 +270,14 @@ public class Parser {
 
 	private String removeTaskID(String commandDetails) {
 		return commandDetails.split("\\s+", 2)[1];
+	}
+
+	private String[] parseTaskTags(String commandDetails) {
+		return match(commandDetails, "/(\\B@[a-zA-Z0-9-]+)/g");
+	}
+
+	private String removeTaskTags(String commandDetails) {
+		return commandDetails.replaceAll("\\B@[a-zA-Z0-9-]+", "");
 	}
 
 	private String removeLeadingAndClosingPunctuation(String input) {

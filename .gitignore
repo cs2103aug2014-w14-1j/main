@@ -4,3 +4,11 @@ main.iml
 /out
 .classpath
 /bin
+
+# Storage text files
+CompletedTask.txt
+FloatingTask.txt
+OverdueTask.txt
+RecurringTask.txt
+Task.txt
+TaskCount.txt

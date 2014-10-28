@@ -40,11 +40,7 @@ public class Display {
 		println("-- Task name: " + task.getTaskName());
 
 		println("-- Task date(s): ");
-		LinkedList<String> dates = task.getTaskDatesSorted();
-		for (String date : dates) {
-			println(date);
-			}
-		println("");
+		println(task.getDateAsString());
 	}
 	
 	public void print(Object obj) {
