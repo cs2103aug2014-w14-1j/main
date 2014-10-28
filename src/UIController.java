@@ -58,6 +58,11 @@ public class UIController extends Application implements UIObserver {
 		if (currentCommand_.getTaskDueDate() != null) {
 			newTask.setDate(currentCommand_.getTaskDueDate());
 		}
+		if (currentCommand_.getTaskTags() != null) {
+			for (String tag : currentCommand_.getTaskTags()) {
+				newTask.addTag(tag);
+			}
+		}
 
 		storage_.insert(newTask);
 		display("Added new task to Calendar: " + newTask.getTaskName());
@@ -100,7 +105,8 @@ public class UIController extends Application implements UIObserver {
 		repeatLastSearch();
 	}
 
-	private void update(Task task) throws FileNotFoundException {
+	private void update(Task task) throws JSONException, IOException, FileNotFoundException {
+		storage_.delete(task);
 
 		if (!currentCommand_.getTaskName().equals("")) {
 			task.setTaskName(currentCommand_.getTaskName());
@@ -110,11 +116,13 @@ public class UIController extends Application implements UIObserver {
 			Calendar date = currentCommand_.getTaskDueDate();
 			task.setDate(date);
 		}
+		
+		storage_.insert(task);
 	}
 
 	private void repeatLastSearch() throws Exception {
 		if (lastSearchCommand_ == null) {
-			viewToday();
+			viewDefault();
 		} else {
 			currentCommand_ = lastSearchCommand_;
 			proceedCommand();
@@ -122,11 +130,20 @@ public class UIController extends Application implements UIObserver {
 	}
 
 	//default view
-	private void viewToday() {
+	private void viewDefault() {
 		
 		searchResults_ = new ArrayList<Task>();
 		searchResults_.addAll(storage_.defaultView());
 
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
+	}
+	
+	//view all
+	private void viewAll() {
+		searchResults_ = new ArrayList<Task>();
+		searchResults_.addAll(storage_.search(null, null, null, null));
+		
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
@@ -226,6 +243,6 @@ public class UIController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewToday();
+		viewDefault();
 	}
 }

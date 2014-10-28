@@ -271,9 +271,12 @@ public class StorageJUnitTest {
 			test(storage.getCompletedTasksList().size(), 2);
 			storage.delete(task3);
 			task3.setDateCompleted(null);
+			task3.setTaskName("100 situps");
 			storage.insert(task3);
 			test(storage.getFloatingTasksList().size(), 2);
+			test(storage.getFloatingTasksList().get(1).getTaskName(), "100 situps");
 			storage.delete(task3);
+			task3.setTaskName("100 pushups");
 			task3.setDate(task3_date);
 			storage.insert(task3);
 			test(task3.isOverdue(), true);
@@ -365,6 +368,7 @@ public class StorageJUnitTest {
 			 * test(storage.getTasksFile().size(), 7);
 			 */
 			System.out.println("All tests successful");
+			storage.clearAll();
 		}
 		
 		catch (Exception e) {
