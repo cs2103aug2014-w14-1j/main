@@ -295,7 +295,11 @@ public class UI extends FlowPane {
 
 	// Display tasks in the taskTable.
 	public void displayTasks(ArrayList<Task> taskAL) {
+		this.displayTasks.removeAll(displayTasks);
 		this.displayTasks = taskAL;
+		if(dataToDisplay!= null){
+			dataToDisplay.removeAll(dataToDisplay);
+		}
 		dataToDisplay = FXCollections.observableArrayList(displayTasks);
 		taskTable.setItems(dataToDisplay);
 
