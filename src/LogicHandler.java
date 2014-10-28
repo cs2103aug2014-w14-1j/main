@@ -53,6 +53,12 @@ public class LogicHandler {
 		case UNDO: {
 			return executeUndo(taskIDmap, command);
 		}
+		case COMPLETE: {
+			return executeComplete(taskIDmap, command);
+		}
+		case EXIT: {
+			System.exit(0);
+		}
 		default:
 			return "";
 		}		
@@ -98,10 +104,11 @@ public class LogicHandler {
 		
 		for (String id: ids) {
 			Task task = taskIDmap.get(id);
-			if (task!=null) {
+			if ((task!=null)|(tasks.contains(task))) {
 				tasks.add(task);
 			}
 		}
+		
 		if (tasks.isEmpty()) {
 			return "All ids are invalid";
 		} else {
@@ -133,13 +140,60 @@ public class LogicHandler {
 			newTask.setDate(date);
 		}
 		
-		SimpleCommand updateCommand = createUpdateCommand(oldTask, newTask);
-		SimpleCommand undoCommand = createUpdateCommand(newTask, oldTask);
+		ArrayList<Task> updatedState = new ArrayList<Task> ();
+		ArrayList<Task> oldState = new ArrayList<Task> ();
+		
+		updatedState.add(oldTask);
+		updatedState.add(newTask);
+		
+		oldState.add(newTask);
+		oldState.add(oldTask);
+		
+		SimpleCommand updateCommand = createUpdateCommand(updatedState);
+		SimpleCommand undoCommand = createUpdateCommand(oldState);
 		histories_.add(undoCommand);
 		
 		executeSimpleCommand(updateCommand);
 		
 		return "Updated successfully";
+	}
+	
+	private String executeComplete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
+		
+		String[] ids = command.getTaskIDsToComplete();
+		
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		
+		for (String id: ids) {
+			Task task = taskIDmap.get(id);
+			if ((task!=null)|(!tasks.contains(task))) {
+				tasks.add(task);
+			}
+		}
+
+		if (tasks.isEmpty()) {
+			return "All ids are invalid";
+		} else {
+			ArrayList<Task> completedTasks = new ArrayList<Task> ();
+			ArrayList<Task> incompleteTasks = new ArrayList<Task> ();
+			
+			for (Task task: tasks) {
+				Task completedTask = task.clone();
+				completedTask.setCompleted();
+				
+				completedTasks.add(task);
+				completedTasks.add(completedTask);
+				
+				incompleteTasks.add(completedTask);
+				incompleteTasks.add(task);
+				}
+			
+			SimpleCommand completeCommand = createUpdateCommand(completedTasks);
+			SimpleCommand undoCommand = createUpdateCommand(incompleteTasks);
+			histories_.add(undoCommand);
+			executeSimpleCommand(completeCommand);
+			return (tasks.size() + " tasks completed.");
+		}		
 	}
 	
 	private String executeUndo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
@@ -162,10 +216,7 @@ public class LogicHandler {
 		return deleteCommand;
 	}
 	
-	private SimpleCommand createUpdateCommand(Task oldTask, Task updatedTask) {
-		ArrayList<Task> tasks = new ArrayList<Task> ();
-		tasks.add(oldTask);
-		tasks.add(updatedTask);
+	private SimpleCommand createUpdateCommand(ArrayList<Task> tasks) {
 		SimpleCommand updateCommand = new SimpleCommand(LOGIC_TYPE.UPDATE, tasks);
 		return updateCommand;
 	}
@@ -188,12 +239,11 @@ public class LogicHandler {
 			return;
 			}
 		case UPDATE: {
-			storage_.delete(tasks.get(0));
-			storage_.insert(tasks.get(1));
-			return;
+			for (int i=0; i<tasks.size(); i+=2) {
+				storage_.delete(tasks.get(i));
+				storage_.insert(tasks.get(i+1));
+				}
 			}
-		} 
+		}
 	}
-	
-	
 }

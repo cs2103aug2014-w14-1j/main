@@ -29,7 +29,6 @@ public class MainController extends Application implements UIObserver {
 			String msg = logic_.executeCommand(taskIDmap_, command);
 			display(msg);
 			repeatLastSearch();
-			return;
 		} else {
 			searchResults_ = searcher_.proceedCommand(command);
 			createTaskIDmap();
@@ -100,7 +99,7 @@ public class MainController extends Application implements UIObserver {
 
 	private String getChar(Task task) {
 		if (task.isOverdue()) {
-			return "o";
+			return "r";
 		} else if (task.isFloating()) {
 			return "f";
 		} else {
