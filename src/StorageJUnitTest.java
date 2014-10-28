@@ -133,11 +133,9 @@ public class StorageJUnitTest {
 			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
 			Calendar task5_end_date = Calendar.getInstance();
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
-			Calendar task5_completed = Calendar.getInstance();
-			task5_completed.set(2014, Calendar.OCTOBER, 21, 00, 00, 00);
 			task5.setDates(task5_start_date, task5_end_date);
 			task5.setRecur(Calendar.YEAR);
-			task5.setDateCompleted(task5_completed);
+			task5.setCompleted();
 
 			// Task 6: Recurring Task (MONTH)
 			//contains a limit

@@ -199,6 +199,15 @@ public class Task {
 	}
 
 	// Task Completed*********************************************
+	public void setCompleted() {
+		Calendar dateCompleted = Calendar.getInstance();
+		if (this.endDate != null) {
+			dateCompleted = (Calendar) this.endDate.clone();
+			dateCompleted.add(Calendar.SECOND, 1);
+		}
+		setDateCompleted(dateCompleted);
+	}
+	
 	public void setDateCompleted(Calendar c) {
 		this.dateCompleted = c;
 	}
