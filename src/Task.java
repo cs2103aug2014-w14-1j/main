@@ -135,6 +135,9 @@ public class Task {
 		if (isFloating()) {
 			return true; // autopass
 		}
+		if (isOverdue()) {
+			return true;		//must display overdue no matter what
+		}
 		if (start_date == null || start_date.before(this.endDate)
 				|| start_date.equals(this.endDate)) {
 			if (end_date == null || end_date.after(this.startDate)

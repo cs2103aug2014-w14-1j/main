@@ -131,12 +131,17 @@ public class MainController extends Application implements UIObserver {
 	}
 
 	private void search() {
-		ArrayList<String> keywords = new ArrayList<String>();
+		ArrayList<String> keywords = currentCommand_.getSearchKeywords();
 		ArrayList<String> tags = new ArrayList<String>();
-		Calendar start_date = null;
-		Calendar end_date = null;
+		for (String tag : currentCommand_.getSearchTags()) {
+			tags.add(tag);
+		}
+		Calendar start_date = currentCommand_.getSearchStartDate();
+		Calendar end_date = currentCommand_.getSearchEndDate();
 
 		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
 	}
 
 	private void list() {
