@@ -33,21 +33,25 @@ public class MainController extends Application implements UIObserver {
 			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
 			display(msg);
 			repeatLastSearch();
+			return;
 		}
 		case DELETE: {
 			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
 			display(msg);
 			repeatLastSearch();
+			return;
 		}
 		case EDIT: {
 			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
 			display(msg);
 			repeatLastSearch();
+			return;
 		}
 		case UNDO: {
 			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
 			display(msg);
 			repeatLastSearch();
+			return;
 		}
 		case LIST:
 			list();
