@@ -281,6 +281,6 @@ public class Parser {
 	}
 
 	private String removeLeadingAndClosingPunctuation(String input) {
-		return input.replaceFirst("^[^a-zA-Z]+", "").replaceAll("[^a-zA-Z]+$", "");
+		return input.replaceFirst("^[^0-9a-zA-Z]+", "").replaceAll("[^0-9a-zA-Z]+$", "");
 	}
 }
