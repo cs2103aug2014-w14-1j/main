@@ -53,6 +53,20 @@ public class Storage {
 		list.add(task);
 	}
 	
+	//this method is used to bind several tasks to the same ID before insertion
+	//usage: Same task with multiple dates (split into multiple tasks with different dates)
+	//tentative tasks
+	public void insert(ArrayList<Task> tasks) throws JSONException, IOException {
+		if (tasks.size() == 0) {
+			return;
+		}
+		assignID(tasks.get(0));
+		for (Task task : tasks) {
+			task.setId(tasks.get(0).getId());
+			insert(task);
+		}
+	}
+	
 	private void assignID(Task task) {
 		id_counter += 1;
 		task.setId(id_counter);
