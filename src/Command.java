@@ -10,6 +10,8 @@ public class Command {
 	private String taskID;
 	private String taskName;
 	private Calendar taskDueDate;
+	private Calendar taskStartDate;
+	private Calendar taskEndDate;
 	private Calendar searchStartDate;
 	private Calendar searchEndDate;
 	private ArrayList<String> searchKeywords;
@@ -48,6 +50,22 @@ public class Command {
 
 	public Calendar getTaskDueDate() {
 		return taskDueDate;
+	}
+
+	public void setTaskStartDate(Calendar startDate) {
+		taskStartDate = startDate;
+	}
+
+	public Calendar getTaskStartDate() {
+		return taskStartDate;
+	}
+
+	public void setTaskEndDate(Calendar endDate) {
+		taskEndDate = endDate;
+	}
+
+	public Calendar getTaskEndDate() {
+		return taskEndDate;
 	}
 
 	public void setTaskIDsToDelete(String[] IDs) {
