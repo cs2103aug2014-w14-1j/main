@@ -1,5 +1,6 @@
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Stack;
 import java.util.TreeMap;
 
@@ -44,11 +45,14 @@ public class LogicHandler {
 			return executeAdd(command);
 			}
 		case DELETE: {
-			return "";
+			return executeDelete(taskIDmap, command);
 			}
 		case EDIT: {
-			return "";
+			return executeUpdate(taskIDmap, command);
 			}
+		case UNDO: {
+			return executeUndo(taskIDmap, command);
+		}
 		default:
 			return "";
 		}		
@@ -64,7 +68,13 @@ public class LogicHandler {
 		task.setTaskName(command.getTaskName());
 		
 		if (command.getTaskDueDate()!= null) {
-			task.addTaskDatesTimes(command.getTaskDueDate());
+			task.setDate(command.getTaskDueDate());
+		}
+		
+		if (command.getTaskTags()!=null) {
+			for (String tag : command.getTaskTags()) {
+				task.addTag(tag);
+			}
 		}
 		
 		ArrayList<Task> tasks = new ArrayList<Task>();
@@ -77,6 +87,7 @@ public class LogicHandler {
 		executeSimpleCommand(addCommand);
 		
 		return ("Successfully added new task: " + task.getTaskName());
+		
 	} 
 		
 	private String executeDelete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
@@ -91,7 +102,6 @@ public class LogicHandler {
 				tasks.add(task);
 			}
 		}
-		
 		if (tasks.isEmpty()) {
 			return "All ids are invalid";
 		} else {
@@ -102,10 +112,45 @@ public class LogicHandler {
 			executeSimpleCommand(deleteCommand);
 			
 			return (tasks.size() + " tasks deleted from the Calendar");
+		}		
+	}
+	
+	private String executeUpdate(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+		String id = command.getTaskID();
+		if (!taskIDmap.containsKey(id)) {
+			return "Invalid index to update.";
+		} 
+		
+		Task oldTask = taskIDmap.get(id);
+		Task newTask = oldTask.clone();
+
+		if (!command.getTaskName().equals("")) {
+			newTask.setTaskName(command.getTaskName());
+		}
+
+		if (command.getTaskDueDate() != null) {
+			Calendar date = command.getTaskDueDate();
+			newTask.setDate(date);
 		}
 		
-	}
+		SimpleCommand updateCommand = createUpdateCommand(oldTask, newTask);
+		SimpleCommand undoCommand = createUpdateCommand(newTask, oldTask);
+		histories_.add(undoCommand);
 		
+		executeSimpleCommand(updateCommand);
+		
+		return "Updated successfully";
+	}
+	
+	private String executeUndo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+		if (histories_.empty()) {
+			return "Undo not available";
+		} else {
+			SimpleCommand undoCommand = histories_.pop();
+			executeSimpleCommand(undoCommand);
+			return "Undone successfully";
+		}
+	}
 	
 	private SimpleCommand createAddCommand(ArrayList<Task> tasks) {
 		SimpleCommand addCommand = new SimpleCommand(LOGIC_TYPE.ADD, tasks);
