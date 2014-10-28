@@ -265,7 +265,7 @@ public class Parser {
 	}
 
 	private String[] parseTaskID(String commandDetails) {
-		return match(commandDetails, "/([TFRtfr]\\d+)/g");
+		return match(commandDetails, "/([TFOtfo]\\d+)/g");
 	}
 
 	private String removeTaskID(String commandDetails) {
