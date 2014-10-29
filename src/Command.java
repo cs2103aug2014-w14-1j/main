@@ -10,13 +10,16 @@ public class Command {
 	private String taskID;
 	private String taskName;
 	private Calendar taskDueDate;
+	private Calendar taskStartDate;
+	private Calendar taskEndDate;
 	private Calendar searchStartDate;
 	private Calendar searchEndDate;
 	private ArrayList<String> searchKeywords;
 	private String[] searchTags;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
-	private String[] taskTags;
+	private String[] taskTagsToAdd;
+	private String[] taskTagsToRemove;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;
@@ -48,6 +51,22 @@ public class Command {
 
 	public Calendar getTaskDueDate() {
 		return taskDueDate;
+	}
+
+	public void setTaskStartDate(Calendar startDate) {
+		taskStartDate = startDate;
+	}
+
+	public Calendar getTaskStartDate() {
+		return taskStartDate;
+	}
+
+	public void setTaskEndDate(Calendar endDate) {
+		taskEndDate = endDate;
+	}
+
+	public Calendar getTaskEndDate() {
+		return taskEndDate;
 	}
 
 	public void setTaskIDsToDelete(String[] IDs) {
@@ -97,11 +116,19 @@ public class Command {
 		searchTags = tags;
 	}
 
-	public String[] getTaskTags() {
-		return taskTags;
+	public String[] getTaskTagsToAdd() {
+		return taskTagsToAdd;
 	}
 
-	public void setTaskTags(String[] tags) {
-		taskTags = tags;
+	public void setTaskTagsToAdd(String[] tags) {
+		taskTagsToAdd = tags;
+	}
+
+	public String[] getTaskTagsToRemove() {
+		return taskTagsToRemove;
+	}
+
+	public void setTaskTagsToRemove(String[] tags) {
+		taskTagsToRemove = tags;
 	}
 }

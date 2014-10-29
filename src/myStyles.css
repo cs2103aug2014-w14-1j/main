@@ -33,8 +33,15 @@
 	-fx-font-weight: bold;
 }
 
-#floatingTaskRow{
-	-fx-background-color: #00FF00;
+.floatingTaskRow{
+	-fx-background-color: #00FFFF;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+}
+
+.overdueTaskRow{
+	-fx-background-color: #FF0000;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
 	-fx-opacity: 1.0;

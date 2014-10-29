@@ -77,8 +77,8 @@ public class LogicHandler {
 			task.setDate(command.getTaskDueDate());
 		}
 		
-		if (command.getTaskTags()!=null) {
-			for (String tag : command.getTaskTags()) {
+		if (command.getTaskTagsToAdd()!=null) {
+			for (String tag : command.getTaskTagsToAdd()) {
 				task.addTag(tag);
 			}
 		}

@@ -1,12 +1,14 @@
-import org.ocpsoft.prettytime.nlp.PrettyTimeParser;
 import org.ocpsoft.prettytime.shade.org.apache.commons.lang.StringUtils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.mentaregex.Regex.match;
 import static org.mentaregex.Regex.matches;
 
 public class Parser {
+
+	DateParser dateParser = new DateParser();
 
 	private String command;
 	private Command commandObj;
@@ -28,7 +30,6 @@ public class Parser {
 		commandType = parserCommandType(commandTypeString);
 		return generateCommandObj();
 	}
-
 
 	private String getFirstWord(String input) {
 		return input.split("\\s+")[0];
@@ -139,10 +140,10 @@ public class Parser {
 
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setTaskTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
-		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
+		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
 
 	private void generateEditCommandObj(String commandDetails) {
@@ -150,10 +151,12 @@ public class Parser {
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
-		commandObj.setTaskTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
-		commandObj.setTaskDueDate(parseLatestDate(commandDetails));
-		commandObj.setTaskName(removeLeadingAndClosingPunctuation(parseTaskName(commandDetails)));
+		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
+		commandDetails = removeTaskTagsRemoval(commandDetails);
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
+		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
 
 	private void generateDeleteCommandObj(String commandDetails) {
@@ -163,22 +166,14 @@ public class Parser {
 
 	private void generateListCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		ArrayList<Calendar> dates = parseDates(commandDetails);
-		if (dates.size() == 1) {
-			Calendar startDate = startOfDay(dates.get(0));
-			commandObj.setSearchStartDate(startDate);
-			Calendar endDate = endOfDay((Calendar) startDate.clone());
-			commandObj.setSearchEndDate(endDate);
-		} else if (dates.size() > 1) {
-			commandObj.setSearchStartDate(dates.get(0));
-			commandObj.setSearchEndDate(dates.get(dates.size()-1));
-		}
+		dateParser.parseCommand(commandDetails, commandType, commandObj);
 	}
 
 	private void generateSearchCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setSearchTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
+		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
 		String[] array = commandDetails.split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
 		for (String keyword: array) {
@@ -192,95 +187,48 @@ public class Parser {
 		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
 	}
 
-	private Calendar startOfDay(Calendar cal) {
-		cal.set(Calendar.HOUR_OF_DAY, 0);
-		cal.set(Calendar.MINUTE, 0);
-		cal.set(Calendar.SECOND, 0);
-		return cal;
-	}
-
-	private Calendar endOfDay(Calendar cal) {
-		cal.set(Calendar.HOUR_OF_DAY, 23);
-		cal.set(Calendar.MINUTE, 59);
-		cal.set(Calendar.SECOND, 59);
-		return cal;
-	}
-
-	private ArrayList<Calendar> parseDates(String input) {
-		List<Date> dates = new PrettyTimeParser().parse(input);
-		ArrayList<Calendar> result = new ArrayList<Calendar>();
-		for (Date date: dates) {
-			result.add(DateToCalendar(date));
-		}
-		return result;
-	}
-
-	private Calendar parseLatestDate(String commandDetails) {
-		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		ArrayList<Calendar> dates = parseDates(commandDetails);
-		if (dates.size() == 0) {
-			return null;
-		} else {
-			Collections.sort(dates);
-			return dates.get(dates.size()-1);
-		}
-	}
-
-	public Calendar DateToCalendar(Date date){
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(date);
-		return cal;
-	}
-
 	private String parseTaskName(String commandDetails) {
-		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		String taskName = commandDetails;
-		String[] commandArray = commandDetails.split("\\s+");
-		int dateIndex = -1;
-		for (int i = 0; i < commandArray.length; i++) {
-			if (Arrays.asList(dateIdentifiers).contains(commandArray[i])) {
-				if (i+1 < commandArray.length) {
-					List<Date> parse = new PrettyTimeParser().parse(commandArray[i+1]);
-					if (parse.size() > 0) {
-						dateIndex = i;
-						break;
-					}
-				}
-			} else {
-				List<Date> parse = new PrettyTimeParser().parse(commandArray[i]);
-				if (parse.size() > 0) {
-					dateIndex = i;
-					break;
-				}
-			}
-		}
-		if (dateIndex > -1) {
-			taskName = "";
-			for (int i = 0; i < dateIndex; i++) {
-				taskName += commandArray[i];
-				taskName += i < dateIndex ? " " : "";
-			}
-		}
-		return taskName;
+		return removeLeadingAndClosingPunctuation(commandDetails);
 	}
 
 	private String[] parseTaskID(String commandDetails) {
-		return match(commandDetails, "/([TFRtfr]\\d+)/g");
+		return match(commandDetails, "/([TFOtfo]\\d+)/g");
 	}
 
 	private String removeTaskID(String commandDetails) {
-		return commandDetails.split("\\s+", 2)[1];
+		return commandDetails.replaceFirst("[TFOtfo]\\d+", "");
 	}
 
-	private String[] parseTaskTags(String commandDetails) {
+	private String[] parseTaskTagsAddition(String commandDetails) {
 		return match(commandDetails, "/(\\B@[a-zA-Z0-9-]+)/g");
 	}
 
-	private String removeTaskTags(String commandDetails) {
+	private String[] parseTaskTagsRemoval(String commandDetails) {
+		String[] removalMatches = match(commandDetails, "/(remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
+		ArrayList<String> tagMatches = new ArrayList<String>();
+		if (removalMatches != null) {
+			for (String match : removalMatches) {
+				tagMatches.addAll(Arrays.asList(parseTaskTagsAddition(match)));
+			}
+			String[] tags = new String[tagMatches.size()];
+			for (int i = 0; i < tagMatches.size(); i++) {
+				tags[i] = tagMatches.get(i);
+			}
+			return tags;
+		} else {
+			return null;
+		}
+	}
+
+	private String removeTaskTagsAddition(String commandDetails) {
 		return commandDetails.replaceAll("\\B@[a-zA-Z0-9-]+", "");
 	}
 
+	private String removeTaskTagsRemoval(String commandDetails) {
+		return commandDetails.replaceAll("remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+", "");
+	}
+
 	private String removeLeadingAndClosingPunctuation(String input) {
-		return input.replaceFirst("^[^a-zA-Z]+", "").replaceAll("[^a-zA-Z]+$", "");
+		return input.replaceFirst("^[^0-9a-zA-Z]+", "").replaceAll("[^0-9a-zA-Z]+$", "");
 	}
 }
