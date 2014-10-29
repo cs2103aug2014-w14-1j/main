@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat;
 public class Task {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat(
-			"EE dd-MM-YY HH:mm");
+			"EE d-MMM-yy H:mm a");
 	private Integer id;
 	private String taskName;
 	private String displayId;
@@ -171,7 +171,7 @@ public class Task {
 		if (this.startDate.equals(this.endDate)) {
 			return sdf.format(endDate.getTime());
 		}
-		return sdf.format(startDate.getTime()) + " - "
+		return sdf.format(startDate.getTime()) + " -\n"
 				+ sdf.format(endDate.getTime());
 	}
 
