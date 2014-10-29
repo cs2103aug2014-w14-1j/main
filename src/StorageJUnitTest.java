@@ -67,7 +67,7 @@ public class StorageJUnitTest {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.setDates(task2_start_date, task2_end_date);
+			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order
 			task2.addTag("school");
 			task2.addTag("MA3110");
 			task2.addTag("exams");
@@ -78,6 +78,7 @@ public class StorageJUnitTest {
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
 			
 			test(task2.getStartDate(), task2_start_date);
+			test(task2.getEndDate(), task2_end_date);						//task should detect wrong order and fix it
 			
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);

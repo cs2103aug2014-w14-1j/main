@@ -79,6 +79,11 @@ public class Task {
 	// only Controller accesses setters: date input is in Calendar format
 	
 	public void setDates(Calendar startdate, Calendar enddate, int recur, Calendar limit) {
+		if (enddate!= null && startdate!= null && enddate.before(startdate)) {
+			Calendar temp = enddate;
+			enddate = startdate;
+			startdate = temp;
+		}
 		this.startDate = startdate;
 		this.endDate = enddate;
 		this.recur = recur;
@@ -86,6 +91,11 @@ public class Task {
 	}
 
 	public void setDates(Calendar startdate, Calendar enddate) {
+		if (enddate!= null && startdate!= null && enddate.before(startdate)) {
+			Calendar temp = enddate;
+			enddate = startdate;
+			startdate = temp;
+		}
 		this.startDate = startdate;
 		this.endDate = enddate;
 		this.recur = null;
