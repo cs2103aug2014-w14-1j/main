@@ -57,7 +57,7 @@ public class DateParser {
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
 
-	private final String FROM_TO = "from([- /.\\s\\w]+) to ([- /.\\s\\w]+)";
+	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
 
 	private String command;
@@ -82,12 +82,14 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
+				command = command.replaceFirst(FROM_TO, "");
 			}
 		} else if (dateMatches(input, DUE)) {
 			String[] dates = dateMatch(input, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
 				commandObj.setTaskDueDate(dueDate);
+				command = command.replaceFirst(DUE, "");
 			}
 		} else {
 			Calendar date = parseDateTime(input, 23, 59, 59);
