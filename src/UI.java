@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -10,6 +9,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
@@ -64,10 +64,7 @@ public class UI extends FlowPane {
 	private static final double WIDTH_OF_SPLIT2 = 300;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
-
-	// Parameters
-	private static final int EARLIEST_DATE = 0;
-
+	
 	public UI() {
 		taskView = new VBox();
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
@@ -146,6 +143,7 @@ public class UI extends FlowPane {
 					}
 
 				});
+		
 	}
 
 	@SuppressWarnings("unchecked")
@@ -164,6 +162,13 @@ public class UI extends FlowPane {
 								.getDisplayId()));
 					}
 				});
+		
+		taskLblCol.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+           	@Override
+			public TableCell<Task, String> call(TableColumn<Task, String> arg0) {
+				return new BackgroundTableCell();
+			}
+        });
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
@@ -348,3 +353,31 @@ public class UI extends FlowPane {
 	}
 	// ******************************************************************
 }
+
+class BackgroundTableCell extends TableCell<Task, String> {
+	//CSS
+	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
+	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
+
+	@Override protected void updateItem(final String item, final boolean empty) {
+        super.updateItem(item, empty);
+
+        setText(empty ? "" : item);
+        getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW);
+        updateStyles(empty ? null : item);
+    }
+
+    private void updateStyles(String item) {
+        if (item == null) {
+            return;
+        }
+
+        if (item.contains("f")) {
+            getStyleClass().add(CSS_FLOATINGTASKROW);
+        }
+        else if(item.contains("r")){
+        	getStyleClass().add(CSS_OVERDUETASKROW);
+        }
+     }
+}
+
