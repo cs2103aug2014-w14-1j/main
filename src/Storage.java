@@ -26,7 +26,9 @@ public class Storage {
 		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
 		filehandler = new FileHandler();
 		initFiles();
+		id_counter = updateIndex();
 		checkForOverdueTasks();
+		updateRecurringTasks();
 	}
 
 	//Insert methods*********************************************************
@@ -170,10 +172,6 @@ public class Storage {
 		searchForID(id, al_task_floating, search_results);
 		searchForID(id, al_task_overdue, search_results);
 		
-		if(search_results.isEmpty()){
-			return null;
-		}
-		
 		return search_results;
 	}
 	
@@ -276,7 +274,6 @@ public class Storage {
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
 		filehandler.writeFile(al_task_completed);
-		filehandler.writeTaskCounter(id_counter);
 	}
 	
 	//Miscellaneous methods*************************************************
@@ -293,12 +290,58 @@ public class Storage {
 		save();
 	}
 	
+	private void updateRecurringTasks() {
+		
+	}
+	
+	private int updateIndex() {
+		int latest_id = 0;
+		int old_latest_id = getLatestID();
+		LinkedList<Integer> holes = new LinkedList<Integer>();
+		for (int i = 0; i < old_latest_id + 1; i++) {
+			ArrayList<Task> tasks = searchTaskByID(i);
+			if (tasks.isEmpty()) {
+				holes.offer(i);
+			}
+			else {
+				if (!holes.isEmpty()) {
+					int newest_id = holes.poll();
+					for (Task task : tasks) {
+						task.setId(newest_id);
+					}
+					latest_id = newest_id;
+				}
+				else {
+					latest_id = i;
+				}
+			}
+		}
+		return latest_id;
+	}
+	
+	private int getLatestID() {
+		int latest_id = getLatestID(al_task);
+		int latest_id_floating = getLatestID(al_task_floating);
+		int latest_id_overdue = getLatestID(al_task_overdue);
+		int latest_id_completed = getLatestID(al_task_completed);
+		return Math.max(Math.max(latest_id, latest_id_completed), Math.max(latest_id_overdue, latest_id_floating));
+	}
+	
+	private int getLatestID(PriorityQueue<Task> list) {
+		int latest_id = 0;
+		for (Task task : list) {
+			if (latest_id < task.getId()) {
+				latest_id = task.getId();
+			}
+		}
+		return latest_id;
+	}
+	
 	private void initFiles() throws IOException {
 		filehandler.readFile(al_task);
 		filehandler.readFile(al_task_floating);
 		filehandler.readFile(al_task_completed);
 		filehandler.readFile(al_task_overdue);
-		id_counter = filehandler.getTaskCounter();
 	}
 
 	private PriorityQueue<Task> retrieveTaskList(Task task) {
@@ -327,32 +370,6 @@ public class Storage {
 		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 		
 		// Interfaces with the textFiles(databases)*************************
-		
-		private int getTaskCounter() throws IOException {
-			File countFile = new File(COUNT_TASK_FILENAME);
-			if (!countFile.exists()) {
-				countFile.createNewFile();
-			}
-			bufferedReader = new BufferedReader(new FileReader(countFile));
-			
-			String result = bufferedReader.readLine();
-			if(result == null){
-				return 0;
-			}
-			else{
-				return Integer.parseInt(result);
-			}
-		}
-
-		private void writeTaskCounter(int count) throws FileNotFoundException, IOException {
-			File countFile = new File(COUNT_TASK_FILENAME);
-			if (!countFile.exists()) {
-				countFile.createNewFile();
-			}
-			printWriter = new PrintWriter(new FileOutputStream(countFile));
-			printWriter.println("" + count);
-			printWriter.close();
-		}
 
 		private void readFile(PriorityQueue<Task> filelist) throws IOException {
 			String fileName = determineFileName(filelist);
