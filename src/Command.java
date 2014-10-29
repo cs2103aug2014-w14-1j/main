@@ -18,7 +18,8 @@ public class Command {
 	private String[] searchTags;
 	private String[] taskIDsToDelete;
 	private String[] taskIDsToComplete;
-	private String[] taskTags;
+	private String[] taskTagsToAdd;
+	private String[] taskTagsToRemove;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;
@@ -115,11 +116,19 @@ public class Command {
 		searchTags = tags;
 	}
 
-	public String[] getTaskTags() {
-		return taskTags;
+	public String[] getTaskTagsToAdd() {
+		return taskTagsToAdd;
 	}
 
-	public void setTaskTags(String[] tags) {
-		taskTags = tags;
+	public void setTaskTagsToAdd(String[] tags) {
+		taskTagsToAdd = tags;
+	}
+
+	public String[] getTaskTagsToRemove() {
+		return taskTagsToRemove;
+	}
+
+	public void setTaskTagsToRemove(String[] tags) {
+		taskTagsToRemove = tags;
 	}
 }

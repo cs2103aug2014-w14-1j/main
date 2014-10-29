@@ -58,8 +58,8 @@ public class UIController extends Application implements UIObserver {
 		if (currentCommand_.getTaskDueDate() != null) {
 			newTask.setDate(currentCommand_.getTaskDueDate());
 		}
-		if (currentCommand_.getTaskTags() != null) {
-			for (String tag : currentCommand_.getTaskTags()) {
+		if (currentCommand_.getTaskTagsToAdd() != null) {
+			for (String tag : currentCommand_.getTaskTagsToAdd()) {
 				newTask.addTag(tag);
 			}
 		}

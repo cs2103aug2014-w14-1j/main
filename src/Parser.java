@@ -1,6 +1,7 @@
 import org.ocpsoft.prettytime.shade.org.apache.commons.lang.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import static org.mentaregex.Regex.match;
 import static org.mentaregex.Regex.matches;
@@ -139,8 +140,8 @@ public class Parser {
 
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setTaskTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
 		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
@@ -150,8 +151,10 @@ public class Parser {
 		String[] IDs = parseTaskID(commandDetails);
 		commandObj.setTaskID(IDs[0]);
 		commandDetails = removeTaskID(commandDetails);
-		commandObj.setTaskTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
+		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
+		commandDetails = removeTaskTagsRemoval(commandDetails);
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
 		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
@@ -168,8 +171,8 @@ public class Parser {
 
 	private void generateSearchCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setSearchTags(parseTaskTags(commandDetails));
-		commandDetails = removeTaskTags(commandDetails);
+		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
 		String[] array = commandDetails.split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
@@ -196,12 +199,29 @@ public class Parser {
 		return commandDetails.split("\\s+", 2)[1];
 	}
 
-	private String[] parseTaskTags(String commandDetails) {
+	private String[] parseTaskTagsAddition(String commandDetails) {
 		return match(commandDetails, "/(\\B@[a-zA-Z0-9-]+)/g");
 	}
 
-	private String removeTaskTags(String commandDetails) {
+	private String[] parseTaskTagsRemoval(String commandDetails) {
+		String[] removalMatches = match(commandDetails, "/(remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
+		ArrayList<String> tagMatches = new ArrayList<String>();
+		for (String match : removalMatches) {
+			tagMatches.addAll(Arrays.asList(parseTaskTagsAddition(match)));
+		}
+		String[] tags = new String[tagMatches.size()];
+		for (int i = 0; i < tagMatches.size(); i++) {
+			tags[i] = tagMatches.get(i);
+		}
+		return tags;
+	}
+
+	private String removeTaskTagsAddition(String commandDetails) {
 		return commandDetails.replaceAll("\\B@[a-zA-Z0-9-]+", "");
+	}
+
+	private String removeTaskTagsRemoval(String commandDetails) {
+		return commandDetails.replaceAll("remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+", "");
 	}
 
 	private String removeLeadingAndClosingPunctuation(String input) {
