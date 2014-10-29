@@ -196,7 +196,7 @@ public class Parser {
 	}
 
 	private String removeTaskID(String commandDetails) {
-		return commandDetails.split("\\s+", 2)[1];
+		return commandDetails.replaceFirst("[TFOtfo]\\d+", "");
 	}
 
 	private String[] parseTaskTagsAddition(String commandDetails) {
