@@ -50,6 +50,10 @@ public class DateParser {
 	private final String MM_DD = M + DATE_CONNECTOR + D;
 	private final String MMM_DD =  MMM + DATE_CONNECTOR + D + ORDINALS;
 
+	private final String TODAY = "today";
+	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
+	private final String YESTERDAY = "yesterday|yda|yta";
+
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
 
@@ -96,7 +100,7 @@ public class DateParser {
 					case LIST:
 					case SEARCH:
 						commandObj.setSearchStartDate(startOfDay(date));
-						commandObj.setSearchEndDate(endOfDay(date));
+						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
 			}
@@ -133,6 +137,7 @@ public class DateParser {
 		cal = cal == null ? matchDayMonth(date) : cal;
 		cal = cal == null ? matchMonthDayYear(date) : cal;
 		cal = cal == null ? matchMonthDay(date) : cal;
+		cal = cal == null ? matchNaturalLanguage(date) : cal;
 		return cal;
 	}
 
@@ -237,6 +242,28 @@ public class DateParser {
 			int month = Integer.parseInt(parsedDate[1]) - 1;
 			int day = Integer.parseInt(parsedDate[2]);
 			return new GregorianCalendar(year, month, day);
+		}
+	}
+
+	private Calendar matchNaturalLanguage(String date) {
+		Calendar now = Calendar.getInstance();
+		int thisYear = now.get(Calendar.YEAR);
+		int thisMonth = now.get(Calendar.MONTH);
+		int thisDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
+		if (dateMatches(date, TODAY)) {
+			currentDate = dateMatch(date, TODAY)[0];
+			command = command.replaceFirst(currentDate, "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
+		} else if (dateMatches(date, YESTERDAY)) {
+			currentDate = dateMatch(date, YESTERDAY)[0];
+			command = command.replaceFirst(currentDate, "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth - 1);
+		} else if (dateMatches(date, TOMORROW)) {
+			currentDate = dateMatch(date, TOMORROW)[0];
+			command = command.replaceFirst(currentDate, "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
+		} else {
+			return null;
 		}
 	}
 
