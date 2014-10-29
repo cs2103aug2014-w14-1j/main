@@ -185,7 +185,6 @@ public class Parser {
 	}
 
 	private String parseTaskName(String commandDetails) {
-		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		return removeLeadingAndClosingPunctuation(commandDetails);
 	}
 
