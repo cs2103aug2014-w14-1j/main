@@ -206,14 +206,18 @@ public class Parser {
 	private String[] parseTaskTagsRemoval(String commandDetails) {
 		String[] removalMatches = match(commandDetails, "/(remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
 		ArrayList<String> tagMatches = new ArrayList<String>();
-		for (String match : removalMatches) {
-			tagMatches.addAll(Arrays.asList(parseTaskTagsAddition(match)));
+		if (removalMatches != null) {
+			for (String match : removalMatches) {
+				tagMatches.addAll(Arrays.asList(parseTaskTagsAddition(match)));
+			}
+			String[] tags = new String[tagMatches.size()];
+			for (int i = 0; i < tagMatches.size(); i++) {
+				tags[i] = tagMatches.get(i);
+			}
+			return tags;
+		} else {
+			return null;
 		}
-		String[] tags = new String[tagMatches.size()];
-		for (int i = 0; i < tagMatches.size(); i++) {
-			tags[i] = tagMatches.get(i);
-		}
-		return tags;
 	}
 
 	private String removeTaskTagsAddition(String commandDetails) {
