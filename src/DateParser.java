@@ -5,6 +5,10 @@ import static org.mentaregex.Regex.match;
 import static org.mentaregex.Regex.matches;
 
 public class DateParser {
+	public enum RECURRING_TYPE {
+		DAILY, WEEKLY, MONTHLY, YEARLY
+	}
+
 	private final String JAN = "Jan(?:uary)?";
 	private final String FEB = "Feb(?:ruary)?";
 	private final String MAR = "Mar(?:ch)?";
@@ -17,6 +21,19 @@ public class DateParser {
 	private final String OCT = "Oct(?:ober)?";
 	private final String NOV = "Nov(?:ember)?";
 	private final String DEC = "Dec(?:ember)?";
+
+	private final String DAY = "days?";
+	private final String WEEK = "weeks?";
+	private final String MONTH = "months?";
+	private final String YEAR = "years?";
+
+	private final String MON = "monday";
+	private final String TUE = "tuesday";
+	private final String WED = "wednesday";
+	private final String THU = "thursday";
+	private final String FRI = "friday";
+	private final String SAT = "saturday";
+	private final String SUN = "sunday";
 
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
@@ -59,6 +76,7 @@ public class DateParser {
 
 	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
+	private final String RECUR = "(?:recurs?\\s)?(?:every)\\s?";
 
 	private String command;
 	private String currentDate;
