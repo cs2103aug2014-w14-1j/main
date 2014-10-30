@@ -25,7 +25,7 @@ import javafx.util.Callback;
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
-
+	private Stage stage = null;
 	// topmost Container
 	private VBox taskView;
 
@@ -55,6 +55,7 @@ public class UI extends FlowPane {
 
 	// rest of components of taskView
 	private TextField userCommands;
+	
 	private TextField messagesToUser;
 
 	// Dimensions
@@ -328,6 +329,7 @@ public class UI extends FlowPane {
 
 	// Allows Controller to pass stage for this UI to display Scene.
 	public void showStage(Stage primaryStage) {
+		this.stage = primaryStage;
 		Scene scene = new Scene(this.taskView);
 		scene.getStylesheets().add("myStyles.css");
 		primaryStage.setTitle("SPEED");
