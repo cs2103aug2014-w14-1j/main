@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import org.controlsfx.control.NotificationPane;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -25,7 +27,6 @@ import javafx.util.Callback;
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
-	private Stage stage = null;
 	// topmost Container
 	private VBox taskView;
 
@@ -35,7 +36,7 @@ public class UI extends FlowPane {
 	// view 1 of split
 	private VBox taskTableView;
 	private TableView<Task> taskTable;
-
+	
 	// view 2 of split
 	private VBox taskDetailsView;
 
@@ -55,12 +56,11 @@ public class UI extends FlowPane {
 
 	// rest of components of taskView
 	private TextField userCommands;
+	private NotificationPane notificationPane;
 	
-	private TextField messagesToUser;
-
 	// Dimensions
-	private static final double WIDTH_OF_PROGRAM = 880;
-	private static final double WIDTH_OF_SPLIT2 = 300;
+	private static final double WIDTH_OF_PROGRAM = 930;
+	private static final double WIDTH_OF_SPLIT2 = 350;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
 	
@@ -69,7 +69,7 @@ public class UI extends FlowPane {
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
 		taskView.setSpacing(SPACING);
-
+		initNotificationPane();
 		// Split: HBox containing 2 views
 		split = new HBox();
 		split.setSpacing(SPACING);
@@ -78,7 +78,7 @@ public class UI extends FlowPane {
 		// split.*************************
 		taskTableView = new VBox();
 
-		buildTaskTable();
+		initTaskTable();
 		taskTableView.getChildren().add(taskTable);
 
 		// View 2 of split
@@ -93,13 +93,8 @@ public class UI extends FlowPane {
 		userCommands.setPrefWidth(WIDTH_OF_PROGRAM - SPACING - SPACING);
 		userCommands.setPrefHeight(HEIGHT_OF_USERCOMMANDS);
 
-		// mesagesToUser TextField
-		messagesToUser = new TextField("* Add Use SPEED Today!");
-		messagesToUser.setId("messageToUserText");
-		messagesToUser.setDisable(true);
-
 		// taskView
-		taskView.getChildren().addAll(split, userCommands, messagesToUser);
+		taskView.getChildren().addAll(split,userCommands);
 
 		initUserCommands();
 		initObservers();
@@ -118,7 +113,7 @@ public class UI extends FlowPane {
 	}
 
 	// to Build the taskTable for taskTableView.
-	private void buildTaskTable() {
+	private void initTaskTable() {
 		taskTable = new TableView<Task>();
 		taskTable.setPrefWidth(580);
 		taskTable.setPrefHeight(500);
@@ -247,7 +242,7 @@ public class UI extends FlowPane {
 
 		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
 				taskNameta, taskStartDtesLbl, taskStartDtesta,
-				taskTagsLbl,taskTagsta);
+				taskTagsLbl,taskTagsta, notificationPane);
 	}
 
 	// Binds row to task detail
@@ -299,11 +294,32 @@ public class UI extends FlowPane {
 		return userCommands.getText();
 	}
 
-	public void setMessageToUser(String msg) {
-		messagesToUser.setDisable(false);
-		messagesToUser.setText(msg);
-		messagesToUser.setDisable(true);
+
+	private void initNotificationPane() {
+		 notificationPane = new NotificationPane(new FlowPane());
+		 notificationPane.setShowFromTop(false);
+	     notificationPane.setDisable(true);
+	     notificationPane.setMinSize(WIDTH_OF_SPLIT2,100);
 	}
+
+	public void setMessageToUser(String msg) {
+		notificationPane.setDisable(false);
+		notificationPane.show(msg);
+		hideNotificationAfter(4000);
+		notificationPane.setDisable(true);
+		
+	}
+	private void hideNotificationAfter(int ms) {
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        notificationPane.hide();
+                    }
+                },
+                ms
+        );
+    }
 
 	// Display tasks in the taskTable.
 	public void displayTasks(ArrayList<Task> taskAL) {
@@ -329,7 +345,6 @@ public class UI extends FlowPane {
 
 	// Allows Controller to pass stage for this UI to display Scene.
 	public void showStage(Stage primaryStage) {
-		this.stage = primaryStage;
 		Scene scene = new Scene(this.taskView);
 		scene.getStylesheets().add("myStyles.css");
 		primaryStage.setTitle("SPEED");

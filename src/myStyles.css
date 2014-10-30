@@ -9,15 +9,6 @@
 	-fx-font-weight: bold;
 }
 
-#messageToUserText {
-	-fx-background-color: #faebd7;
-	-fx-font: 12px Verdana;
-	-fx-text-fill: Red;
-	-fx-opacity: 1.0;
-	-fx-font-weight: bold;
-}
-
-
 .label {
 	-fx-font:12px Verdana;
 	-fx-text-fill: Darkblue;
@@ -54,10 +45,4 @@
 	-fx-opacity: 1.0;
 }
 
-.popup {
-    -fx-background-color: cornsilk;
-    -fx-padding: 10;
-    -fx-border-color: black; 
-    -fx-border-width: 5;
-    -fx-font-size: 16;
-}
+
