@@ -41,9 +41,15 @@
 }
 
 .overdueTaskRow{
-	-fx-background-color: #27ae60;
+	-fx-background-color: #E00000;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
 	-fx-opacity: 1.0;
 }
 
+.normalTaskRow{
+	-fx-background-color: #27ae60;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+}

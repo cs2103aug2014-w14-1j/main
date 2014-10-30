@@ -60,7 +60,7 @@ public class UI extends FlowPane {
 	private TextField messagesToUser;
 
 	// Dimensions
-	private static final double WIDTH_OF_PROGRAM = 1100;
+	private static final double WIDTH_OF_PROGRAM = 880;
 	private static final double WIDTH_OF_SPLIT2 = 300;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
@@ -121,7 +121,7 @@ public class UI extends FlowPane {
 	// to Build the taskTable for taskTableView.
 	private void buildTaskTable() {
 		taskTable = new TableView<Task>();
-		taskTable.setPrefWidth(800);
+		taskTable.setPrefWidth(580);
 		taskTable.setPrefHeight(500);
 		buildColumns(dataToDisplay);
 
@@ -150,8 +150,8 @@ public class UI extends FlowPane {
 	private void buildColumns(ObservableList<Task> data) {
 
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
-				"Task ID");
-		taskLblCol.setPrefWidth(60);
+				"ID");
+		taskLblCol.setPrefWidth(40);
 		taskLblCol.setResizable(false);
 		taskLblCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
@@ -172,7 +172,7 @@ public class UI extends FlowPane {
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
-		taskNameCol.setPrefWidth(400);
+		taskNameCol.setPrefWidth(300);
 		taskNameCol.setResizable(false);
 		taskNameCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
@@ -189,7 +189,7 @@ public class UI extends FlowPane {
 		TableColumn<Task, String> taskStartEndDate = new TableColumn<Task, String>(
 				"Task Date");
 		taskStartEndDate.setResizable(false);
-		taskStartEndDate.setPrefWidth(300);
+		taskStartEndDate.setPrefWidth(200);
 		taskStartEndDate
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
@@ -360,6 +360,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
 	//CSS
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
+	private static final String CSS_NORMALTASKROW = "normalTaskRow";
 
 	@Override protected void updateItem(final String item, final boolean empty) {
         super.updateItem(item, empty);
@@ -379,6 +380,9 @@ class BackgroundTableCell extends TableCell<Task, String> {
         }
         else if(item.contains("O")){
         	getStyleClass().add(CSS_OVERDUETASKROW);
+        }
+        else{
+        	getStyleClass().add(CSS_NORMALTASKROW);
         }
      }
 }
