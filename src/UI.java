@@ -179,8 +179,10 @@ public class UI extends FlowPane {
 					@Override
 					public ObservableValue<String> call(
 							CellDataFeatures<Task, String> p) {
-						return new SimpleStringProperty((p.getValue()
-								.getTaskName()));
+						String taskName = p.getValue().getTaskName();
+						String taskTags = "\n\n" + p.getValue().getTagsAsString();
+						
+						return new SimpleStringProperty((taskName + taskTags));
 					}
 				});
 
@@ -372,10 +374,10 @@ class BackgroundTableCell extends TableCell<Task, String> {
             return;
         }
 
-        if (item.contains("f")) {
+        if (item.contains("F")) {
             getStyleClass().add(CSS_FLOATINGTASKROW);
         }
-        else if(item.contains("r")){
+        else if(item.contains("O")){
         	getStyleClass().add(CSS_OVERDUETASKROW);
         }
      }
