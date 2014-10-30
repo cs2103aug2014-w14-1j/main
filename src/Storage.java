@@ -19,7 +19,7 @@ public class Storage {
 	private FileHandler filehandler;
 	private int id_counter;
 
-	public Storage() throws IOException {
+	public Storage() throws IOException, JSONException {
 		al_task = new PriorityQueue<Task>(new TaskComparator());
 		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
 		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
@@ -27,8 +27,8 @@ public class Storage {
 		filehandler = new FileHandler();
 		initFiles();
 		id_counter = updateIndex();
+		//updateRecurringTasks();
 		checkForOverdueTasks();
-		updateRecurringTasks();
 	}
 
 	//Insert methods*********************************************************
@@ -290,8 +290,16 @@ public class Storage {
 		save();
 	}
 	
-	private void updateRecurringTasks() {
-		
+	//expensive op that is of dubious value
+	private void updateRecurringTasks() throws IOException, JSONException {
+		for (int i = 0; i < id_counter; i++) {
+			ArrayList<Task> searchlist = searchTaskByID(i);
+			assert !searchlist.isEmpty();					//updateIndex should have compacted everything
+			Task lasttask = searchlist.get(searchlist.size()-1);
+			if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
+				generateRecurringTasks(lasttask);
+			}
+		}
 	}
 	
 	private int updateIndex() {
@@ -367,7 +375,6 @@ public class Storage {
 		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
 		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 		private static final String TASK_FILENAME = "Task.txt";
-		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
 		
 		// Interfaces with the textFiles(databases)*************************
 
