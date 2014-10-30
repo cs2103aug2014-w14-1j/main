@@ -45,11 +45,9 @@ public class UI extends FlowPane {
 	private final Label taskIDLbl = new Label("Task ID: ");
 	private final TextField taskIDtf = new TextField();
 	private final Label taskNameLbl = new Label("Task Name: ");
-	private final TextField taskNametf = new TextField();
+	private final TextArea taskNameta = new TextArea();
 	private final Label taskStartDtesLbl = new Label("Task Dates: ");
 	private final TextArea taskStartDtesta = new TextArea();
-	private final Label taskReminderDtesLbl = new Label("Reminder Dates: ");
-	private final TextArea taskReminderDtesta = new TextArea();
 	private final Label taskTagsLbl = new Label("Task Tags: ");
 	private final TextArea taskTagsta = new TextArea();
 	private Task taskUserSelected = null;
@@ -144,6 +142,18 @@ public class UI extends FlowPane {
 
 				});
 		
+		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent ke) {
+				if (ke.getCode().equals(KeyCode.BACK_SPACE) ||
+						ke.getCode().equals(KeyCode.DELETE)) {
+					userCommands.setText("delete " + taskUserSelected.getDisplayId());
+					notifyObservers();
+					initUserCommands();
+				}
+			}
+
+		});
 	}
 
 	@SuppressWarnings("unchecked")
@@ -218,28 +228,25 @@ public class UI extends FlowPane {
 		taskIDtf.setId("view2Split");
 		taskIDtf.setDisable(true);
 
-		taskNametf.setId("view2Split");
-		taskNametf.setDisable(true);
+		taskNameta.setId("view2Split");
+		taskNameta.setPrefHeight(60);
+		taskNameta.setWrapText(true);
+		taskNameta.setDisable(true);
+	
 
 		taskStartDtesta.setId("view2Split");
-		taskStartDtesta.setPrefHeight(90);
+		taskStartDtesta.setPrefHeight(60);
 		taskStartDtesta.setWrapText(true);
 		taskStartDtesta.setDisable(true);
 
-		taskReminderDtesta.setId("view2Split");
-		taskReminderDtesta.setPrefHeight(90);
-		taskReminderDtesta.setWrapText(true);
-		taskReminderDtesta.setDisable(true);
-
 		taskTagsta.setId("view2Split");
-		taskTagsta.setPrefHeight(90);
+		taskTagsta.setPrefHeight(60);
 		taskTagsta.setWrapText(true);
 		taskTagsta.setDisable(true);
 
 		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
-				taskNametf, taskStartDtesLbl, taskStartDtesta,
-				taskReminderDtesLbl, taskReminderDtesta, taskTagsLbl,
-				taskTagsta);
+				taskNameta, taskStartDtesLbl, taskStartDtesta,
+				taskTagsLbl,taskTagsta);
 	}
 
 	// Binds row to task detail
@@ -248,17 +255,13 @@ public class UI extends FlowPane {
 		taskIDtf.setText("");
 		taskIDtf.setDisable(true);
 
-		taskNametf.setDisable(false);
-		taskNametf.setText("");
-		taskNametf.setDisable(true);
+		taskNameta.setDisable(false);
+		taskNameta.setText("");
+		taskNameta.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText("");
 		taskStartDtesta.setDisable(true);
-		
-//		taskReminderDtesta.setDisable(false);
-//		taskReminderDtesta.setText("");
-//		taskReminderDtesta.setDisable(true);
 		
 		taskTagsta.setDisable(false);
 		taskTagsta.setText("");
@@ -270,18 +273,14 @@ public class UI extends FlowPane {
 		taskIDtf.setText(taskUserSelected.getDisplayId());
 		taskIDtf.setDisable(true);
 
-		taskNametf.setDisable(false);
-		taskNametf.setText(taskUserSelected.getTaskName());
-		taskNametf.setDisable(true);
+		taskNameta.setDisable(false);
+		taskNameta.setText(taskUserSelected.getTaskName());
+		taskNameta.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText(taskUserSelected.getDateAsString());
 		taskStartDtesta.setDisable(true);
-		
-		
-		// private TextArea taskReminderDtesta = new TextArea();
-		// private TextArea taskTagsta = new TextArea();
-		
+			
 		taskTagsta.setDisable(false);
 		taskTagsta.setText(taskUserSelected.getTagsAsString());
 		taskTagsta.setDisable(true);
