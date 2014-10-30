@@ -15,49 +15,32 @@ public class MainController extends Application implements UIObserver {
 
 	private String inputCommand_;
 	private Command currentCommand_ = null;
-	private Command lastSearchCommand_ = null;
-	private int taskID_;
 	private UI UI_;
 	private ArrayList<Task> searchResults_;
 	private Parser parser_;
 	private TreeMap<String, Task> taskIDmap_;
 	private Storage storage_;
-	private ArrayList<String> displayIDs_;
 	private LogicHandler logic_;
+	private SearchHandler searcher_;
 
-	public void proceedCommand() throws Exception {
-		Command.COMMAND_TYPE commandType = currentCommand_.getCommandType();
+	public void proceedCommand(Command command) throws Exception {
 
-		switch (commandType) {
-		case ADD: {
-			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
+		if (isLogic(command)) {
+			String msg = logic_.executeCommand(taskIDmap_, command);
 			display(msg);
 			repeatLastSearch();
-			return;
+		} else {
+			searchResults_ = searcher_.proceedCommand(command);
+			createTaskIDmap();
+			UI_.displayTasks(searchResults_);
 		}
-		case DELETE: {
-			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
-			display(msg);
-			repeatLastSearch();
-			return;
-		}
-		case EDIT: {
-			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
-			display(msg);
-			repeatLastSearch();
-			return;
-		}
-		case UNDO: {
-			String msg = logic_.executeCommand(taskIDmap_, currentCommand_);
-			display(msg);
-			repeatLastSearch();
-			return;
-		}
-		case LIST:
-			list();
-			lastSearchCommand_ = currentCommand_;
-			return;
-		}
+	}
+	
+	private boolean isLogic(Command command) {
+		if ((command.getCommandType() == Command.COMMAND_TYPE.SEARCH) | (command.getCommandType() == Command.COMMAND_TYPE.LIST)) {
+			return false;
+		} 
+		return true;
 	}
 
 	private void display(String result) {
@@ -65,20 +48,14 @@ public class MainController extends Application implements UIObserver {
 	}
 
 	private void repeatLastSearch() throws Exception {
-		if (lastSearchCommand_ == null) {
-			viewDefault();
-		} else {
-			currentCommand_ = lastSearchCommand_;
-			proceedCommand();
-		}
+		searchResults_ = searcher_.repeatLastSearch();
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
 	}
 
 	//default view
 	private void viewDefault() {
-		
-		searchResults_ = new ArrayList<Task>();
-		searchResults_.addAll(storage_.defaultView());
-
+		searchResults_ = searcher_.viewDefault();
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
@@ -95,17 +72,17 @@ public class MainController extends Application implements UIObserver {
 	private void createTaskIDmap() {
 		taskIDmap_ = new TreeMap<String, Task>();
 		int f = 1;
-		int r = 1;
+		int o = 1;
 		int t = 1;
 
 		for (int i = 0; i < searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
 			String c = getChar(task);
-			if (c.equals("r")) {
-				String key = c + Integer.toString(r);
+			if (c.equals("o")) {
+				String key = c + Integer.toString(o);
 				taskIDmap_.put(key, task);
 				task.setDisplayId(key);
-				r++;
+				o++;
 			} else if (c.equals("t")) {
 				String key = c + Integer.toString(t);
 				taskIDmap_.put(key, task);
@@ -130,38 +107,13 @@ public class MainController extends Application implements UIObserver {
 		}
 	}
 
-	private void search() {
-		ArrayList<String> keywords = currentCommand_.getSearchKeywords();
-		ArrayList<String> tags = new ArrayList<String>();
-		for (String tag : currentCommand_.getSearchTags()) {
-			tags.add(tag);
-		}
-		Calendar start_date = currentCommand_.getSearchStartDate();
-		Calendar end_date = currentCommand_.getSearchEndDate();
-
-		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
-
-	private void list() {
-		ArrayList<String> keywords = new ArrayList<String>();
-		ArrayList<String> tags = new ArrayList<String>();
-		Calendar start_date = currentCommand_.getSearchStartDate();
-		Calendar end_date = currentCommand_.getSearchEndDate();
-
-		searchResults_ = storage_.search(keywords, tags, start_date, end_date);
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
-
 	@Override
 	public void update() {
 		inputCommand_ = UI_.getUserInput();
 		currentCommand_ = parser_.parseCommand(inputCommand_);
 
 		try {
-			proceedCommand();
+			proceedCommand(currentCommand_);
 		} catch (Exception e) {
 			UI_.setMessageToUser(e.getMessage());
 		}
@@ -177,8 +129,7 @@ public class MainController extends Application implements UIObserver {
 		this.parser_ = new Parser();
 		this.UI_ = new UI();
 		this.logic_ = new LogicHandler(storage_);
-		
-		this.lastSearchCommand_ = null;
+		this.searcher_ = new SearchHandler(storage_);
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
