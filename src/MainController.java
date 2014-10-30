@@ -99,11 +99,11 @@ public class MainController extends Application implements UIObserver {
 
 	private String getChar(Task task) {
 		if (task.isOverdue()) {
-			return "r";
+			return "O";
 		} else if (task.isFloating()) {
-			return "f";
+			return "F";
 		} else {
-			return "t";
+			return "T";
 		}
 	}
 

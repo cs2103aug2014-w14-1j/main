@@ -41,7 +41,7 @@
 }
 
 .overdueTaskRow{
-	-fx-background-color: #FF0000;
+	-fx-background-color: #27ae60;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
 	-fx-opacity: 1.0;
