@@ -288,7 +288,12 @@ public class Task {
 	}
 
 	private boolean containsTag(String tag) {
-		return tags.contains(tag);
+		for (String t : this.tags) {
+			if (t.toLowerCase().equals(tag.toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean containsTags(ArrayList<String> tags) {
@@ -319,7 +324,7 @@ public class Task {
 	// Search methods********************
 	
 	private boolean containsKeyword(String keyword) {
-		return taskName.contains(keyword);
+		return taskName.toLowerCase().contains(keyword.toLowerCase());
 	}
 
 	public boolean containsKeywords(ArrayList<String> keywords) {
