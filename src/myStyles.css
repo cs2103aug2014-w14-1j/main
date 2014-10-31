@@ -9,15 +9,6 @@
 	-fx-font-weight: bold;
 }
 
-#messageToUserText {
-	-fx-background-color: #faebd7;
-	-fx-font: 12px Verdana;
-	-fx-text-fill: Red;
-	-fx-opacity: 1.0;
-	-fx-font-weight: bold;
-}
-
-
 .label {
 	-fx-font:12px Verdana;
 	-fx-text-fill: Darkblue;
@@ -41,9 +32,17 @@
 }
 
 .overdueTaskRow{
+	-fx-background-color: #E00000;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: Black;
+	-fx-opacity: 1.0;
+}
+
+.normalTaskRow{
 	-fx-background-color: #27ae60;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
 	-fx-opacity: 1.0;
 }
+
 

@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+import org.controlsfx.control.NotificationPane;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -25,7 +27,6 @@ import javafx.util.Callback;
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
-
 	// topmost Container
 	private VBox taskView;
 
@@ -35,7 +36,7 @@ public class UI extends FlowPane {
 	// view 1 of split
 	private VBox taskTableView;
 	private TableView<Task> taskTable;
-
+	
 	// view 2 of split
 	private VBox taskDetailsView;
 
@@ -45,11 +46,9 @@ public class UI extends FlowPane {
 	private final Label taskIDLbl = new Label("Task ID: ");
 	private final TextField taskIDtf = new TextField();
 	private final Label taskNameLbl = new Label("Task Name: ");
-	private final TextField taskNametf = new TextField();
+	private final TextArea taskNameta = new TextArea();
 	private final Label taskStartDtesLbl = new Label("Task Dates: ");
 	private final TextArea taskStartDtesta = new TextArea();
-	private final Label taskReminderDtesLbl = new Label("Reminder Dates: ");
-	private final TextArea taskReminderDtesta = new TextArea();
 	private final Label taskTagsLbl = new Label("Task Tags: ");
 	private final TextArea taskTagsta = new TextArea();
 	private Task taskUserSelected = null;
@@ -57,11 +56,11 @@ public class UI extends FlowPane {
 
 	// rest of components of taskView
 	private TextField userCommands;
-	private TextField messagesToUser;
-
+	private NotificationPane notificationPane;
+	
 	// Dimensions
-	private static final double WIDTH_OF_PROGRAM = 1100;
-	private static final double WIDTH_OF_SPLIT2 = 300;
+	private static final double WIDTH_OF_PROGRAM = 930;
+	private static final double WIDTH_OF_SPLIT2 = 350;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
 	
@@ -70,7 +69,7 @@ public class UI extends FlowPane {
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
 		taskView.setSpacing(SPACING);
-
+		initNotificationPane();
 		// Split: HBox containing 2 views
 		split = new HBox();
 		split.setSpacing(SPACING);
@@ -79,7 +78,7 @@ public class UI extends FlowPane {
 		// split.*************************
 		taskTableView = new VBox();
 
-		buildTaskTable();
+		initTaskTable();
 		taskTableView.getChildren().add(taskTable);
 
 		// View 2 of split
@@ -94,13 +93,8 @@ public class UI extends FlowPane {
 		userCommands.setPrefWidth(WIDTH_OF_PROGRAM - SPACING - SPACING);
 		userCommands.setPrefHeight(HEIGHT_OF_USERCOMMANDS);
 
-		// mesagesToUser TextField
-		messagesToUser = new TextField("* Add Use SPEED Today!");
-		messagesToUser.setId("messageToUserText");
-		messagesToUser.setDisable(true);
-
 		// taskView
-		taskView.getChildren().addAll(split, userCommands, messagesToUser);
+		taskView.getChildren().addAll(split,userCommands);
 
 		initUserCommands();
 		initObservers();
@@ -119,9 +113,9 @@ public class UI extends FlowPane {
 	}
 
 	// to Build the taskTable for taskTableView.
-	private void buildTaskTable() {
+	private void initTaskTable() {
 		taskTable = new TableView<Task>();
-		taskTable.setPrefWidth(800);
+		taskTable.setPrefWidth(580);
 		taskTable.setPrefHeight(500);
 		buildColumns(dataToDisplay);
 
@@ -144,14 +138,26 @@ public class UI extends FlowPane {
 
 				});
 		
+		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent ke) {
+				if (ke.getCode().equals(KeyCode.BACK_SPACE) ||
+						ke.getCode().equals(KeyCode.DELETE)) {
+					userCommands.setText("delete " + taskUserSelected.getDisplayId());
+					notifyObservers();
+					initUserCommands();
+				}
+			}
+
+		});
 	}
 
 	@SuppressWarnings("unchecked")
 	private void buildColumns(ObservableList<Task> data) {
 
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
-				"Task ID");
-		taskLblCol.setPrefWidth(60);
+				"ID");
+		taskLblCol.setPrefWidth(40);
 		taskLblCol.setResizable(false);
 		taskLblCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
@@ -172,7 +178,7 @@ public class UI extends FlowPane {
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
-		taskNameCol.setPrefWidth(400);
+		taskNameCol.setPrefWidth(300);
 		taskNameCol.setResizable(false);
 		taskNameCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
@@ -189,7 +195,7 @@ public class UI extends FlowPane {
 		TableColumn<Task, String> taskStartEndDate = new TableColumn<Task, String>(
 				"Task Date");
 		taskStartEndDate.setResizable(false);
-		taskStartEndDate.setPrefWidth(300);
+		taskStartEndDate.setPrefWidth(200);
 		taskStartEndDate
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
@@ -218,28 +224,25 @@ public class UI extends FlowPane {
 		taskIDtf.setId("view2Split");
 		taskIDtf.setDisable(true);
 
-		taskNametf.setId("view2Split");
-		taskNametf.setDisable(true);
+		taskNameta.setId("view2Split");
+		taskNameta.setPrefHeight(60);
+		taskNameta.setWrapText(true);
+		taskNameta.setDisable(true);
+	
 
 		taskStartDtesta.setId("view2Split");
-		taskStartDtesta.setPrefHeight(90);
+		taskStartDtesta.setPrefHeight(60);
 		taskStartDtesta.setWrapText(true);
 		taskStartDtesta.setDisable(true);
 
-		taskReminderDtesta.setId("view2Split");
-		taskReminderDtesta.setPrefHeight(90);
-		taskReminderDtesta.setWrapText(true);
-		taskReminderDtesta.setDisable(true);
-
 		taskTagsta.setId("view2Split");
-		taskTagsta.setPrefHeight(90);
+		taskTagsta.setPrefHeight(60);
 		taskTagsta.setWrapText(true);
 		taskTagsta.setDisable(true);
 
 		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
-				taskNametf, taskStartDtesLbl, taskStartDtesta,
-				taskReminderDtesLbl, taskReminderDtesta, taskTagsLbl,
-				taskTagsta);
+				taskNameta, taskStartDtesLbl, taskStartDtesta,
+				taskTagsLbl,taskTagsta, notificationPane);
 	}
 
 	// Binds row to task detail
@@ -248,17 +251,13 @@ public class UI extends FlowPane {
 		taskIDtf.setText("");
 		taskIDtf.setDisable(true);
 
-		taskNametf.setDisable(false);
-		taskNametf.setText("");
-		taskNametf.setDisable(true);
+		taskNameta.setDisable(false);
+		taskNameta.setText("");
+		taskNameta.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText("");
 		taskStartDtesta.setDisable(true);
-		
-//		taskReminderDtesta.setDisable(false);
-//		taskReminderDtesta.setText("");
-//		taskReminderDtesta.setDisable(true);
 		
 		taskTagsta.setDisable(false);
 		taskTagsta.setText("");
@@ -270,18 +269,14 @@ public class UI extends FlowPane {
 		taskIDtf.setText(taskUserSelected.getDisplayId());
 		taskIDtf.setDisable(true);
 
-		taskNametf.setDisable(false);
-		taskNametf.setText(taskUserSelected.getTaskName());
-		taskNametf.setDisable(true);
+		taskNameta.setDisable(false);
+		taskNameta.setText(taskUserSelected.getTaskName());
+		taskNameta.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText(taskUserSelected.getDateAsString());
 		taskStartDtesta.setDisable(true);
-		
-		
-		// private TextArea taskReminderDtesta = new TextArea();
-		// private TextArea taskTagsta = new TextArea();
-		
+			
 		taskTagsta.setDisable(false);
 		taskTagsta.setText(taskUserSelected.getTagsAsString());
 		taskTagsta.setDisable(true);
@@ -299,11 +294,32 @@ public class UI extends FlowPane {
 		return userCommands.getText();
 	}
 
-	public void setMessageToUser(String msg) {
-		messagesToUser.setDisable(false);
-		messagesToUser.setText(msg);
-		messagesToUser.setDisable(true);
+
+	private void initNotificationPane() {
+		 notificationPane = new NotificationPane(new FlowPane());
+		 notificationPane.setShowFromTop(false);
+	     notificationPane.setDisable(true);
+	     notificationPane.setMinSize(WIDTH_OF_SPLIT2,100);
 	}
+
+	public void setMessageToUser(String msg) {
+		notificationPane.setDisable(false);
+		notificationPane.show(msg);
+		hideNotificationAfter(4000);
+		notificationPane.setDisable(true);
+		
+	}
+	private void hideNotificationAfter(int ms) {
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        notificationPane.hide();
+                    }
+                },
+                ms
+        );
+    }
 
 	// Display tasks in the taskTable.
 	public void displayTasks(ArrayList<Task> taskAL) {
@@ -360,6 +376,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
 	//CSS
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
+	private static final String CSS_NORMALTASKROW = "normalTaskRow";
 
 	@Override protected void updateItem(final String item, final boolean empty) {
         super.updateItem(item, empty);
@@ -379,6 +396,9 @@ class BackgroundTableCell extends TableCell<Task, String> {
         }
         else if(item.contains("O")){
         	getStyleClass().add(CSS_OVERDUETASKROW);
+        }
+        else{
+        	getStyleClass().add(CSS_NORMALTASKROW);
         }
      }
 }
