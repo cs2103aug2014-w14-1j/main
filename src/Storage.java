@@ -238,18 +238,7 @@ public class Storage {
 
 
 	public ArrayList<Task> defaultView() {
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		Calendar start = Calendar.getInstance();
-		start.set(Calendar.HOUR_OF_DAY, 0);
-		start.set(Calendar.MINUTE, 0);
-		start.set(Calendar.SECOND, 0);
-		Calendar end = Calendar.getInstance();
-		end.set(Calendar.HOUR_OF_DAY, 23);
-		end.set(Calendar.MINUTE, 59);
-		end.set(Calendar.SECOND, 59);
-		search_results.addAll(search(null, null, null, end));
-		search_results.addAll(searchTaskByReminder(start, end));
-		return search_results;
+		return search(null, null, null, null);
 	}
 
 	
