@@ -140,6 +140,18 @@ public class LogicHandler {
 			newTask.setDate(date);
 		}
 		
+		if (command.getTaskTagsToAdd()!=null) {
+			for (String tag : command.getTaskTagsToAdd()) {
+				newTask.addTag(tag);
+			}
+		}
+		
+		if (command.getTaskTagsToRemove()!=null) {
+			for (String tag : command.getTaskTagsToRemove()) {
+				newTask.removeTag(tag);
+			}
+		}
+		
 		ArrayList<Task> updatedState = new ArrayList<Task> ();
 		ArrayList<Task> oldState = new ArrayList<Task> ();
 		

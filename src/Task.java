@@ -275,8 +275,12 @@ public class Task {
 	}
 
 	// Task Tags**************************************
-	public void addTag(String str) {
-		this.tags.add(str);
+	public void addTag(String tag) {
+		this.tags.add(tag);
+	}
+	
+	public void removeTag(String tag) {
+		this.tags.remove(tag);
 	}
 
 	public ArrayList<String> getTags() {
