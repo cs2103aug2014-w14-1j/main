@@ -363,7 +363,7 @@ public class Task {
 class TaskComparator implements Comparator<Task> {
 	public int compare(Task a, Task b) {
 		if (a.getStartDate() == null && b.getStartDate() == null) {
-			return 0;
+			return a.getTaskName().compareTo(b.getTaskName());
 		}
 		if (a.getStartDate() == null && b.getStartDate() != null) {
 			return -1;
@@ -375,7 +375,7 @@ class TaskComparator implements Comparator<Task> {
 			return -1;
 		}
 		if (a.getStartDate().equals(b.getStartDate())) {
-			return 0;
+			return a.getTaskName().compareTo(b.getTaskName());
 		}
 		return 1;
 	}
