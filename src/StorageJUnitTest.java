@@ -273,7 +273,8 @@ public class StorageJUnitTest {
 			task3.setTaskName("100 situps");
 			storage.insert(task3);
 			test(storage.getFloatingTasksList().size(), 2);
-			test(storage.getFloatingTasksList().get(1).getTaskName(), "100 situps");
+			test(storage.getFloatingTasksList().get(0).getTaskName(), "100 situps");
+			test(storage.getFloatingTasksList().get(1).getTaskName(), "Bake chocolate cake");
 			storage.delete(task3);
 			task3.setTaskName("100 pushups");
 			task3.setDate(task3_date);

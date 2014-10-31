@@ -26,8 +26,10 @@ public class SearchHandler {
 		
 		ArrayList<String> keywords = command.getSearchKeywords();
 		ArrayList<String> tags = new ArrayList<String>();
-		for (String tag : command.getSearchTags()) {
-			tags.add(tag);
+		if (command.getSearchTags()!=null) {
+			for (String tag : command.getSearchTags()) {
+				tags.add(tag);
+			}
 		}
 		Calendar start_date = command.getSearchStartDate();
 		Calendar end_date = command.getSearchEndDate();
