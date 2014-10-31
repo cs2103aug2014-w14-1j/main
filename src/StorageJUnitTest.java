@@ -296,7 +296,7 @@ public class StorageJUnitTest {
 			// search with no date
 
 			ArrayList<String> search1_keywords = new ArrayList<String>();
-			search1_keywords.add("Casey");
+			search1_keywords.add("casey");										//test case sensitivity
 			ArrayList<Task> search1 = storage.search(search1_keywords, null,
 					null, null);
 			test(search1.size(), 3);
@@ -315,7 +315,7 @@ public class StorageJUnitTest {
 			test(search2.get(0).getTaskName(), "100 pushups");
 			test(search2.get(1).getTaskName(), "MA3110 finals");
 
-			// search tags in comination with keywords
+			// search tags in combination with keywords
 			ArrayList<String> search2_tags = new ArrayList<String>();
 			search2_tags.add("school");
 			search2 = storage
