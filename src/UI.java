@@ -285,6 +285,7 @@ public class UI extends FlowPane {
 
 	// End Displaying View 2
 
+	// Functions that deal with displaying notifications to user and retrieving user notifications******************
 	private void initUserCommands() {
 		userCommands.setText("");
 		userCommands.requestFocus();
@@ -320,7 +321,8 @@ public class UI extends FlowPane {
                 ms
         );
     }
-
+	// Functions that deal with displaying notifications to user and retrieving user notifications******************
+	
 	// Display tasks in the taskTable.
 	public void displayTasks(ArrayList<Task> taskAL) {
 		this.displayTasks.removeAll(displayTasks);
@@ -382,7 +384,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
         super.updateItem(item, empty);
 
         setText(empty ? "" : item);
-        getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW);
+        getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,CSS_NORMALTASKROW);
         updateStyles(empty ? null : item);
     }
 
@@ -397,7 +399,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
         else if(item.contains("O")){
         	getStyleClass().add(CSS_OVERDUETASKROW);
         }
-        else{
+        else if(item.contains("T")){
         	getStyleClass().add(CSS_NORMALTASKROW);
         }
      }
