@@ -13,6 +13,11 @@ import org.json.JSONException;
 
 public class MainController extends Application implements UIObserver {
 
+	private static final String TASK_FILENAME = "Task.txt";
+	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+	
 	private String inputCommand_;
 	private Command currentCommand_ = null;
 	private UI UI_;
@@ -118,7 +123,7 @@ public class MainController extends Application implements UIObserver {
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		this.storage_ = new Storage();
+		this.storage_ = new Storage(TASK_FILENAME,FLOATING_TASK_FILENAME,OVERDUE_TASK_FILENAME,COMPLETED_TASK_FILENAME);
 		this.parser_ = new Parser();
 		this.UI_ = new UI();
 		this.logic_ = new LogicHandler(storage_);

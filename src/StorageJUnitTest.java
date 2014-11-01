@@ -206,7 +206,7 @@ public class StorageJUnitTest {
 			// Storage
 			// tests*********************************************************************
 
-			Storage storage = new Storage();
+			Storage storage = new Storage("testtask.txt","testfloat.txt","testoverdue.txt","testcompleted.txt");
 			storage.clearAll();
 
 			// Insertion tests************************************
