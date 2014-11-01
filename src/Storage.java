@@ -27,7 +27,7 @@ public class Storage {
 		filehandler = new FileHandler();
 		initFiles();
 		id_counter = updateIndex();
-		//updateRecurringTasks();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -215,26 +215,6 @@ public class Storage {
 			}
 		}
 	}
-
-	private ArrayList<Task> searchTaskByReminder(Calendar start_date, Calendar end_date) {
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		searchTaskByReminder(search_results, al_task_overdue, start_date, end_date);
-		searchTaskByReminder(search_results, al_task_floating, start_date, end_date);
-		searchTaskByReminder(search_results, al_task, start_date, end_date);
-		Collections.sort(search_results, new TaskComparator());
-		return search_results;
-	}
-	
-	private void searchTaskByReminder(ArrayList<Task> search_results, PriorityQueue<Task> tasklist,
-			Calendar start_date, Calendar end_date) {
-		for (Task task : tasklist) {
-			if (task.getReminderDate() != null && (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date))) {
-				if (task.getReminderDate().before(end_date) || task.getReminderDate().equals(end_date)) {
-					search_results.add(task);
-				}
-			}
-		}
-	}
 	
 	//Clear methods**************************************************************
 	
@@ -277,10 +257,11 @@ public class Storage {
 	private void updateRecurringTasks() throws IOException, JSONException {
 		for (int i = 0; i < id_counter; i++) {
 			ArrayList<Task> searchlist = searchTaskByID(i);
-			assert !searchlist.isEmpty();					//updateIndex should have compacted everything
-			Task lasttask = searchlist.get(searchlist.size()-1);
-			if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
-				generateRecurringTasks(lasttask);
+			if (!searchlist.isEmpty()) {
+				Task lasttask = searchlist.get(searchlist.size()-1);
+				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
+					generateRecurringTasks(lasttask);
+				}
 			}
 		}
 	}
