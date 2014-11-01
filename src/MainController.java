@@ -53,13 +53,6 @@ public class MainController extends Application implements UIObserver {
 		UI_.displayTasks(searchResults_);
 	}
 
-	//default view
-	private void viewDefault() {
-		searchResults_ = searcher_.viewDefault();
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
-	
 	//view all
 	private void viewAll() {
 		searchResults_ = new ArrayList<Task>();
@@ -133,6 +126,6 @@ public class MainController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewDefault();
+		viewAll();
 	}
 }

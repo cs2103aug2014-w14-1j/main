@@ -122,21 +122,11 @@ public class UIController extends Application implements UIObserver {
 
 	private void repeatLastSearch() throws Exception {
 		if (lastSearchCommand_ == null) {
-			viewDefault();
+			viewAll();
 		} else {
 			currentCommand_ = lastSearchCommand_;
 			proceedCommand();
 		}
-	}
-
-	//default view
-	private void viewDefault() {
-		
-		searchResults_ = new ArrayList<Task>();
-		searchResults_.addAll(storage_.defaultView());
-
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
 	}
 	
 	//view all
@@ -243,6 +233,6 @@ public class UIController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewDefault();
+		viewAll();
 	}
 }

@@ -59,7 +59,7 @@ public class SearchHandler {
 	public ArrayList<Task> viewDefault() {
 		
 		ArrayList<Task> searchResults = new ArrayList<Task>();
-		searchResults.addAll(storage_.defaultView());
+		searchResults.addAll(storage_.search(null,null,null,null));
 		
 		return searchResults;
 	}

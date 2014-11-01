@@ -235,12 +235,6 @@ public class Storage {
 			}
 		}
 	}
-
-
-	public ArrayList<Task> defaultView() {
-		return search(null, null, null, null);
-	}
-
 	
 	//Clear methods**************************************************************
 	
