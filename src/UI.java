@@ -36,7 +36,7 @@ public class UI extends FlowPane {
 	// view 1 of split
 	private VBox taskTableView;
 	private TableView<Task> taskTable;
-	
+
 	// view 2 of split
 	private VBox taskDetailsView;
 
@@ -56,15 +56,18 @@ public class UI extends FlowPane {
 
 	// rest of components of taskView
 	private TextField userCommands;
+	private ArrayList<String> previousUserCommands;
+	private int previousUserCommandsCounter;
 	private NotificationPane notificationPane;
-	
+
 	// Dimensions
 	private static final double WIDTH_OF_PROGRAM = 930;
 	private static final double WIDTH_OF_SPLIT2 = 350;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
-	
+
 	public UI() {
+		previousUserCommands = new ArrayList<String>();
 		taskView = new VBox();
 		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
 		taskView.setPadding(new Insets(SPACING, SPACING, SPACING, SPACING));
@@ -94,7 +97,7 @@ public class UI extends FlowPane {
 		userCommands.setPrefHeight(HEIGHT_OF_USERCOMMANDS);
 
 		// taskView
-		taskView.getChildren().addAll(split,userCommands);
+		taskView.getChildren().addAll(split, userCommands);
 
 		initUserCommands();
 		initObservers();
@@ -104,12 +107,20 @@ public class UI extends FlowPane {
 			@Override
 			public void handle(KeyEvent ke) {
 				if (ke.getCode().equals(KeyCode.ENTER)) {
+					previousUserCommands.add(userCommands.getText());
+					previousUserCommandsCounter = previousUserCommands.size() - 1;
 					notifyObservers();
 					initUserCommands();
+				} else if (ke.getCode().equals(KeyCode.UP) && !previousUserCommands.isEmpty()) {
+					displayPreviousMessage("UP");
+
+				} else if (ke.getCode().equals(KeyCode.DOWN) && !previousUserCommands.isEmpty()) {
+					displayPreviousMessage("DOWN");
 				}
 			}
 
 		});
+
 	}
 
 	// to Build the taskTable for taskTableView.
@@ -137,13 +148,14 @@ public class UI extends FlowPane {
 					}
 
 				});
-		
+
 		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent ke) {
-				if (ke.getCode().equals(KeyCode.BACK_SPACE) ||
-						ke.getCode().equals(KeyCode.DELETE)) {
-					userCommands.setText("delete " + taskUserSelected.getDisplayId());
+				if (ke.getCode().equals(KeyCode.BACK_SPACE)
+						|| ke.getCode().equals(KeyCode.DELETE)) {
+					userCommands.setText("delete "
+							+ taskUserSelected.getDisplayId());
 					notifyObservers();
 					initUserCommands();
 				}
@@ -168,13 +180,15 @@ public class UI extends FlowPane {
 								.getDisplayId()));
 					}
 				});
-		
-		taskLblCol.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
-           	@Override
-			public TableCell<Task, String> call(TableColumn<Task, String> arg0) {
-				return new BackgroundTableCell();
-			}
-        });
+
+		taskLblCol
+				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
+					@Override
+					public TableCell<Task, String> call(
+							TableColumn<Task, String> arg0) {
+						return new BackgroundTableCell();
+					}
+				});
 
 		TableColumn<Task, String> taskNameCol = new TableColumn<Task, String>(
 				"Task Name");
@@ -186,8 +200,9 @@ public class UI extends FlowPane {
 					public ObservableValue<String> call(
 							CellDataFeatures<Task, String> p) {
 						String taskName = p.getValue().getTaskName();
-						String taskTags = "\n\n" + p.getValue().getTagsAsString();
-						
+						String taskTags = "\n\n"
+								+ p.getValue().getTagsAsString();
+
 						return new SimpleStringProperty((taskName + taskTags));
 					}
 				});
@@ -228,7 +243,6 @@ public class UI extends FlowPane {
 		taskNameta.setPrefHeight(60);
 		taskNameta.setWrapText(true);
 		taskNameta.setDisable(true);
-	
 
 		taskStartDtesta.setId("view2Split");
 		taskStartDtesta.setPrefHeight(60);
@@ -241,8 +255,8 @@ public class UI extends FlowPane {
 		taskTagsta.setDisable(true);
 
 		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
-				taskNameta, taskStartDtesLbl, taskStartDtesta,
-				taskTagsLbl,taskTagsta, notificationPane);
+				taskNameta, taskStartDtesLbl, taskStartDtesta, taskTagsLbl,
+				taskTagsta, notificationPane);
 	}
 
 	// Binds row to task detail
@@ -258,7 +272,7 @@ public class UI extends FlowPane {
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText("");
 		taskStartDtesta.setDisable(true);
-		
+
 		taskTagsta.setDisable(false);
 		taskTagsta.setText("");
 		taskTagsta.setDisable(true);
@@ -276,7 +290,7 @@ public class UI extends FlowPane {
 		taskStartDtesta.setDisable(false);
 		taskStartDtesta.setText(taskUserSelected.getDateAsString());
 		taskStartDtesta.setDisable(true);
-			
+
 		taskTagsta.setDisable(false);
 		taskTagsta.setText(taskUserSelected.getTagsAsString());
 		taskTagsta.setDisable(true);
@@ -285,7 +299,8 @@ public class UI extends FlowPane {
 
 	// End Displaying View 2
 
-	// Functions that deal with displaying notifications to user and retrieving user notifications******************
+	// Functions that deal with displaying notifications to user and retrieving
+	// user notifications******************
 	private void initUserCommands() {
 		userCommands.setText("");
 		userCommands.requestFocus();
@@ -295,12 +310,11 @@ public class UI extends FlowPane {
 		return userCommands.getText();
 	}
 
-
 	private void initNotificationPane() {
-		 notificationPane = new NotificationPane(new FlowPane());
-		 notificationPane.setShowFromTop(false);
-	     notificationPane.setDisable(true);
-	     notificationPane.setMinSize(WIDTH_OF_SPLIT2,100);
+		notificationPane = new NotificationPane(new FlowPane());
+		notificationPane.setShowFromTop(false);
+		notificationPane.setDisable(true);
+		notificationPane.setMinSize(WIDTH_OF_SPLIT2, 100);
 	}
 
 	public void setMessageToUser(String msg) {
@@ -308,26 +322,50 @@ public class UI extends FlowPane {
 		notificationPane.show(msg);
 		hideNotificationAfter(4000);
 		notificationPane.setDisable(true);
-		
+
 	}
+
 	private void hideNotificationAfter(int ms) {
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        notificationPane.hide();
-                    }
-                },
-                ms
-        );
-    }
-	// Functions that deal with displaying notifications to user and retrieving user notifications******************
-	
+		new java.util.Timer().schedule(new java.util.TimerTask() {
+			@Override
+			public void run() {
+				notificationPane.hide();
+			}
+		}, ms);
+	}
+
+	private void displayPreviousMessage(String command) {
+		if (command.equals("UP")) {
+			if (previousUserCommandsCounter < 0) {
+				// do nothing
+			} else {
+				userCommands.setText(previousUserCommands
+						.get(previousUserCommandsCounter));
+				previousUserCommandsCounter--;
+			}
+		} else if (command.equals("DOWN")) {
+			if (previousUserCommandsCounter == previousUserCommands.size() - 1) {
+				userCommands.setText("");
+			} else {
+				previousUserCommandsCounter++;
+				userCommands.setText(previousUserCommands
+						.get(previousUserCommandsCounter));
+			}
+
+		} else {
+			// do nothing
+		}
+
+	}
+
+	// Functions that deal with displaying notifications to user and retrieving
+	// user notifications******************
+
 	// Display tasks in the taskTable.
 	public void displayTasks(ArrayList<Task> taskAL) {
 		this.displayTasks.removeAll(displayTasks);
 		this.displayTasks = taskAL;
-		if(dataToDisplay!= null){
+		if (dataToDisplay != null) {
 			dataToDisplay.removeAll(dataToDisplay);
 		}
 		dataToDisplay = FXCollections.observableArrayList(displayTasks);
@@ -375,33 +413,32 @@ public class UI extends FlowPane {
 }
 
 class BackgroundTableCell extends TableCell<Task, String> {
-	//CSS
+	// CSS
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
 	private static final String CSS_NORMALTASKROW = "normalTaskRow";
 
-	@Override protected void updateItem(final String item, final boolean empty) {
-        super.updateItem(item, empty);
+	@Override
+	protected void updateItem(final String item, final boolean empty) {
+		super.updateItem(item, empty);
 
-        setText(empty ? "" : item);
-        getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,CSS_NORMALTASKROW);
-        updateStyles(empty ? null : item);
-    }
+		setText(empty ? "" : item);
+		getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,
+				CSS_NORMALTASKROW);
+		updateStyles(empty ? null : item);
+	}
 
-    private void updateStyles(String item) {
-        if (item == null) {
-            return;
-        }
+	private void updateStyles(String item) {
+		if (item == null) {
+			return;
+		}
 
-        if (item.contains("F")) {
-            getStyleClass().add(CSS_FLOATINGTASKROW);
-        }
-        else if(item.contains("O")){
-        	getStyleClass().add(CSS_OVERDUETASKROW);
-        }
-        else if(item.contains("T")){
-        	getStyleClass().add(CSS_NORMALTASKROW);
-        }
-     }
+		if (item.contains("F")) {
+			getStyleClass().add(CSS_FLOATINGTASKROW);
+		} else if (item.contains("O")) {
+			getStyleClass().add(CSS_OVERDUETASKROW);
+		} else if (item.contains("T")) {
+			getStyleClass().add(CSS_NORMALTASKROW);
+		}
+	}
 }
-
