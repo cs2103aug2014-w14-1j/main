@@ -83,7 +83,7 @@ public class ParserTest {
 		String input = "delete t1";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1"};
+		String[] expectedArray = {"1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
 	}
 
@@ -92,7 +92,7 @@ public class ParserTest {
 		String input = "delete t1 o2 f3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"1", "2", "3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
 	}
 
@@ -171,7 +171,7 @@ public class ParserTest {
 		String input = "complete t1";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1"};
+		String[] expectedArray = {"1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
 
@@ -180,7 +180,7 @@ public class ParserTest {
 		String input = "complete t1 o2 f3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"1", "2", "3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
 
