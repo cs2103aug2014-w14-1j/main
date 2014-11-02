@@ -96,7 +96,6 @@ public class LogicHandler {
 			}
 		}
 		
-	
 		
 		ArrayList<Task> newTasks = new ArrayList<Task>();
 		newTasks.add(task);
@@ -154,6 +153,7 @@ public class LogicHandler {
 	
 	private String executeUpdate(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
 		String id = command.getTaskID();
+		id = id.toUpperCase();
 		
 		if (!taskIDmap.containsKey(id)) {
 			return "Invalid index to update.";
