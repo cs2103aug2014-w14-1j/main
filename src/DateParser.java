@@ -79,7 +79,7 @@ public class DateParser {
 
 	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
-	private final String RECUR = "(?:recurs?\\s)?(?:every\\s)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
 	private String command;
