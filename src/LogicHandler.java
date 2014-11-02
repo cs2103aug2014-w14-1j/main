@@ -167,11 +167,11 @@ public class LogicHandler {
 		}
 
 		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
-			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate());
+			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
 		}
 		
 		else if (command.getTaskEndDate()!= null) {
-			newTask.setDate(command.getTaskEndDate());
+			newTask.setDate(command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
 		}
 		
 		if (command.getTaskTagsToAdd()!=null) {
