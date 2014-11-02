@@ -23,14 +23,14 @@ public class Task {
 	 * No input constructor
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, null, null, null,
+		this(null, "", "", null, null, null, null, -1, null, null,
 				new ArrayList<String>());
 	}
 
 	private Task(Integer taskId, String displayId, String taskName,
 			Calendar taskStartDate, Calendar taskEndDate,
 			Calendar taskReminderDate, Calendar taskDateCompleted,
-			Integer recur, Calendar recurLimit, ArrayList<String> taskTag) {
+			Integer recur, Integer recurPeriod, Calendar recurLimit, ArrayList<String> taskTag) {
 		this.id = taskId;
 		this.displayId = displayId;
 		this.taskName = taskName;
@@ -39,6 +39,7 @@ public class Task {
 		this.dateCompleted = taskDateCompleted;
 		this.reminderDate = taskReminderDate;
 		this.recurPattern = recur;
+		this.recurPeriod = recurPeriod;
 		this.recurLimit = recurLimit;
 		this.tags = taskTag;
 	}
