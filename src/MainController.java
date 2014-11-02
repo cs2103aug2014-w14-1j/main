@@ -56,7 +56,7 @@ public class MainController extends Application implements UIObserver {
 			String msg = runSystemTest();
 			display(msg);
 		}
-		if (isLogic(command)) {
+		else if (isLogic(command)) {
 			String msg = logic_.executeCommand(taskIDmap_, command);
 			display(msg);
 			repeatLastSearch();
