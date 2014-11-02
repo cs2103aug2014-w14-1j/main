@@ -1,5 +1,9 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -18,6 +22,14 @@ public class MainController extends Application implements UIObserver {
 	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
 	
+	private static final String TEST_TASK_FILENAME = "systestt.txt";
+	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
+	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
+	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
+	
+	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
+	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
+	
 	private String inputCommand_;
 	private Command currentCommand_ = null;
 	private UI UI_;
@@ -29,19 +41,27 @@ public class MainController extends Application implements UIObserver {
 	private SearchHandler searcher_;
 
 	public void proceedCommand(Command command) throws Exception {
-
+		if (isTest(command)) {
+			String msg = runSystemTest();
+			display(msg);
+		}
 		if (isLogic(command)) {
 			String msg = logic_.executeCommand(taskIDmap_, command);
 			display(msg);
 			repeatLastSearch();
 		} else {
 			searchResults_ = searcher_.proceedCommand(command);
-			createTaskIDmap();
+			createTaskIDmap(taskIDmap_, searchResults_);
 			UI_.displayTasks(searchResults_);
 		}
 	}
 	
+	private boolean isTest(Command command) {
+		return command.getCommandType() == Command.COMMAND_TYPE.TEST;
+	}
+	
 	private boolean isLogic(Command command) {
+		assert command.getCommandType() != Command.COMMAND_TYPE.TEST;
 		if ((command.getCommandType() == Command.COMMAND_TYPE.SEARCH) | (command.getCommandType() == Command.COMMAND_TYPE.LIST)) {
 			return false;
 		} 
@@ -54,7 +74,7 @@ public class MainController extends Application implements UIObserver {
 
 	private void repeatLastSearch() throws Exception {
 		searchResults_ = searcher_.repeatLastSearch();
-		createTaskIDmap();
+		createTaskIDmap(taskIDmap_, searchResults_);
 		UI_.displayTasks(searchResults_);
 	}
 
@@ -63,32 +83,32 @@ public class MainController extends Application implements UIObserver {
 		searchResults_ = new ArrayList<Task>();
 		searchResults_.addAll(storage_.search(null, null, null, null));
 		
-		createTaskIDmap();
+		createTaskIDmap(taskIDmap_, searchResults_);
 		UI_.displayTasks(searchResults_);
 	}
 
-	private void createTaskIDmap() {
-		taskIDmap_ = new TreeMap<String, Task>();
+	private void createTaskIDmap(TreeMap<String, Task> taskIDmap, ArrayList<Task> searchResults) {
+		taskIDmap = new TreeMap<String, Task>();
 		int f = 1;
 		int o = 1;
 		int t = 1;
 
-		for (int i = 0; i < searchResults_.size(); i++) {
-			Task task = searchResults_.get(i);
+		for (int i = 0; i < searchResults.size(); i++) {
+			Task task = searchResults.get(i);
 			String c = getChar(task);
 			if (c.equals("o")) {
 				String key = c + Integer.toString(o);
-				taskIDmap_.put(key, task);
+				taskIDmap.put(key, task);
 				task.setDisplayId(key);
 				o++;
 			} else if (c.equals("t")) {
 				String key = c + Integer.toString(t);
-				taskIDmap_.put(key, task);
+				taskIDmap.put(key, task);
 				task.setDisplayId(key);
 				t++;
 			} else {
 				String key = c + Integer.toString(f);
-				taskIDmap_.put(key, task);
+				taskIDmap.put(key, task);
 				task.setDisplayId(key);
 				f++;
 			}
@@ -132,5 +152,45 @@ public class MainController extends Application implements UIObserver {
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
 		viewAll();
+	}
+	
+	//System Test****************************************************************************
+	
+	private String runSystemTest() {
+		try {
+			
+			Parser t_parser = new Parser();
+			Storage t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
+					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
+			LogicHandler t_logic = new LogicHandler(t_storage);
+			SearchHandler t_searcher = new SearchHandler(t_storage);
+			
+			ArrayList<Task> t_searchResults = t_searcher.viewDefault();
+			TreeMap<String, Task> t_taskIDmap = new TreeMap<String, Task>();
+			createTaskIDmap(t_taskIDmap, t_searchResults);
+			
+			BufferedReader t_reader = new BufferedReader(new FileReader(new File(TEST_INPUT_FILENAME)));
+			String input = null;
+			while ((input = t_reader.readLine()) != null) {
+				Command t_command = t_parser.parseCommand(input);
+				assert t_command.getCommandType() != Command.COMMAND_TYPE.TEST;
+				if (isLogic(t_command)) {
+					t_logic.executeCommand(t_taskIDmap, t_command);
+					t_searchResults = t_searcher.repeatLastSearch();
+					createTaskIDmap(t_taskIDmap, t_searchResults);
+				}
+				else {
+					t_searchResults = t_searcher.proceedCommand(t_command);
+					createTaskIDmap(t_taskIDmap, t_searchResults);
+				}
+			}
+			
+			t_reader.close();
+			
+			return "Tests successful!";
+		}
+		catch (Exception e) {
+			return e.getMessage();
+		}
 	}
 }
