@@ -1,5 +1,7 @@
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Stack;
@@ -110,9 +112,19 @@ public class LogicHandler {
 		
 		String[] ids = command.getTaskIDsToDelete();
 		
-		ArrayList<Task> tasks = new ArrayList<Task>();
+		ArrayList<String> allIDs = new ArrayList<String>();
 		
 		for (String id: ids) {
+			if (isNumeric(id)) {
+				allIDs.add("T" + id);
+				allIDs.add("F" + id);
+				allIDs.add("O" + id);
+			}
+		}
+		
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		
+		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
 			if ((task!=null)|(tasks.contains(task))) {
 				tasks.add(task);
@@ -264,5 +276,13 @@ public class LogicHandler {
 		for (Task task: oldTasks) {
 			storage_.insert(task);
 		}	
+	}
+	
+	private static boolean isNumeric(String str)
+	{
+	  NumberFormat formatter = NumberFormat.getInstance();
+	  ParsePosition pos = new ParsePosition(0);
+	  formatter.parse(str, pos);
+	  return str.length() == pos.getIndex();
 	}
 }
