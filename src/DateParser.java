@@ -5,9 +5,6 @@ import static org.mentaregex.Regex.match;
 import static org.mentaregex.Regex.matches;
 
 public class DateParser {
-	public enum RECURRING_TYPE {
-		DAILY, WEEKLY, MONTHLY, YEARLY
-	}
 
 	private final String JAN = "Jan(?:uary)?";
 	private final String FEB = "Feb(?:ruary)?";
@@ -27,13 +24,18 @@ public class DateParser {
 	private final String MONTH = "months?";
 	private final String YEAR = "years?";
 
-	private final String MON = "monday";
-	private final String TUE = "tuesday";
-	private final String WED = "wednesday";
-	private final String THU = "thursday";
-	private final String FRI = "friday";
-	private final String SAT = "saturday";
-	private final String SUN = "sunday";
+	private final String DAILY = "daily";
+	private final String WEEKLY = "weekly";
+	private final String MONTHLY = "monthly";
+	private final String YEARLY = "yearly|annually";
+
+	private final String MON = "mon(?:day)?";
+	private final String TUE = "tue(?:sday)?";
+	private final String WED = "wed(?:nesday)?";
+	private final String THU = "thu(?:rsday)?";
+	private final String FRI = "fri(?:day)?";
+	private final String SAT = "sat(?:urday)?";
+	private final String SUN = "sun(?:day)?";
 
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
@@ -77,15 +79,16 @@ public class DateParser {
 
 	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
-	private final String RECUR = "(?:recurs?\\s)?(?:every)\\s?";
+	private final String RECUR = "(?:recurs?\\s)?(?:every\\s)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
 	private String command;
 	private String currentDate;
 
 	public String parseCommand(String input, Command.COMMAND_TYPE type, Command commandObj) {
 		command = input;
-		if (dateMatches(input, FROM_TO)) {
-			String[] dates = dateMatch(input, FROM_TO);
+		if (dateMatches(command, FROM_TO)) {
+			String[] dates = dateMatch(command, FROM_TO);
 			Calendar startDate = parseDateTime(dates[1], 0, 0, 0);
 			Calendar endDate = parseDateTime(dates[2], 23, 59, 59);
 			if (startDate != null && endDate != null) {
@@ -102,16 +105,18 @@ public class DateParser {
 						break;
 				}
 				command = command.replaceFirst(FROM_TO, "");
+				parseRecur(commandObj);
 			}
-		} else if (dateMatches(input, DUE)) {
-			String[] dates = dateMatch(input, DUE);
+		} else if (dateMatches(command, DUE)) {
+			String[] dates = dateMatch(command, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
 				commandObj.setTaskDueDate(dueDate);
 				command = command.replaceFirst(DUE, "");
+				parseRecur(commandObj);
 			}
 		} else {
-			Calendar date = parseDateTime(input, 23, 59, 59);
+			Calendar date = parseDateTime(command, 23, 59, 59);
 			if (date != null) {
 				switch (type) {
 					case ADD:
@@ -124,9 +129,43 @@ public class DateParser {
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
+				parseRecur(commandObj);
 			}
 		}
 		return command;
+	}
+
+	private void parseRecur(Command commandObj) {
+		int recurPeriod = 1;
+		int recurPattern = 0;
+		if (dateMatches(command, RECUR)) {
+			String[] recur = dateMatch(command, RECUR);
+			recurPattern = parseRecurPattern(recur[2]);
+			if (recur[1] != null) {
+				recurPeriod = Integer.parseInt(recur[1].trim());
+			}
+			command = command.replaceFirst(RECUR, "");
+		} else if (dateMatches(command, SIMPLE_RECUR)) {
+			String[] recur = dateMatch(command, SIMPLE_RECUR);
+			recurPattern = parseRecurPattern(recur[1]);
+			command = command.replaceFirst(SIMPLE_RECUR, "");
+		}
+		commandObj.setRecurPattern(recurPattern);
+		commandObj.setRecurPeriod(recurPeriod);
+	}
+
+	private int parseRecurPattern(String pattern) {
+		int recurPattern = 0;
+		if (dateMatches(pattern, DAY) || dateMatches(pattern, DAILY)) {
+			recurPattern = Calendar.DAY_OF_YEAR;
+		} else if (dateMatches(pattern, WEEK) || dateMatches(pattern, WEEKLY)) {
+			recurPattern = Calendar.WEEK_OF_YEAR;
+		} else if (dateMatches(pattern, MONTH) || dateMatches(pattern, MONTHLY)) {
+			recurPattern = Calendar.MONTH;
+		} else if (dateMatches(pattern, YEAR) || dateMatches(pattern, YEARLY)) {
+			recurPattern = Calendar.YEAR;
+		}
+		return recurPattern;
 	}
 
 	private Calendar parseDateTime(String datetime, int default_hour, int default_min, int default_second) {
