@@ -84,17 +84,17 @@ public class Storage {
 			task = task.clone();
 			Calendar start = task.getStartDate();
 			if (start != null) {
-				start.add(task.getRecur(), RECUR_INTERVAL);
+				start.add(task.getRecurPattern(), task.getRecurPeriod());
 			}
 			Calendar end = task.getEndDate();
 			if (end != null) {
-				end.add(task.getRecur(), RECUR_INTERVAL);
+				end.add(task.getRecurPattern(), task.getRecurPeriod());
 				if (end.after(limit)) {
 					break;
 				}
 			}
 			//increase date
-			task.setDates(start, end, task.getRecur(), task.getRecurLimit());
+			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
 			insert(task, retrieveTaskList(task));
 		}
 	}

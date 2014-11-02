@@ -14,7 +14,8 @@ public class Task {
 	private Calendar endDate;
 	private Calendar dateCompleted;
 	private Calendar reminderDate;
-	private Integer recur;
+	private Integer recurPattern;
+	private Integer recurPeriod;
 	private Calendar recurLimit;
 	private ArrayList<String> tags;
 
@@ -37,7 +38,7 @@ public class Task {
 		this.endDate = taskEndDate;
 		this.dateCompleted = taskDateCompleted;
 		this.reminderDate = taskReminderDate;
-		this.recur = recur;
+		this.recurPattern = recur;
 		this.recurLimit = recurLimit;
 		this.tags = taskTag;
 	}
@@ -78,7 +79,7 @@ public class Task {
 
 	// only Controller accesses setters: date input is in Calendar format
 	
-	public void setDates(Calendar startdate, Calendar enddate, int recur, Calendar limit) {
+	public void setDates(Calendar startdate, Calendar enddate, int recur_pattern, int recur_period, Calendar recur_limit) {
 		if (enddate!= null && startdate!= null && enddate.before(startdate)) {
 			Calendar temp = enddate;
 			enddate = startdate;
@@ -86,8 +87,9 @@ public class Task {
 		}
 		this.startDate = startdate;
 		this.endDate = enddate;
-		this.recur = recur;
-		this.recurLimit = limit;
+		this.recurPattern = recur_pattern;
+		this.recurPeriod = recur_period;
+		this.recurLimit = recur_limit;
 	}
 
 	public void setDates(Calendar startdate, Calendar enddate) {
@@ -98,7 +100,7 @@ public class Task {
 		}
 		this.startDate = startdate;
 		this.endDate = enddate;
-		this.recur = null;
+		this.recurPattern = null;
 		this.recurLimit = null;
 	}
 
@@ -113,15 +115,16 @@ public class Task {
 	public void setDate(Calendar date) {
 		this.startDate = date;
 		this.endDate = (Calendar) date.clone();
-		this.recur = null;
+		this.recurPattern = null;
 		this.recurLimit = null;
 	}
 	
-	public void setDate(Calendar date, int recur, Calendar limit) {
+	public void setDate(Calendar date, int recur_pattern, int recur_period, Calendar recur_limit) {
 		this.startDate = date;
 		this.endDate = (Calendar) date.clone();
-		this.recur = recur;
-		this.recurLimit = limit;
+		this.recurPattern = recur_pattern;
+		this.recurPeriod = recur_period;
+		this.recurLimit = recur_limit;
 	}
 
 	public Calendar getStartDate() {
@@ -193,16 +196,21 @@ public class Task {
 
 	// Task Recur***************************************
 
-	public void setRecur(Integer field) {
-		this.recur = field;
+	public void setRecur(Integer pattern, Integer period) {
+		this.recurPattern = pattern;
+		this.recurPeriod = period;
 	}
 
-	public Integer getRecur() {
-		return this.recur;
+	public Integer getRecurPattern() {
+		return this.recurPattern;
+	}
+	
+	public Integer getRecurPeriod() {
+		return this.recurPeriod;
 	}
 
 	public boolean isRecur() {
-		return this.recur != null && this.startDate != null
+		return this.recurPattern != null && this.startDate != null
 				&& this.endDate != null;
 	}
 
@@ -364,7 +372,7 @@ public class Task {
 		if (this.reminderDate != null) {
 			task.setReminderDate((Calendar) this.reminderDate.clone());
 		}
-		task.setRecur(this.recur);
+		task.setRecur(this.recurPattern, this.recurPeriod);
 		if (this.recurLimit != null) {
 			task.setRecurLimit((Calendar) this.recurLimit.clone());
 		}
