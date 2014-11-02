@@ -211,7 +211,7 @@ public class Task {
 	}
 
 	public boolean isRecur() {
-		return this.recurPattern != -1 && this.startDate != null
+		return this.recurPattern != -1 && this.recurPeriod > 0 && this.startDate != null
 				&& this.endDate != null;
 	}
 
