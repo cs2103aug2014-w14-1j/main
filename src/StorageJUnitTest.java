@@ -67,7 +67,7 @@ public class StorageJUnitTest {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.setDates(task2_start_date, task2_end_date);
+			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order
 			task2.addTag("school");
 			task2.addTag("MA3110");
 			task2.addTag("exams");
@@ -78,6 +78,7 @@ public class StorageJUnitTest {
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 28, 13, 00, 01);
 			
 			test(task2.getStartDate(), task2_start_date);
+			test(task2.getEndDate(), task2_end_date);						//task should detect wrong order and fix it
 			
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);
@@ -205,7 +206,7 @@ public class StorageJUnitTest {
 			// Storage
 			// tests*********************************************************************
 
-			Storage storage = new Storage();
+			Storage storage = new Storage("testtask.txt","testfloat.txt","testoverdue.txt","testcompleted.txt");
 			storage.clearAll();
 
 			// Insertion tests************************************
@@ -229,15 +230,15 @@ public class StorageJUnitTest {
 			storage.insert(task5);
 			test(storage.getCompletedTasksList().size(), 1);
 			test(storage.getCompletedTasksList().get(0).getTaskName(), "Casey's birthday");
-			test(storage.getCompletedTasksList().get(0).getDateAsString(), "Mon 29-09-14 00:00 - Mon 29-09-14 23:59");
+			test(storage.getCompletedTasksList().get(0).getDateAsString(), "Mon 29-Sep-14 0:00 AM -\nMon 29-Sep-14 23:59 PM");
 			test(storage.getTasksList().size(), 5);
 			test(storage.getTasksList().get(2).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(2).getDateAsString(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(storage.getTasksList().get(2).getDateAsString(), "Tue 29-Sep-15 0:00 AM -\nTue 29-Sep-15 23:59 PM");
 			test(storage.getTasksList().get(2).getId(), storage.getCompletedTasksList().get(0).getId());
 			test(storage.getTasksList().get(3).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(3).getDateAsString(), "Thu 29-09-16 00:00 - Thu 29-09-16 23:59");
+			test(storage.getTasksList().get(3).getDateAsString(), "Thu 29-Sep-16 0:00 AM -\nThu 29-Sep-16 23:59 PM");
 			test(storage.getTasksList().get(4).getTaskName(), "Casey's birthday");
-			test(storage.getTasksList().get(4).getDateAsString(), "Fri 29-09-17 00:00 - Fri 29-09-17 23:59");
+			test(storage.getTasksList().get(4).getDateAsString(), "Fri 29-Sep-17 0:00 AM -\nFri 29-Sep-17 23:59 PM");
 			storage.insert(task6);
 			test(storage.getTasksList().size(), 29);
 			storage.insert(task7);
@@ -272,7 +273,8 @@ public class StorageJUnitTest {
 			task3.setTaskName("100 situps");
 			storage.insert(task3);
 			test(storage.getFloatingTasksList().size(), 2);
-			test(storage.getFloatingTasksList().get(1).getTaskName(), "100 situps");
+			test(storage.getFloatingTasksList().get(0).getTaskName(), "100 situps");
+			test(storage.getFloatingTasksList().get(1).getTaskName(), "Bake chocolate cake");
 			storage.delete(task3);
 			task3.setTaskName("100 pushups");
 			task3.setDate(task3_date);
@@ -294,7 +296,7 @@ public class StorageJUnitTest {
 			// search with no date
 
 			ArrayList<String> search1_keywords = new ArrayList<String>();
-			search1_keywords.add("Casey");
+			search1_keywords.add("casey");										//test case sensitivity
 			ArrayList<Task> search1 = storage.search(search1_keywords, null,
 					null, null);
 			test(search1.size(), 3);
@@ -313,7 +315,7 @@ public class StorageJUnitTest {
 			test(search2.get(0).getTaskName(), "100 pushups");
 			test(search2.get(1).getTaskName(), "MA3110 finals");
 
-			// search tags in comination with keywords
+			// search tags in combination with keywords
 			ArrayList<String> search2_tags = new ArrayList<String>();
 			search2_tags.add("school");
 			search2 = storage
@@ -332,7 +334,7 @@ public class StorageJUnitTest {
 			test(search3.get(0).getTaskName(), "Bake chocolate cake");		//can find floating through date
 			test(search3.get(1).getTaskName(), "100 pushups");				//can find overdue through date
 			test(search3.get(4).getTaskName(), "Casey's birthday");
-			test(search3.get(4).getDateAsString(), "Tue 29-09-15 00:00 - Tue 29-09-15 23:59");
+			test(search3.get(4).getDateAsString(), "Tue 29-Sep-15 0:00 AM -\nTue 29-Sep-15 23:59 PM");
 			
 			
 

@@ -13,6 +13,11 @@ import org.json.JSONException;
 
 public class MainController extends Application implements UIObserver {
 
+	private static final String TASK_FILENAME = "Task.txt";
+	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+	
 	private String inputCommand_;
 	private Command currentCommand_ = null;
 	private UI UI_;
@@ -53,13 +58,6 @@ public class MainController extends Application implements UIObserver {
 		UI_.displayTasks(searchResults_);
 	}
 
-	//default view
-	private void viewDefault() {
-		searchResults_ = searcher_.viewDefault();
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
-	
 	//view all
 	private void viewAll() {
 		searchResults_ = new ArrayList<Task>();
@@ -99,11 +97,11 @@ public class MainController extends Application implements UIObserver {
 
 	private String getChar(Task task) {
 		if (task.isOverdue()) {
-			return "r";
+			return "O";
 		} else if (task.isFloating()) {
-			return "f";
+			return "F";
 		} else {
-			return "t";
+			return "T";
 		}
 	}
 
@@ -125,7 +123,7 @@ public class MainController extends Application implements UIObserver {
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		this.storage_ = new Storage();
+		this.storage_ = new Storage(TASK_FILENAME,FLOATING_TASK_FILENAME,OVERDUE_TASK_FILENAME,COMPLETED_TASK_FILENAME);
 		this.parser_ = new Parser();
 		this.UI_ = new UI();
 		this.logic_ = new LogicHandler(storage_);
@@ -133,6 +131,6 @@ public class MainController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewDefault();
+		viewAll();
 	}
 }

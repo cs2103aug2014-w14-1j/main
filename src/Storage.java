@@ -12,20 +12,23 @@ public class Storage {
 	private static final int RECUR_INTERVAL = 1;
 	private static final int COUNTER_INCREASE = 1;
 	
+	private FileHandler filehandler;
+	
 	private PriorityQueue<Task> al_task;
 	private PriorityQueue<Task> al_task_floating;
 	private PriorityQueue<Task> al_task_overdue;
 	private PriorityQueue<Task> al_task_completed;
-	private FileHandler filehandler;
 	private int id_counter;
 
-	public Storage() throws IOException {
+	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
 		al_task = new PriorityQueue<Task>(new TaskComparator());
 		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
 		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
 		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
-		filehandler = new FileHandler();
+		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
+		id_counter = updateIndex();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -170,10 +173,6 @@ public class Storage {
 		searchForID(id, al_task_floating, search_results);
 		searchForID(id, al_task_overdue, search_results);
 		
-		if(search_results.isEmpty()){
-			return null;
-		}
-		
 		return search_results;
 	}
 	
@@ -217,43 +216,6 @@ public class Storage {
 			}
 		}
 	}
-
-	private ArrayList<Task> searchTaskByReminder(Calendar start_date, Calendar end_date) {
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		searchTaskByReminder(search_results, al_task_overdue, start_date, end_date);
-		searchTaskByReminder(search_results, al_task_floating, start_date, end_date);
-		searchTaskByReminder(search_results, al_task, start_date, end_date);
-		Collections.sort(search_results, new TaskComparator());
-		return search_results;
-	}
-	
-	private void searchTaskByReminder(ArrayList<Task> search_results, PriorityQueue<Task> tasklist,
-			Calendar start_date, Calendar end_date) {
-		for (Task task : tasklist) {
-			if (task.getReminderDate() != null && (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date))) {
-				if (task.getReminderDate().before(end_date) || task.getReminderDate().equals(end_date)) {
-					search_results.add(task);
-				}
-			}
-		}
-	}
-
-
-	public ArrayList<Task> defaultView() {
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		Calendar start = Calendar.getInstance();
-		start.set(Calendar.HOUR_OF_DAY, 0);
-		start.set(Calendar.MINUTE, 0);
-		start.set(Calendar.SECOND, 0);
-		Calendar end = Calendar.getInstance();
-		end.set(Calendar.HOUR_OF_DAY, 23);
-		end.set(Calendar.MINUTE, 59);
-		end.set(Calendar.SECOND, 59);
-		search_results.addAll(search(null, null, null, end));
-		search_results.addAll(searchTaskByReminder(start, end));
-		return search_results;
-	}
-
 	
 	//Clear methods**************************************************************
 	
@@ -276,7 +238,6 @@ public class Storage {
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
 		filehandler.writeFile(al_task_completed);
-		filehandler.writeTaskCounter(id_counter);
 	}
 	
 	//Miscellaneous methods*************************************************
@@ -293,12 +254,67 @@ public class Storage {
 		save();
 	}
 	
+	//expensive op that is of dubious value
+	private void updateRecurringTasks() throws IOException, JSONException {
+		for (int i = 0; i < id_counter; i++) {
+			ArrayList<Task> searchlist = searchTaskByID(i);
+			if (!searchlist.isEmpty()) {
+				Task lasttask = searchlist.get(searchlist.size()-1);
+				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
+					generateRecurringTasks(lasttask);
+				}
+			}
+		}
+	}
+	
+	private int updateIndex() {
+		int latest_id = 0;
+		int old_latest_id = getLatestID();
+		LinkedList<Integer> holes = new LinkedList<Integer>();
+		for (int i = 0; i < old_latest_id + 1; i++) {
+			ArrayList<Task> tasks = searchTaskByID(i);
+			if (tasks.isEmpty()) {
+				holes.offer(i);
+			}
+			else {
+				if (!holes.isEmpty()) {
+					int newest_id = holes.poll();
+					for (Task task : tasks) {
+						task.setId(newest_id);
+					}
+					latest_id = newest_id;
+				}
+				else {
+					latest_id = i;
+				}
+			}
+		}
+		return latest_id;
+	}
+	
+	private int getLatestID() {
+		int latest_id = getLatestID(al_task);
+		int latest_id_floating = getLatestID(al_task_floating);
+		int latest_id_overdue = getLatestID(al_task_overdue);
+		int latest_id_completed = getLatestID(al_task_completed);
+		return Math.max(Math.max(latest_id, latest_id_completed), Math.max(latest_id_overdue, latest_id_floating));
+	}
+	
+	private int getLatestID(PriorityQueue<Task> list) {
+		int latest_id = 0;
+		for (Task task : list) {
+			if (latest_id < task.getId()) {
+				latest_id = task.getId();
+			}
+		}
+		return latest_id;
+	}
+	
 	private void initFiles() throws IOException {
 		filehandler.readFile(al_task);
 		filehandler.readFile(al_task_floating);
 		filehandler.readFile(al_task_completed);
 		filehandler.readFile(al_task_overdue);
-		id_counter = filehandler.getTaskCounter();
 	}
 
 	private PriorityQueue<Task> retrieveTaskList(Task task) {
@@ -320,39 +336,21 @@ public class Storage {
 		
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
-		private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
-		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
-		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
-		private static final String TASK_FILENAME = "Task.txt";
-		private static final String COUNT_TASK_FILENAME = "TaskCount.txt";
+		private String task_filename;
+		private String floating_task_filename;
+		private String overdue_task_filename;
+		private String completed_task_filename;
+		
+		// Constructor******************************************************
+		
+		public FileHandler(String t_fn, String f_fn, String o_fn, String c_fn) {
+			this.task_filename = t_fn;
+			this.floating_task_filename = f_fn;
+			this.overdue_task_filename = o_fn;
+			this.completed_task_filename = c_fn;
+		}
 		
 		// Interfaces with the textFiles(databases)*************************
-		
-		private int getTaskCounter() throws IOException {
-			File countFile = new File(COUNT_TASK_FILENAME);
-			if (!countFile.exists()) {
-				countFile.createNewFile();
-			}
-			bufferedReader = new BufferedReader(new FileReader(countFile));
-			
-			String result = bufferedReader.readLine();
-			if(result == null){
-				return 0;
-			}
-			else{
-				return Integer.parseInt(result);
-			}
-		}
-
-		private void writeTaskCounter(int count) throws FileNotFoundException, IOException {
-			File countFile = new File(COUNT_TASK_FILENAME);
-			if (!countFile.exists()) {
-				countFile.createNewFile();
-			}
-			printWriter = new PrintWriter(new FileOutputStream(countFile));
-			printWriter.println("" + count);
-			printWriter.close();
-		}
 
 		private void readFile(PriorityQueue<Task> filelist) throws IOException {
 			String fileName = determineFileName(filelist);
@@ -388,13 +386,13 @@ public class Storage {
 		private String determineFileName(PriorityQueue<Task> fileToWrite) {
 			String filename = "";
 			if (fileToWrite == al_task) {
-				filename = TASK_FILENAME;
+				filename = task_filename;
 			} else if (fileToWrite == al_task_floating) {
-				filename = FLOATING_TASK_FILENAME;
+				filename = floating_task_filename;
 			} else if (fileToWrite == al_task_completed) {
-				filename = COMPLETED_TASK_FILENAME;
+				filename = completed_task_filename;
 			} else if (fileToWrite == al_task_overdue) {
-				filename = OVERDUE_TASK_FILENAME;
+				filename = overdue_task_filename;
 			} else {
 				throw new Error("Invalid file to write to");
 			}

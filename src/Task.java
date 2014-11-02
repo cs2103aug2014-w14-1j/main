@@ -6,7 +6,7 @@ import java.text.SimpleDateFormat;
 public class Task {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat(
-			"EE dd-MM-YY HH:mm");
+			"EE d-MMM-yy H:mm a");
 	private Integer id;
 	private String taskName;
 	private String displayId;
@@ -79,6 +79,11 @@ public class Task {
 	// only Controller accesses setters: date input is in Calendar format
 	
 	public void setDates(Calendar startdate, Calendar enddate, int recur, Calendar limit) {
+		if (enddate!= null && startdate!= null && enddate.before(startdate)) {
+			Calendar temp = enddate;
+			enddate = startdate;
+			startdate = temp;
+		}
 		this.startDate = startdate;
 		this.endDate = enddate;
 		this.recur = recur;
@@ -86,6 +91,11 @@ public class Task {
 	}
 
 	public void setDates(Calendar startdate, Calendar enddate) {
+		if (enddate!= null && startdate!= null && enddate.before(startdate)) {
+			Calendar temp = enddate;
+			enddate = startdate;
+			startdate = temp;
+		}
 		this.startDate = startdate;
 		this.endDate = enddate;
 		this.recur = null;
@@ -168,10 +178,16 @@ public class Task {
 		if (isFloating()) {
 			return "";
 		}
+		if (this.startDate == null) {
+			return sdf.format(endDate.getTime());
+		}
+		if (this.endDate == null) {
+			return sdf.format(startDate.getTime());
+		}
 		if (this.startDate.equals(this.endDate)) {
 			return sdf.format(endDate.getTime());
 		}
-		return sdf.format(startDate.getTime()) + " - "
+		return sdf.format(startDate.getTime()) + " -\n"
 				+ sdf.format(endDate.getTime());
 	}
 
@@ -265,8 +281,12 @@ public class Task {
 	}
 
 	// Task Tags**************************************
-	public void addTag(String str) {
-		this.tags.add(str);
+	public void addTag(String tag) {
+		this.tags.add(tag);
+	}
+	
+	public void removeTag(String tag) {
+		this.tags.remove(tag);
 	}
 
 	public ArrayList<String> getTags() {
@@ -274,7 +294,12 @@ public class Task {
 	}
 
 	private boolean containsTag(String tag) {
-		return tags.contains(tag);
+		for (String t : this.tags) {
+			if (t.toLowerCase().equals(tag.toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean containsTags(ArrayList<String> tags) {
@@ -305,7 +330,7 @@ public class Task {
 	// Search methods********************
 	
 	private boolean containsKeyword(String keyword) {
-		return taskName.contains(keyword);
+		return taskName.toLowerCase().contains(keyword.toLowerCase());
 	}
 
 	public boolean containsKeywords(ArrayList<String> keywords) {
@@ -353,7 +378,7 @@ public class Task {
 class TaskComparator implements Comparator<Task> {
 	public int compare(Task a, Task b) {
 		if (a.getStartDate() == null && b.getStartDate() == null) {
-			return 0;
+			return a.getTaskName().compareTo(b.getTaskName());
 		}
 		if (a.getStartDate() == null && b.getStartDate() != null) {
 			return -1;
@@ -365,7 +390,7 @@ class TaskComparator implements Comparator<Task> {
 			return -1;
 		}
 		if (a.getStartDate().equals(b.getStartDate())) {
-			return 0;
+			return a.getTaskName().compareTo(b.getTaskName());
 		}
 		return 1;
 	}
