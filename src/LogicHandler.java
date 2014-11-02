@@ -81,14 +81,7 @@ public class LogicHandler {
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
-		
-		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
-			task.setDates(command.getTaskStartDate(), command.getTaskEndDate());
-		}
-		
-		else if (command.getTaskEndDate()!= null) {
-			task.setDate(command.getTaskEndDate());
-		}
+		task.setDates(command.getTaskStartDate(), command.getTaskEndDate(), command.getRecurPattern(), command.getRecurPeriod(), null);
 		
 		if (command.getTaskTagsToAdd()!=null) {
 			for (String tag : command.getTaskTagsToAdd()) {
@@ -166,13 +159,7 @@ public class LogicHandler {
 			newTask.setTaskName(command.getTaskName());
 		}
 
-		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
-			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
-		}
-		
-		else if (command.getTaskEndDate()!= null) {
-			newTask.setDate(command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
-		}
+		newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
 		
 		if (command.getTaskTagsToAdd()!=null) {
 			for (String tag : command.getTaskTagsToAdd()) {

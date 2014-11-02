@@ -23,7 +23,7 @@ public class Task {
 	 * No input constructor
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, null, -1, null, null,
+		this(null, "", "", null, null, null, null, -1, -1, null,
 				new ArrayList<String>());
 	}
 
