@@ -117,6 +117,9 @@ public class UI extends FlowPane {
 				} else if (ke.getCode().equals(KeyCode.DOWN) && !previousUserCommands.isEmpty()) {
 					displayPreviousMessage("DOWN");
 				}
+				else{
+					//ignore
+				}
 			}
 
 		});
@@ -392,6 +395,7 @@ public class UI extends FlowPane {
 		primaryStage.setTitle("SPEED");
 		primaryStage.setScene(scene);
 		primaryStage.show();
+		primaryStage.setResizable(false);
 	}
 
 	// *****************************************************************
