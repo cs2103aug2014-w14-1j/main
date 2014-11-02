@@ -178,6 +178,12 @@ public class Task {
 		if (isFloating()) {
 			return "";
 		}
+		if (this.startDate == null) {
+			return sdf.format(endDate.getTime());
+		}
+		if (this.endDate == null) {
+			return sdf.format(startDate.getTime());
+		}
 		if (this.startDate.equals(this.endDate)) {
 			return sdf.format(endDate.getTime());
 		}
