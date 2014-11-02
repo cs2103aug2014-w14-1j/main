@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 
 import javafx.collections.ListChangeListener;
+
 import org.controlsfx.control.NotificationPane;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -112,7 +113,8 @@ public class UI extends FlowPane {
 					previousUserCommands.add(userCommand);
 					previousUserCommandsCounter = previousUserCommands.size() - 1;
 
-					if (userCommand.matches("^[0-9]*$")) {
+					if (userCommand.matches("^[0-9]*$") && 
+							!userCommand.equals("")) {
 						int index = Integer.parseInt(userCommand) - 1;
 						if (index >= 0 && displayTasks != null
 								&& !displayTasks.isEmpty()
@@ -134,9 +136,19 @@ public class UI extends FlowPane {
 				} else if (ke.getCode().equals(KeyCode.DOWN)
 						&& !previousUserCommands.isEmpty()) {
 					displayPreviousMessage("DOWN");
-				} else {
-					// ignore
+				} 
+				else if(ke.isControlDown()){
+					if(ke.getCode().equals(KeyCode.Z)){
+					userCommands.setText("undo");
+					}
+					else if(ke.getCode().equals(KeyCode.Y)){
+						userCommands.setText("redo");
+					}
+					else{}
+					
+					notifyObservers();
 				}
+				else {}
 			}
 
 		});
