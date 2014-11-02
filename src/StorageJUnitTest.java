@@ -331,8 +331,8 @@ public class StorageJUnitTest {
 			ArrayList<Task> search3 = storage.search(null, null, search3_start,
 					search3_end);
 			test(search3.size(), 5);
-			test(search3.get(0).getTaskName(), "Bake chocolate cake");		//can find floating through date
-			test(search3.get(1).getTaskName(), "100 pushups");				//can find overdue through date
+			test(search3.get(0).getTaskName(), "100 pushups");				//can find overdue through date
+			test(search3.get(1).getTaskName(), "Bake chocolate cake");		//can find floating through date
 			test(search3.get(4).getTaskName(), "Casey's birthday");
 			test(search3.get(4).getDateAsString(), "Tue 29-Sep-15 0:00 AM -\nTue 29-Sep-15 23:59 PM");
 			
