@@ -9,7 +9,6 @@ import com.google.gson.Gson;
 public class Storage {
 	
 	private static final int RECUR_YEAR_LIMIT = 3;
-	private static final int RECUR_INTERVAL = 1;
 	private static final int COUNTER_INCREASE = 1;
 	
 	private FileHandler filehandler;
