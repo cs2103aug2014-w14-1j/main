@@ -176,7 +176,6 @@ public class UI extends FlowPane {
 					userCommands.setText("delete "
 							+ taskUserSelected.getDisplayId());
 					notifyObservers();
-					initUserCommands();
 				}
 			}
 
