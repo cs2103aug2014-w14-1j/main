@@ -227,7 +227,8 @@ public class UI extends FlowPane {
 								.getDateAsString()));
 					}
 				});
-		TableColumn[] columns = {taskLblCol, taskNameCol, taskStartEndDate};
+		
+		final TableColumn[] columns = {taskLblCol, taskNameCol, taskStartEndDate};
 
 		taskTable.getColumns().setAll(columns);
 		taskTable.getColumns().addListener(new ListChangeListener() {
