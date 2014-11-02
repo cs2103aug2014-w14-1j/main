@@ -12,22 +12,23 @@ public class Storage {
 	private static final int RECUR_INTERVAL = 1;
 	private static final int COUNTER_INCREASE = 1;
 	
+	private FileHandler filehandler;
+	
 	private PriorityQueue<Task> al_task;
 	private PriorityQueue<Task> al_task_floating;
 	private PriorityQueue<Task> al_task_overdue;
 	private PriorityQueue<Task> al_task_completed;
-	private FileHandler filehandler;
 	private int id_counter;
 
-	public Storage() throws IOException, JSONException {
+	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
 		al_task = new PriorityQueue<Task>(new TaskComparator());
 		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
 		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
 		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
-		filehandler = new FileHandler();
+		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
 		id_counter = updateIndex();
-		//updateRecurringTasks();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -215,26 +216,6 @@ public class Storage {
 			}
 		}
 	}
-
-	private ArrayList<Task> searchTaskByReminder(Calendar start_date, Calendar end_date) {
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		searchTaskByReminder(search_results, al_task_overdue, start_date, end_date);
-		searchTaskByReminder(search_results, al_task_floating, start_date, end_date);
-		searchTaskByReminder(search_results, al_task, start_date, end_date);
-		Collections.sort(search_results, new TaskComparator());
-		return search_results;
-	}
-	
-	private void searchTaskByReminder(ArrayList<Task> search_results, PriorityQueue<Task> tasklist,
-			Calendar start_date, Calendar end_date) {
-		for (Task task : tasklist) {
-			if (task.getReminderDate() != null && (task.getReminderDate().after(start_date) || task.getReminderDate().equals(start_date))) {
-				if (task.getReminderDate().before(end_date) || task.getReminderDate().equals(end_date)) {
-					search_results.add(task);
-				}
-			}
-		}
-	}
 	
 	//Clear methods**************************************************************
 	
@@ -277,10 +258,11 @@ public class Storage {
 	private void updateRecurringTasks() throws IOException, JSONException {
 		for (int i = 0; i < id_counter; i++) {
 			ArrayList<Task> searchlist = searchTaskByID(i);
-			assert !searchlist.isEmpty();					//updateIndex should have compacted everything
-			Task lasttask = searchlist.get(searchlist.size()-1);
-			if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
-				generateRecurringTasks(lasttask);
+			if (!searchlist.isEmpty()) {
+				Task lasttask = searchlist.get(searchlist.size()-1);
+				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
+					generateRecurringTasks(lasttask);
+				}
 			}
 		}
 	}
@@ -354,10 +336,19 @@ public class Storage {
 		
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
-		private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
-		private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
-		private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
-		private static final String TASK_FILENAME = "Task.txt";
+		private String task_filename;
+		private String floating_task_filename;
+		private String overdue_task_filename;
+		private String completed_task_filename;
+		
+		// Constructor******************************************************
+		
+		public FileHandler(String t_fn, String f_fn, String o_fn, String c_fn) {
+			this.task_filename = t_fn;
+			this.floating_task_filename = f_fn;
+			this.overdue_task_filename = o_fn;
+			this.completed_task_filename = c_fn;
+		}
 		
 		// Interfaces with the textFiles(databases)*************************
 
@@ -395,13 +386,13 @@ public class Storage {
 		private String determineFileName(PriorityQueue<Task> fileToWrite) {
 			String filename = "";
 			if (fileToWrite == al_task) {
-				filename = TASK_FILENAME;
+				filename = task_filename;
 			} else if (fileToWrite == al_task_floating) {
-				filename = FLOATING_TASK_FILENAME;
+				filename = floating_task_filename;
 			} else if (fileToWrite == al_task_completed) {
-				filename = COMPLETED_TASK_FILENAME;
+				filename = completed_task_filename;
 			} else if (fileToWrite == al_task_overdue) {
-				filename = OVERDUE_TASK_FILENAME;
+				filename = overdue_task_filename;
 			} else {
 				throw new Error("Invalid file to write to");
 			}

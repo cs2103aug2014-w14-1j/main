@@ -76,7 +76,11 @@ public class LogicHandler {
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
-		if (command.getTaskDueDate()!= null) {
+		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
+			task.setDates(command.getTaskStartDate(), command.getTaskEndDate());
+		}
+		
+		else if (command.getTaskDueDate()!= null) {
 			task.setDate(command.getTaskDueDate());
 		}
 		
@@ -141,9 +145,12 @@ public class LogicHandler {
 			newTask.setTaskName(command.getTaskName());
 		}
 
-		if (command.getTaskDueDate() != null) {
-			Calendar date = command.getTaskDueDate();
-			newTask.setDate(date);
+		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
+			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate());
+		}
+		
+		else if (command.getTaskDueDate()!= null) {
+			newTask.setDate(command.getTaskDueDate());
 		}
 		
 		if (command.getTaskTagsToAdd()!=null) {

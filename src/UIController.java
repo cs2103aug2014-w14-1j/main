@@ -227,7 +227,7 @@ public class UIController extends Application implements UIObserver {
 
 	@Override
 	public void start(Stage stage) throws Exception {
-		this.storage_ = new Storage();
+		this.storage_ = new Storage("a.txt","b.txt","c.txt","d.txt");
 		this.parser_ = new Parser();
 		this.UI_ = new UI();
 
