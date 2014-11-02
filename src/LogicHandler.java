@@ -56,6 +56,9 @@ public class LogicHandler {
 		case UNDO: {
 			return executeUndo(taskIDmap, command);
 		}
+		case REDO: {
+			return executeRedo(taskIDmap, command);
+		}
 		case COMPLETE: {
 			return executeComplete(taskIDmap, command);
 		}
