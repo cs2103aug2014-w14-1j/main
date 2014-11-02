@@ -86,8 +86,8 @@ public class LogicHandler {
 			task.setDates(command.getTaskStartDate(), command.getTaskEndDate());
 		}
 		
-		else if (command.getTaskDueDate()!= null) {
-			task.setDate(command.getTaskDueDate());
+		else if (command.getTaskEndDate()!= null) {
+			task.setDate(command.getTaskEndDate());
 		}
 		
 		if (command.getTaskTagsToAdd()!=null) {
@@ -170,8 +170,8 @@ public class LogicHandler {
 			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate());
 		}
 		
-		else if (command.getTaskDueDate()!= null) {
-			newTask.setDate(command.getTaskDueDate());
+		else if (command.getTaskEndDate()!= null) {
+			newTask.setDate(command.getTaskEndDate());
 		}
 		
 		if (command.getTaskTagsToAdd()!=null) {

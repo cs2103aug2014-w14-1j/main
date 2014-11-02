@@ -9,7 +9,6 @@ public class Command {
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
-	private Calendar taskDueDate;
 	private Calendar taskStartDate;
 	private Calendar taskEndDate;
 	private Calendar searchStartDate;
@@ -49,14 +48,6 @@ public class Command {
 
 	public String getTaskName() {
 		return taskName;
-	}
-
-	public void setTaskDueDate(Calendar date) {
-		taskDueDate = date;
-	}
-
-	public Calendar getTaskDueDate() {
-		return taskDueDate;
 	}
 
 	public void setTaskStartDate(Calendar startDate) {

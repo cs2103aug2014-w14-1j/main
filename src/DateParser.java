@@ -71,7 +71,7 @@ public class DateParser {
 
 	private final String TODAY = "today";
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
-	private final String YESTERDAY = "yesterday|yda|yta";
+	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
@@ -95,6 +95,7 @@ public class DateParser {
 				switch (type) {
 					case ADD:
 					case EDIT:
+					case DEFAULT:
 						commandObj.setTaskStartDate(startDate);
 						commandObj.setTaskEndDate(endDate);
 						break;
@@ -111,7 +112,7 @@ public class DateParser {
 			String[] dates = dateMatch(command, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
-				commandObj.setTaskDueDate(dueDate);
+				commandObj.setTaskEndDate(dueDate);
 				command = command.replaceFirst(DUE, "");
 				parseRecur(commandObj);
 			}
@@ -121,7 +122,8 @@ public class DateParser {
 				switch (type) {
 					case ADD:
 					case EDIT:
-						commandObj.setTaskDueDate(date);
+					case DEFAULT:
+						commandObj.setTaskEndDate(date);
 						break;
 					case LIST:
 					case SEARCH:

@@ -22,7 +22,7 @@ public class ParserTest {
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
-		Calendar actualCal = addCommand.getTaskDueDate();
+		Calendar actualCal = addCommand.getTaskEndDate();
 		assertEquals(2014, actualCal.get(Calendar.YEAR));
 		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
 		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
@@ -34,7 +34,7 @@ public class ParserTest {
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
-		Calendar actualCal = addCommand.getTaskDueDate();
+		Calendar actualCal = addCommand.getTaskEndDate();
 		assertEquals(2014, actualCal.get(Calendar.YEAR));
 		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
 		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
@@ -48,7 +48,7 @@ public class ParserTest {
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
 		assertEquals("unit testing", addCommand.getTaskName());
-		Calendar actualCal = addCommand.getTaskDueDate();
+		Calendar actualCal = addCommand.getTaskEndDate();
 		assertEquals(2014, actualCal.get(Calendar.YEAR));
 		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
 		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
@@ -72,7 +72,7 @@ public class ParserTest {
 		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
 		assertEquals("t1", addCommand.getTaskID());
 		Calendar expectedCal = Calendar.getInstance();
-		Calendar actualCal = addCommand.getTaskDueDate();
+		Calendar actualCal = addCommand.getTaskEndDate();
 		assertEquals(expectedCal.get(Calendar.YEAR), actualCal.get(Calendar.YEAR));
 		assertEquals(expectedCal.get(Calendar.MONTH), actualCal.get(Calendar.MONTH));
 		assertEquals(expectedCal.get(Calendar.DAY_OF_MONTH)+1, actualCal.get(Calendar.DAY_OF_MONTH));
@@ -83,7 +83,7 @@ public class ParserTest {
 		String input = "delete t1";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1"};
+		String[] expectedArray = {"1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
 	}
 
@@ -92,7 +92,7 @@ public class ParserTest {
 		String input = "delete t1 o2 f3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"1", "2", "3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
 	}
 
@@ -171,7 +171,7 @@ public class ParserTest {
 		String input = "complete t1";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1"};
+		String[] expectedArray = {"1"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
 
@@ -180,7 +180,7 @@ public class ParserTest {
 		String input = "complete t1 o2 f3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"1", "2", "3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
 
