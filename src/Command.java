@@ -3,7 +3,7 @@ import java.util.Calendar;
 
 public class Command {
 	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, REDO, EXIT
+		DEFAULT, ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, REDO, EXIT
 	}
 
 	private COMMAND_TYPE commandType;
@@ -28,7 +28,11 @@ public class Command {
 	}
 
 	public COMMAND_TYPE getCommandType() {
-		return commandType;
+		if (commandType == COMMAND_TYPE.DEFAULT) {
+			return COMMAND_TYPE.ADD;
+		} else {
+			return commandType;
+		}
 	}
 
 	public void setTaskID(String ID) {

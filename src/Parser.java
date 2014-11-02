@@ -56,7 +56,7 @@ public class Parser {
 		} else if (isExitCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.EXIT;
 		} else {
-			return Command.COMMAND_TYPE.ADD;
+			return Command.COMMAND_TYPE.DEFAULT;
 		}
 	}
 
@@ -112,7 +112,7 @@ public class Parser {
 		String commandDetails = removeCommand();
 		if (!commandDetails.equals("")) {
 			switch (commandType) {
-				case ADD:
+				case ADD: case DEFAULT:
 					generateAddCommandObj(commandDetails);
 					break;
 				case EDIT:
@@ -136,7 +136,9 @@ public class Parser {
 	}
 
 	private String removeCommand() {
-		if (matches(command, "\\s+")) {
+		if (commandType == Command.COMMAND_TYPE.DEFAULT) {
+			return command;
+		} else if (matches(command, "\\s+")) {
 			return command.replaceFirst("^(\\w+)\\s+","");
 		} else {
 			return "";
