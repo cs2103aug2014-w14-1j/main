@@ -76,7 +76,11 @@ public class LogicHandler {
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
-		if (command.getTaskDueDate()!= null) {
+		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
+			task.setDates(command.getTaskStartDate(), command.getTaskEndDate());
+		}
+		
+		else if (command.getTaskDueDate()!= null) {
 			task.setDate(command.getTaskDueDate());
 		}
 		
