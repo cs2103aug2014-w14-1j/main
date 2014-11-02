@@ -3,7 +3,7 @@ import java.util.Calendar;
 
 public class Command {
 	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, INVALID, EXIT
+		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, EXIT
 	}
 
 	private COMMAND_TYPE commandType;

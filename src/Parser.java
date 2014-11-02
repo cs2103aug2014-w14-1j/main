@@ -53,7 +53,7 @@ public class Parser {
 		} else if (isExitCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.EXIT;
 		} else {
-			return Command.COMMAND_TYPE.INVALID;
+			return Command.COMMAND_TYPE.ADD;
 		}
 	}
 
