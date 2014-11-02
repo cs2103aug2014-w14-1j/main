@@ -168,7 +168,7 @@ public class Parser {
 
 	private void generateDeleteCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setTaskIDsToDelete(parseTaskID(commandDetails));
+		commandObj.setTaskIDsToDelete(parseMultipleTaskID(commandDetails));
 	}
 
 	private void generateListCommandObj(String commandDetails) {
@@ -191,7 +191,7 @@ public class Parser {
 
 	private void generateCompleteCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		commandObj.setTaskIDsToComplete(parseTaskID(commandDetails));
+		commandObj.setTaskIDsToComplete(parseMultipleTaskID(commandDetails));
 	}
 
 	private String parseTaskName(String commandDetails) {
@@ -200,6 +200,10 @@ public class Parser {
 
 	private String[] parseTaskID(String commandDetails) {
 		return match(commandDetails, "/([TFOtfo]\\d+)/g");
+	}
+
+	private String[] parseMultipleTaskID(String commandDetails) {
+		return match(commandDetails, "/\\b(?:[TFOtfo]?(\\d+))\\b/g");
 	}
 
 	private String removeTaskID(String commandDetails) {
