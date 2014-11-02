@@ -108,18 +108,34 @@ public class UI extends FlowPane {
 			@Override
 			public void handle(KeyEvent ke) {
 				if (ke.getCode().equals(KeyCode.ENTER)) {
-					previousUserCommands.add(userCommands.getText());
+					String userCommand = userCommands.getText();
+					previousUserCommands.add(userCommand);
 					previousUserCommandsCounter = previousUserCommands.size() - 1;
-					notifyObservers();
-					initUserCommands();
-				} else if (ke.getCode().equals(KeyCode.UP) && !previousUserCommands.isEmpty()) {
+
+					if (userCommand.matches("^[0-9]*$")) {
+						int index = Integer.parseInt(userCommand) - 1;
+						if (index >= 0 && displayTasks != null
+								&& !displayTasks.isEmpty()
+								&& index < displayTasks.size()) {
+							taskTable.requestFocus();
+							taskTable.getSelectionModel().select(index);
+							taskTable.getFocusModel().focus(index);
+						}
+						userCommands.setText("");
+					} else {
+						notifyObservers();
+						initUserCommands();
+					}
+
+				} else if (ke.getCode().equals(KeyCode.UP)
+						&& !previousUserCommands.isEmpty()) {
 					displayPreviousMessage("UP");
 
-				} else if (ke.getCode().equals(KeyCode.DOWN) && !previousUserCommands.isEmpty()) {
+				} else if (ke.getCode().equals(KeyCode.DOWN)
+						&& !previousUserCommands.isEmpty()) {
 					displayPreviousMessage("DOWN");
-				}
-				else{
-					//ignore
+				} else {
+					// ignore
 				}
 			}
 
@@ -156,8 +172,7 @@ public class UI extends FlowPane {
 		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent ke) {
-				if (ke.getCode().equals(KeyCode.BACK_SPACE)
-						|| ke.getCode().equals(KeyCode.DELETE)) {
+				if (ke.getCode().equals(KeyCode.DELETE)) {
 					userCommands.setText("delete "
 							+ taskUserSelected.getDisplayId());
 					notifyObservers();
@@ -168,7 +183,7 @@ public class UI extends FlowPane {
 		});
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void buildColumns(ObservableList<Task> data) {
 
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
@@ -177,13 +192,14 @@ public class UI extends FlowPane {
 		taskLblCol.setResizable(false);
 		taskLblCol.setSortable(false);
 		taskLblCol.getStyleClass().add("task-id-column");
+
 		taskLblCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-						CellDataFeatures<Task, String> p) {
+							CellDataFeatures<Task, String> p) {
 						return new SimpleStringProperty((p.getValue()
-							.getDisplayId()));
+								.getDisplayId()));
 					}
 				});
 
@@ -227,8 +243,9 @@ public class UI extends FlowPane {
 								.getDateAsString()));
 					}
 				});
-		
-		final TableColumn[] columns = {taskLblCol, taskNameCol, taskStartEndDate};
+
+		final TableColumn[] columns = { taskLblCol, taskNameCol,
+				taskStartEndDate };
 
 		taskTable.getColumns().setAll(columns);
 		taskTable.getColumns().addListener(new ListChangeListener() {
@@ -334,7 +351,8 @@ public class UI extends FlowPane {
 
 	private void initNotificationPane() {
 		notificationPane = new NotificationPane(new FlowPane());
-		notificationPane.getStyleClass().removeAll(notificationPane.getStyleClass());
+		notificationPane.getStyleClass().removeAll(
+				notificationPane.getStyleClass());
 		notificationPane.getStyleClass().add("notificationpane");
 		notificationPane.setShowFromTop(false);
 		notificationPane.setDisable(true);
@@ -442,7 +460,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
 	private static final String CSS_NORMALTASKROW = "normalTaskRow";
-	
+
 	@Override
 	protected void updateItem(final String item, final boolean empty) {
 		super.updateItem(item, empty);
