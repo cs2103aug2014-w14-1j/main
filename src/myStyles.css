@@ -17,7 +17,7 @@
 .label {
 	-fx-text-fill: White;
 	-fx-font-weight : bold;
-	
+
 }
 
 .view2Split {
@@ -31,21 +31,23 @@
 	-fx-text-fill: Black;
 }
 
+.task-id-column {
+	-fx-alignment: CENTER;
+	-fx-background-color: #2c3e50;
+}
+
 .floatingTaskRow{
-	-fx-background-color: #00FFFF;
-	-fx-text-fill: Black;
+	-fx-text-fill: #00FFFF;
 	-fx-font-weight: bold;
 }
 
 .overdueTaskRow{
-	-fx-background-color: #E00000;
-	-fx-text-fill: Black;
+	-fx-text-fill: #e07279;
 	-fx-font-weight: bold;
 }
 
 .normalTaskRow{
-	-fx-background-color: #27ae60;
-	-fx-text-fill: Black;
+	-fx-text-fill: #27ae60;
 	-fx-font-weight: bold;
 }
 
@@ -59,7 +61,7 @@
 .table-row-cell:empty {
     -fx-background-color: #ecf0f1;
 }
-  
+
 .table-row-cell:empty .table-cell {
     -fx-border-width: 0px;
 }

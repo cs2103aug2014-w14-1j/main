@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+import javafx.collections.ListChangeListener;
 import org.controlsfx.control.NotificationPane;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -61,7 +62,7 @@ public class UI extends FlowPane {
 	private NotificationPane notificationPane;
 
 	// Dimensions
-	private static final double WIDTH_OF_PROGRAM = 930;
+	private static final double WIDTH_OF_PROGRAM = 952;
 	private static final double WIDTH_OF_SPLIT2 = 350;
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double SPACING = 20;
@@ -174,13 +175,15 @@ public class UI extends FlowPane {
 				"ID");
 		taskLblCol.setPrefWidth(40);
 		taskLblCol.setResizable(false);
+		taskLblCol.setSortable(false);
+		taskLblCol.getStyleClass().add("task-id-column");
 		taskLblCol
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
+						CellDataFeatures<Task, String> p) {
 						return new SimpleStringProperty((p.getValue()
-								.getDisplayId()));
+							.getDisplayId()));
 					}
 				});
 
@@ -224,10 +227,22 @@ public class UI extends FlowPane {
 								.getDateAsString()));
 					}
 				});
+		TableColumn[] columns = {taskLblCol, taskNameCol, taskStartEndDate};
 
-		taskTable.getColumns().removeAll(taskTable.getColumns());
-		taskTable.getColumns()
-				.addAll(taskLblCol, taskNameCol, taskStartEndDate);
+		taskTable.getColumns().setAll(columns);
+		taskTable.getColumns().addListener(new ListChangeListener() {
+			public boolean suspended;
+
+			@Override
+			public void onChanged(Change change) {
+				change.next();
+				if (change.wasReplaced() && !suspended) {
+					this.suspended = true;
+					taskTable.getColumns().setAll(columns);
+					this.suspended = false;
+				}
+			}
+		});
 
 	}
 
