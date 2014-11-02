@@ -20,6 +20,8 @@ public class Command {
 	private String[] taskIDsToComplete;
 	private String[] taskTagsToAdd;
 	private String[] taskTagsToRemove;
+	private int recurPattern;
+	private int recurPeriod;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;
@@ -130,5 +132,21 @@ public class Command {
 
 	public void setTaskTagsToRemove(String[] tags) {
 		taskTagsToRemove = tags;
+	}
+
+	public void setRecurPattern(int pattern) {
+		recurPattern = pattern;
+	}
+
+	public int getRecurPattern() {
+		return recurPattern;
+	}
+
+	public void setRecurPeriod(int period) {
+		recurPeriod = period;
+	}
+
+	public int getRecurPeriod() {
+		return recurPeriod;
 	}
 }
