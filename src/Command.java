@@ -20,7 +20,7 @@ public class Command {
 	private String[] taskTagsToAdd;
 	private String[] taskTagsToRemove;
 	private int recurPattern = -1;
-	private int recurPeriod = -1;
+	private int recurPeriod;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;

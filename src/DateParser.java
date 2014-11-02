@@ -140,7 +140,7 @@ public class DateParser {
 	}
 
 	private void parseRecur(Command commandObj) {
-		int recurPeriod = -1;
+		int recurPeriod = 1;
 		int recurPattern = -1;
 		if (dateMatches(command, RECUR)) {
 			String[] recur = dateMatch(command, RECUR);
@@ -159,7 +159,7 @@ public class DateParser {
 	}
 
 	private int parseRecurPattern(String pattern) {
-		int recurPattern = 0;
+		int recurPattern = -1;
 		if (dateMatches(pattern, DAY) || dateMatches(pattern, DAILY)) {
 			recurPattern = Calendar.DAY_OF_YEAR;
 		} else if (dateMatches(pattern, WEEK) || dateMatches(pattern, WEEKLY)) {

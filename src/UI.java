@@ -239,20 +239,23 @@ public class UI extends FlowPane {
 		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
 		taskDetailsView.setSpacing(10);
 
-		taskIDtf.setId("view2Split");
+		taskIDtf.getStyleClass().add("view2Split");
 		taskIDtf.setDisable(true);
 
-		taskNameta.setId("view2Split");
+		taskNameta.getStyleClass().add("textarea");
+		taskNameta.getStyleClass().add("view2Split");
 		taskNameta.setPrefHeight(60);
 		taskNameta.setWrapText(true);
 		taskNameta.setDisable(true);
 
-		taskStartDtesta.setId("view2Split");
+		taskStartDtesta.getStyleClass().add("textarea");
+		taskStartDtesta.getStyleClass().add("view2Split");
 		taskStartDtesta.setPrefHeight(60);
 		taskStartDtesta.setWrapText(true);
 		taskStartDtesta.setDisable(true);
 
-		taskTagsta.setId("view2Split");
+		taskTagsta.getStyleClass().add("textarea");
+		taskTagsta.getStyleClass().add("view2Split");
 		taskTagsta.setPrefHeight(60);
 		taskTagsta.setWrapText(true);
 		taskTagsta.setDisable(true);
