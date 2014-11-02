@@ -23,11 +23,11 @@ public class Parser {
 	private String[] completeCommands = {"complete","done"};
 	private String[] undoCommands = {"undo"};
 	private String[] redoCommands = {"redo"};
-	private String[] exitCommands = {"quit"};
+	private String[] exitCommands = {"quit","exit"};
 
 	public Command parseCommand(String userCommand) {
 		command = userCommand;
-		String commandTypeString = getFirstWord(command).toLowerCase();
+		String commandTypeString = getFirstWord(command).trim().toLowerCase();
 		commandType = parserCommandType(commandTypeString);
 		return generateCommandObj();
 	}
@@ -99,7 +99,11 @@ public class Parser {
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		boolean result = false;
 		for (String command: commands) {
-			if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
+			if (command.equalsIgnoreCase("edit") && commandTypeString.equalsIgnoreCase("exit")) {
+				return false;
+			} else if (command.equalsIgnoreCase("exit") && commandTypeString.equalsIgnoreCase("edit")) {
+				return false;
+			} else if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
 				result = true;
 			}
 		}

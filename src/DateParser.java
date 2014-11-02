@@ -71,7 +71,7 @@ public class DateParser {
 
 	private final String TODAY = "today";
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
-	private final String YESTERDAY = "yesterday|yda|yta";
+	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
