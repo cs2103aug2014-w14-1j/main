@@ -3,13 +3,12 @@ import java.util.Calendar;
 
 public class Command {
 	public enum COMMAND_TYPE {
-		ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, REDO, EXIT
+		DEFAULT, ADD, EDIT, DELETE, LIST, SEARCH, COMPLETE, UNDO, REDO, EXIT
 	}
 
 	private COMMAND_TYPE commandType;
 	private String taskID;
 	private String taskName;
-	private Calendar taskDueDate;
 	private Calendar taskStartDate;
 	private Calendar taskEndDate;
 	private Calendar searchStartDate;
@@ -20,13 +19,19 @@ public class Command {
 	private String[] taskIDsToComplete;
 	private String[] taskTagsToAdd;
 	private String[] taskTagsToRemove;
+	private int recurPattern = -1;
+	private int recurPeriod = -1;
 
 	public void setCommandType(COMMAND_TYPE parsedCommandType) {
 		commandType = parsedCommandType;
 	}
 
 	public COMMAND_TYPE getCommandType() {
-		return commandType;
+		if (commandType == COMMAND_TYPE.DEFAULT) {
+			return COMMAND_TYPE.ADD;
+		} else {
+			return commandType;
+		}
 	}
 
 	public void setTaskID(String ID) {
@@ -43,14 +48,6 @@ public class Command {
 
 	public String getTaskName() {
 		return taskName;
-	}
-
-	public void setTaskDueDate(Calendar date) {
-		taskDueDate = date;
-	}
-
-	public Calendar getTaskDueDate() {
-		return taskDueDate;
 	}
 
 	public void setTaskStartDate(Calendar startDate) {
@@ -130,5 +127,21 @@ public class Command {
 
 	public void setTaskTagsToRemove(String[] tags) {
 		taskTagsToRemove = tags;
+	}
+
+	public void setRecurPattern(int pattern) {
+		recurPattern = pattern;
+	}
+
+	public int getRecurPattern() {
+		return recurPattern;
+	}
+
+	public void setRecurPeriod(int period) {
+		recurPeriod = period;
+	}
+
+	public int getRecurPeriod() {
+		return recurPeriod;
 	}
 }

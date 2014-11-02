@@ -108,7 +108,7 @@ public class StorageJUnitTest {
 			task4.addTag("baking");
 			
 			//this is gibberish input and should not affect further tests, until a date is set
-			task4.setRecur(Calendar.YEAR);
+			task4.setRecur(Calendar.YEAR, 3);
 			Calendar task4_recur_limit = Calendar.getInstance();
 			task4_recur_limit.set(2016, Calendar.JANUARY, 1, 0, 0, 0);
 			task4.setRecurLimit(task4_recur_limit);
@@ -135,7 +135,7 @@ public class StorageJUnitTest {
 			Calendar task5_end_date = Calendar.getInstance();
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
 			task5.setDates(task5_start_date, task5_end_date);
-			task5.setRecur(Calendar.YEAR);
+			task5.setRecur(Calendar.YEAR, 1);
 			task5.setCompleted();
 
 			// Task 6: Recurring Task (MONTH)
@@ -147,7 +147,7 @@ public class StorageJUnitTest {
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2017, Calendar.DECEMBER, 30, 00, 00, 00);
 			task6.setDate(task6_date);
-			task6.setRecur(Calendar.MONTH);
+			task6.setRecur(Calendar.MONTH, 1);
 			task6.setRecurLimit(task6_limit);
 
 			// Task 7: Recurring Task (WEEK)
@@ -160,7 +160,7 @@ public class StorageJUnitTest {
 			Calendar task7_limit = Calendar.getInstance();
 			task7_limit.set(2016, Calendar.JANUARY, 30, 00, 00, 00);
 			task7.setDate(task7_date);
-			task7.setRecur(Calendar.WEEK_OF_YEAR);
+			task7.setRecur(Calendar.WEEK_OF_YEAR, 1);
 			task7.setRecurLimit(task7_limit);
 
 			// Task 8: Recurring Task (DAY)
@@ -171,7 +171,7 @@ public class StorageJUnitTest {
 			Calendar task8_limit = Calendar.getInstance();
 			task8_limit.set(2015, Calendar.DECEMBER, 1, 23, 00, 01);
 			task8.setDate(task8_date);
-			task8.setRecur(Calendar.DAY_OF_YEAR);
+			task8.setRecur(Calendar.DAY_OF_YEAR, 1);
 			task8.setRecurLimit(task8_limit);
 
 			// Visual check to see if dates are sorted correctly
