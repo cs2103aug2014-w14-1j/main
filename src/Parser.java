@@ -24,6 +24,7 @@ public class Parser {
 	private String[] undoCommands = {"undo"};
 	private String[] redoCommands = {"redo"};
 	private String[] exitCommands = {"quit","exit"};
+	private String[] testCommands = {"runtest", "systest"};
 
 	public Command parseCommand(String userCommand) {
 		command = userCommand;
@@ -55,6 +56,8 @@ public class Parser {
 			return Command.COMMAND_TYPE.REDO;
 		} else if (isExitCommand(commandTypeString)) {
 			return Command.COMMAND_TYPE.EXIT;
+		} else if (isTestCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.TEST;
 		} else {
 			return Command.COMMAND_TYPE.DEFAULT;
 		}
@@ -94,6 +97,10 @@ public class Parser {
 
 	private boolean isExitCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, exitCommands);
+	}
+	
+	private boolean isTestCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, testCommands);
 	}
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
