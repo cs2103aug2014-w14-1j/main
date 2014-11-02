@@ -73,6 +73,7 @@ public class DateParser {
 
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
+	private final String AM = "am";
 
 	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
@@ -322,8 +323,10 @@ public class DateParser {
 		if (dateMatches(time, TIME_12)) {
 			String[] parsedTime = dateMatch(time, TIME_12);
 			int hour = Integer.parseInt(parsedTime[1]);
-			if (parsedTime[4].trim().equalsIgnoreCase(PM)) {
+			if (parsedTime[4].trim().equalsIgnoreCase(PM) && hour < 12) {
 				hour += 12;
+			} else if (parsedTime[4].trim().equalsIgnoreCase(AM) && hour == 12) {
+				hour -= 12;
 			}
 			int minute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2]);
 			int second = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
