@@ -312,6 +312,8 @@ public class UI extends FlowPane {
 
 	private void initNotificationPane() {
 		notificationPane = new NotificationPane(new FlowPane());
+		notificationPane.getStyleClass().removeAll(notificationPane.getStyleClass());
+		notificationPane.getStyleClass().add("notificationpane");
 		notificationPane.setShowFromTop(false);
 		notificationPane.setDisable(true);
 		notificationPane.setMinSize(WIDTH_OF_SPLIT2, 100);
@@ -417,7 +419,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
 	private static final String CSS_NORMALTASKROW = "normalTaskRow";
-
+	
 	@Override
 	protected void updateItem(final String item, final boolean empty) {
 		super.updateItem(item, empty);
@@ -434,7 +436,7 @@ class BackgroundTableCell extends TableCell<Task, String> {
 		}
 
 		if (item.contains("F")) {
-			getStyleClass().add(CSS_FLOATINGTASKROW);
+			getStyleClass().addAll(CSS_FLOATINGTASKROW);
 		} else if (item.contains("O")) {
 			getStyleClass().add(CSS_OVERDUETASKROW);
 		} else if (item.contains("T")) {

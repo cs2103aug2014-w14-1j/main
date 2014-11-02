@@ -1,7 +1,7 @@
 @CHARSET "ISO-8859-1";
 
 .root{
-	-fx-background-color:#faebd7
+	-fx-background-color:#2c3e50
 }
 
 #inputText {
@@ -11,15 +11,15 @@
 
 .label {
 	-fx-font:12px Verdana;
-	-fx-text-fill: Darkblue;
+	-fx-text-fill: White;
 	-fx-font-weight : bold;
 	
 }
 
 #view2Split {
-	-fx-background-color: #faebd7;
+	-fx-background-color: #2c3e50;
 	-fx-font: 12px Verdana;
-	-fx-text-fill: Black;
+	-fx-text-fill: #3498db;
 	-fx-opacity: 1.0;
 	-fx-font-weight: bold;
 }
@@ -28,21 +28,41 @@
 	-fx-background-color: #00FFFF;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
-	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
 }
 
 .overdueTaskRow{
 	-fx-background-color: #E00000;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
-	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
 }
 
 .normalTaskRow{
 	-fx-background-color: #27ae60;
 	-fx-font: 12px Verdana;
 	-fx-text-fill: Black;
-	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
 }
 
+.table-view {
+	-fx-base: #2c3e50;
+	-fx-control-inner-background: #ecf0f1;
+	-fx-background-color: #2c3e50;
+	-fx-table-cell-border-color: transparent;
+}
 
+.table-row-cell:empty {
+    -fx-background-color: #ecf0f1;
+}
+  
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+
+.notificationpane{
+	-fx-background-color:#2c3e50;
+	-fx-font: 12px Verdana;
+	-fx-text-fill: White;
+	-fx-font-weight : bold;
+}
