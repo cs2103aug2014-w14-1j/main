@@ -17,10 +17,10 @@ public class Parser {
 
 	private String[] addCommands = {"add","insert"};
 	private String[] editCommands = {"edit","update","change","modify"};
-	private String[] deleteCommands = {"delete","remove","destroy"};
+	private String[] deleteCommands = {"delete","remove","destroy","del"};
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search","find"};
-	private String[] completeCommands = {"complete"};
+	private String[] completeCommands = {"complete","done"};
 	private String[] undoCommands = {"undo"};
 	private String[] exitCommands = {"quit"};
 
