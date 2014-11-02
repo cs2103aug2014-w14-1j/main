@@ -100,7 +100,7 @@ public class Task {
 		}
 		this.startDate = startdate;
 		this.endDate = enddate;
-		this.recurPattern = null;
+		this.recurPattern = -1;
 		this.recurLimit = null;
 	}
 
@@ -115,7 +115,7 @@ public class Task {
 	public void setDate(Calendar date) {
 		this.startDate = date;
 		this.endDate = (Calendar) date.clone();
-		this.recurPattern = null;
+		this.recurPattern = -1;
 		this.recurLimit = null;
 	}
 	
@@ -210,7 +210,7 @@ public class Task {
 	}
 
 	public boolean isRecur() {
-		return this.recurPattern != null && this.startDate != null
+		return this.recurPattern != -1 && this.startDate != null
 				&& this.endDate != null;
 	}
 
