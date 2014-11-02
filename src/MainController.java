@@ -224,12 +224,47 @@ public class MainController extends Application implements UIObserver {
 				}
 			}
 			
-			t_reader.close();
+			//check output
+			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
 			
+			ArrayList<Task> tlist = t_storage.getTasksList();
+			ArrayList<Task> flist = t_storage.getFloatingTasksList();
+			ArrayList<Task> olist = t_storage.getOverdueTasksList();
+			ArrayList<Task> clist = t_storage.getCompletedTasksList();
+			
+			for (int i = 0; i < tlist.size(); i++) {
+				Task task = tlist.get(i);
+				test(task.getTaskName(), e_reader.readLine());
+			}
+			
+			for (int i = 0; i < flist.size(); i++) {
+				Task task = tlist.get(i);
+				test(task.getTaskName(), e_reader.readLine());
+			}
+			
+			for (int i = 0; i < olist.size(); i++) {
+				Task task = tlist.get(i);
+				test(task.getTaskName(), e_reader.readLine());
+			}
+			
+			for (int i = 0; i < clist.size(); i++) {
+				Task task = tlist.get(i);
+				test(task.getTaskName(), e_reader.readLine());
+			}
+			
+			t_reader.close();
+			e_reader.close();
+			t_storage.clearAll();
 			return "Tests successful!";
 		}
 		catch (Exception e) {
 			return e.getMessage();
+		}
+	}
+	
+	private void test(String actual, String expected) throws Exception {
+		if (actual.equals(expected)) {
+			throw new Exception("MISMATCH: " + actual + " - " + expected);
 		}
 	}
 }
