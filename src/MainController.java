@@ -21,15 +21,7 @@ public class MainController extends Application implements UIObserver {
 	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
 	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
 	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
-	
-	private static final String TEST_TASK_FILENAME = "systestt.txt";
-	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
-	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
-	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
-	
-	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
-	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
-	
+		
 	private String inputCommand_;
 	private Command currentCommand_ = null;
 	private UI UI_;
@@ -39,6 +31,25 @@ public class MainController extends Application implements UIObserver {
 	private Storage storage_;
 	private LogicHandler logic_;
 	private SearchHandler searcher_;
+	
+	//Test variables********************************************************
+	
+	private static final String TEST_TASK_FILENAME = "systestt.txt";
+	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
+	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
+	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
+	
+	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
+	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
+	
+	private ArrayList<Task> t_searchResults;
+	private Parser t_parser;
+	private TreeMap<String, Task> t_taskIDmap;
+	private Storage t_storage;
+	private LogicHandler t_logic;
+	private SearchHandler t_searcher;
+	
+	//Methods**************************************************************
 
 	public void proceedCommand(Command command) throws Exception {
 		if (isTest(command)) {
@@ -51,7 +62,7 @@ public class MainController extends Application implements UIObserver {
 			repeatLastSearch();
 		} else {
 			searchResults_ = searcher_.proceedCommand(command);
-			createTaskIDmap(taskIDmap_, searchResults_);
+			createTaskIDmap();
 			UI_.displayTasks(searchResults_);
 		}
 	}
@@ -74,7 +85,7 @@ public class MainController extends Application implements UIObserver {
 
 	private void repeatLastSearch() throws Exception {
 		searchResults_ = searcher_.repeatLastSearch();
-		createTaskIDmap(taskIDmap_, searchResults_);
+		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
 
@@ -83,32 +94,60 @@ public class MainController extends Application implements UIObserver {
 		searchResults_ = new ArrayList<Task>();
 		searchResults_.addAll(storage_.search(null, null, null, null));
 		
-		createTaskIDmap(taskIDmap_, searchResults_);
+		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
-
-	private void createTaskIDmap(TreeMap<String, Task> taskIDmap, ArrayList<Task> searchResults) {
-		taskIDmap = new TreeMap<String, Task>();
+	
+	private void createTaskIDmap() {
+		taskIDmap_ = new TreeMap<String, Task>();
 		int f = 1;
 		int o = 1;
 		int t = 1;
 
-		for (int i = 0; i < searchResults.size(); i++) {
-			Task task = searchResults.get(i);
+		for (int i = 0; i < searchResults_.size(); i++) {
+			Task task = searchResults_.get(i);
 			String c = getChar(task);
 			if (c.equals("o")) {
 				String key = c + Integer.toString(o);
-				taskIDmap.put(key, task);
+				taskIDmap_.put(key, task);
 				task.setDisplayId(key);
 				o++;
 			} else if (c.equals("t")) {
 				String key = c + Integer.toString(t);
-				taskIDmap.put(key, task);
+				taskIDmap_.put(key, task);
 				task.setDisplayId(key);
 				t++;
 			} else {
 				String key = c + Integer.toString(f);
-				taskIDmap.put(key, task);
+				taskIDmap_.put(key, task);
+				task.setDisplayId(key);
+				f++;
+			}
+		}
+	}
+
+	private void createTestTaskIDmap() {
+		t_taskIDmap = new TreeMap<String, Task>();
+		int f = 1;
+		int o = 1;
+		int t = 1;
+
+		for (int i = 0; i < t_searchResults.size(); i++) {
+			Task task = t_searchResults.get(i);
+			String c = getChar(task);
+			if (c.equals("o")) {
+				String key = c + Integer.toString(o);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				o++;
+			} else if (c.equals("t")) {
+				String key = c + Integer.toString(t);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				t++;
+			} else {
+				String key = c + Integer.toString(f);
+				t_taskIDmap.put(key, task);
 				task.setDisplayId(key);
 				f++;
 			}
@@ -159,15 +198,15 @@ public class MainController extends Application implements UIObserver {
 	private String runSystemTest() {
 		try {
 			
-			Parser t_parser = new Parser();
-			Storage t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
+			t_parser = new Parser();
+			t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
 					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
-			LogicHandler t_logic = new LogicHandler(t_storage);
-			SearchHandler t_searcher = new SearchHandler(t_storage);
+			t_logic = new LogicHandler(t_storage);
+			t_searcher = new SearchHandler(t_storage);
 			
-			ArrayList<Task> t_searchResults = t_searcher.viewDefault();
-			TreeMap<String, Task> t_taskIDmap = new TreeMap<String, Task>();
-			createTaskIDmap(t_taskIDmap, t_searchResults);
+			t_searchResults = t_searcher.viewDefault();
+			t_taskIDmap = new TreeMap<String, Task>();
+			createTestTaskIDmap();
 			
 			BufferedReader t_reader = new BufferedReader(new FileReader(new File(TEST_INPUT_FILENAME)));
 			String input = null;
@@ -177,11 +216,11 @@ public class MainController extends Application implements UIObserver {
 				if (isLogic(t_command)) {
 					t_logic.executeCommand(t_taskIDmap, t_command);
 					t_searchResults = t_searcher.repeatLastSearch();
-					createTaskIDmap(t_taskIDmap, t_searchResults);
+					createTestTaskIDmap();
 				}
 				else {
 					t_searchResults = t_searcher.proceedCommand(t_command);
-					createTaskIDmap(t_taskIDmap, t_searchResults);
+					createTestTaskIDmap();
 				}
 			}
 			
