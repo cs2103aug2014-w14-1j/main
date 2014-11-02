@@ -1,5 +1,7 @@
 
 import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Stack;
@@ -79,6 +81,7 @@ public class LogicHandler {
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
+		
 		if ((command.getTaskStartDate() != null) || (command.getTaskEndDate() != null)) {
 			task.setDates(command.getTaskStartDate(), command.getTaskEndDate());
 		}
@@ -93,6 +96,8 @@ public class LogicHandler {
 			}
 		}
 		
+	
+		
 		ArrayList<Task> newTasks = new ArrayList<Task>();
 		newTasks.add(task);
 		ArrayList<Task> oldTasks = new ArrayList<Task>();
@@ -104,17 +109,30 @@ public class LogicHandler {
 		executeSimpleCommand(addCommand);
 		
 		return ("Successfully added new task: " + task.getTaskName());
-	} 
+		}
+	
 		
 	private String executeDelete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
 		
 		String[] ids = command.getTaskIDsToDelete();
 		
-		ArrayList<Task> tasks = new ArrayList<Task>();
+		ArrayList<String> allIDs = new ArrayList<String>();
 		
 		for (String id: ids) {
+			if (isNumeric(id)) {
+				allIDs.add("T" + id);
+				allIDs.add("F" + id);
+				allIDs.add("O" + id);
+			} else {
+				allIDs.add(id);
+			}
+		}
+		
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		
+		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
-			if ((task!=null)|(tasks.contains(task))) {
+			if ((task!=null)&&(!tasks.contains(task))) {
 				tasks.add(task);
 			}
 		}
@@ -190,9 +208,21 @@ public class LogicHandler {
 		
 		ArrayList<Task> oldTasks = new ArrayList<Task>();
 		
+		ArrayList<String> allIDs = new ArrayList<String>();
+		
 		for (String id: ids) {
+			if (isNumeric(id)) {
+				allIDs.add("T" + id);
+				allIDs.add("F" + id);
+				allIDs.add("O" + id);
+			} else {
+				allIDs.add(id);
+			}
+		}
+		
+		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
-			if ((task!=null)|(!oldTasks.contains(task))) {
+			if ((task!=null)&&(!oldTasks.contains(task))) {
 				oldTasks.add(task);
 			}
 		}
@@ -207,7 +237,7 @@ public class LogicHandler {
 				completedTask.setCompleted();
 				newTasks.add(completedTask);
 				}
-			
+		
 			SimpleCommand completeCommand = new SimpleCommand(oldTasks,newTasks);
 			SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
 			
@@ -216,6 +246,7 @@ public class LogicHandler {
 			return (oldTasks.size() + " tasks completed.");
 		}		
 	}
+
 	
 	private String executeUndo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
 		if (histories_.empty()) {
@@ -264,5 +295,13 @@ public class LogicHandler {
 		for (Task task: oldTasks) {
 			storage_.insert(task);
 		}	
+	}
+	
+	private static boolean isNumeric(String str)
+	{
+	  NumberFormat formatter = NumberFormat.getInstance();
+	  ParsePosition pos = new ParsePosition(0);
+	  formatter.parse(str, pos);
+	  return str.length() == pos.getIndex();
 	}
 }
