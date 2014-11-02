@@ -136,8 +136,8 @@ public class DateParser {
 	}
 
 	private void parseRecur(Command commandObj) {
-		int recurPeriod = 1;
-		int recurPattern = 0;
+		int recurPeriod = -1;
+		int recurPattern = -1;
 		if (dateMatches(command, RECUR)) {
 			String[] recur = dateMatch(command, RECUR);
 			recurPattern = parseRecurPattern(recur[2]);
