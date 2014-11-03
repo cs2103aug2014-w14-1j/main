@@ -5,11 +5,27 @@ import org.json.JSONException;
 
 import com.google.gson.Gson;
 
+/*
+ * This class acts as the storage for the task manager software. It keeps track of lists of tasks
+ * the user adds, and allows the user to retrieve them. In addition, the Storage generates recurring
+ * instances of repeating tasks.
+ * 
+ * There are 4 types of task lists: Floating, Overdue, Completed and Task. See the Task class for
+ * more details. They are implemented as PriorityQueues.
+ * 
+ * The Storage requires JSON and GSON libraries.
+ * 
+ * Limitations (described in developer guide):
+ * When modifying a Task object, it is important to delete it from the Storage first before editing it,
+ * then insert it back. This is to ensure the Task is kept in the right list.
+ * 
+ * Exceptions thrown by the Storage: IOException, JSONException
+ */
 
 public class Storage {
 	
-	private static final int RECUR_YEAR_LIMIT = 3;
-	private static final int COUNTER_INCREASE = 1;
+	private static final int RECUR_YEAR_LIMIT = 3;				//the default limit for recurring tasks
+	private static final int ID_COUNTER_INCREASE = 1;
 	
 	private FileHandler filehandler;
 	
@@ -18,6 +34,8 @@ public class Storage {
 	private PriorityQueue<Task> al_task_overdue;
 	private PriorityQueue<Task> al_task_completed;
 	private int id_counter;
+	
+	//Constructor***************************************************************************
 
 	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
 		al_task = new PriorityQueue<Task>(new TaskComparator());
@@ -31,50 +49,45 @@ public class Storage {
 		checkForOverdueTasks();
 	}
 
-	//Insert methods*********************************************************
+	//Insert methods************************************************************************
 	
 	/*
-	 * Assumption: This task is unique and does not already exist inside the
-	 * lists. If it was an existing task, it should have been deleted
+	 * Inserts a task into its appropriate list. If it is a recurring task, generate
+	 * repeating copies of it.
+	 * 
+	 * Assumption: This task is unique and does not already exist inside the lists
+	 * If it was an existing task, it should have been deleted beforehand
 	 */
 	
 	public void insert(Task task) throws JSONException, IOException {
-		if (task.hasNoID()) {
+		
+		if (task.hasNoID()) {								//for new tasks with no ID
 			assignID(task);
 		}
+		
 		insert(task, retrieveTaskList(task));
 		
-		//is this is a recurring task, generate copies and insert them too
 		if (task.isRecur()) {
-			generateRecurringTasks(task);
+			ArrayList<Task> task_recur_chain = generateRecurringTasks(task);
+			for (Task recur_task : task_recur_chain) {
+				insert(recur_task, retrieveTaskList(recur_task));
+			}
 		}
+		
 		save();
 	}
 
-	private void insert(Task task, PriorityQueue<Task> list) throws JSONException,
-			IOException {
+	private void insert(Task task, PriorityQueue<Task> list) throws JSONException, IOException {
 		list.add(task);
 	}
 	
-	//this method is used to bind several tasks to the same ID before insertion
-	//usage: Same task with multiple dates (split into multiple tasks with different dates)
-	//tentative tasks
-	public void insert(ArrayList<Task> tasks) throws JSONException, IOException {
-		if (tasks.isEmpty()) {
-			return;
-		}
-		for (Task task : tasks) {
-			task.setId(tasks.get(0).getId());
-			insert(task);
-		}
-	}
-	
 	private void assignID(Task task) {
-		id_counter += COUNTER_INCREASE;
+		id_counter += ID_COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
 	
-	private void generateRecurringTasks(Task task) throws IOException, JSONException {
+	private ArrayList<Task> generateRecurringTasks(Task task) throws IOException, JSONException {
+		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
 		Calendar limit = task.getRecurLimit();
 		if (limit == null) {							//there is no limit: use default
 			limit = getDefaultLimit();
@@ -94,8 +107,9 @@ public class Storage {
 			}
 			//increase date
 			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
-			insert(task, retrieveTaskList(task));
+			task_recur_chain.add(task);
 		}
+		return task_recur_chain;
 	}
 	
 	//Get default limit, equal to time of insertion + RECUR_YEAR_LIMIT
@@ -103,6 +117,23 @@ public class Storage {
 		Calendar limit = Calendar.getInstance();
 		limit.add(Calendar.YEAR, RECUR_YEAR_LIMIT);
 		return limit;
+	}
+	
+	/*
+	 * This method is used to bind several tasks to the same ID before insertion
+	 * Usage: Same task with multiple dates (split into multiple tasks with different dates)
+	 * NOT USED AS OF V0.4
+	 */
+	public void insert(ArrayList<Task> tasks) throws JSONException, IOException {
+		
+		if (tasks.isEmpty()) {
+			return;
+		}
+		
+		for (Task task : tasks) {
+			task.setId(tasks.get(0).getId());
+			insert(task);
+		}
 	}
 	
 	//Delete methods***************************************************
@@ -218,7 +249,7 @@ public class Storage {
 	
 	//Clear methods**************************************************************
 	
-	public void clearAll() throws FileNotFoundException, IOException {
+	public void clearAll() throws IOException {
 		clear(al_task);
 		clear(al_task_floating);
 		clear(al_task_overdue);
@@ -232,7 +263,7 @@ public class Storage {
 	
 	//Save methods**********************************************************
 	
-	private void save() throws FileNotFoundException, IOException {
+	private void save() throws IOException {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
