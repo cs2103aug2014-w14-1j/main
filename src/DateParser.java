@@ -97,10 +97,10 @@ public class DateParser {
 		TIME_12+"|"+
 		TIME_24+")";
 	private final String DATETIME_FORMATS = "(?:"+
-		DATE_FORMATS+"|"+
-		TIME_FORMATS+"|"+
 		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
-		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+")";
+		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
+		DATE_FORMATS+"|"+
+		TIME_FORMATS+")";
 
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
