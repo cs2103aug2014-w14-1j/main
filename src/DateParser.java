@@ -36,7 +36,7 @@ public class DateParser {
 	private final String FRI = "fri(?:day)?";
 	private final String SAT = "sat(?:urday)?";
 	private final String SUN = "sun(?:day)?";
-	private final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+"|"+")";
+	private final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+")";
 
 	private final String AFTER = "after";
 	private final String BEFORE = "before";
