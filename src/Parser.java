@@ -123,7 +123,8 @@ public class Parser {
 		String commandDetails = removeCommand();
 		if (!commandDetails.equals("")) {
 			switch (commandType) {
-				case ADD: case DEFAULT:
+				case ADD:
+				case DEFAULT:
 					generateAddCommandObj(commandDetails);
 					break;
 				case EDIT:

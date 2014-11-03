@@ -73,12 +73,42 @@ public class DateParser {
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
 	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
+	private final String DATE_FORMATS = "(?:"+
+		DD_MM_YYYY+"|"+
+		DD_MMM_YYYY+"|"+
+		DDMMYYYY+"|"+
+		DD_MM_YY+"|"+
+		DD_MMM_YY+"|"+
+		DDMMYY+"|"+
+		MM_DD_YYYY+"|"+
+		MMM_DD_YYYY+"|"+
+		MMDDYYYY+"|"+
+		MM_DD_YY+"|"+
+		MMM_DD_YY+"|"+
+		MMDDYY+"|"+
+		DD_MM+"|"+
+		DD_MMM+"|"+
+		MM_DD+"|"+
+		MMM_DD+"|"+
+		TODAY+"|"+
+		TOMORROW+"|"+
+		YESTERDAY+")";
+	private final String TIME_FORMATS = "(?:"+
+		TIME_12+"|"+
+		TIME_24+")";
+	private final String DATETIME_FORMATS = "(?:"+
+		DATE_FORMATS+"|"+
+		TIME_FORMATS+"|"+
+		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
+		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+")";
+
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
 	private final String AM = "am";
 
-	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
-	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
+	private final String FROM = "from\\s+("+DATETIME_FORMATS+")";
+	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
+	private final String DUE = "(?:due(?: on)?|by) (?:the )?("+DATE_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
@@ -87,10 +117,11 @@ public class DateParser {
 
 	public String parseCommand(String input, Command.COMMAND_TYPE type, Command commandObj) {
 		command = input;
-		if (dateMatches(command, FROM_TO)) {
-			String[] dates = dateMatch(command, FROM_TO);
-			Calendar startDate = parseDateTime(dates[1], 0, 0, 0);
-			Calendar endDate = parseDateTime(dates[2], 23, 59, 59);
+		if (dateMatches(command, FROM + "\\s+" + TO)) {
+			String[] fromDate = dateMatch(command, FROM);
+			Calendar startDate = parseDateTime(fromDate[1], 0, 0, 0);
+			String[] toDate = dateMatch(command, TO);
+			Calendar endDate = parseDateTime(toDate[1], 23, 59, 59);
 			if (startDate != null && endDate != null) {
 				switch (type) {
 					case ADD:
@@ -105,7 +136,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
-				command = command.replaceFirst(FROM_TO, "");
+				command = command.replaceFirst(FROM + "\\s+" + TO, "");
 				parseRecur(commandObj);
 			}
 		} else if (dateMatches(command, DUE)) {
@@ -173,12 +204,9 @@ public class DateParser {
 	}
 
 	private Calendar parseDateTime(String datetime, int default_hour, int default_min, int default_second) {
+		currentDate = datetime;
 		Calendar dateCal = parseDate(datetime);
-		if (currentDate != null) {
-			datetime = datetime.replaceFirst(currentDate, "");
-			currentDate = null;
-		}
-		Time time = parseTime(datetime);
+		Time time = parseTime(currentDate);
 		if (dateCal != null && time != null) {
 			dateCal.set(Calendar.HOUR_OF_DAY, time.getHour());
 			dateCal.set(Calendar.MINUTE, time.getMinute());
@@ -228,8 +256,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Integer.parseInt(parsedDate[3]);
 			int month = Integer.parseInt(parsedDate[2]) - 1;
 			int day = Integer.parseInt(parsedDate[1]);
@@ -248,8 +275,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Integer.parseInt(parsedDate[2]) - 1;
 			int day = Integer.parseInt(parsedDate[1]);
@@ -280,8 +306,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Integer.parseInt(parsedDate[3]);
 			int month = Integer.parseInt(parsedDate[1]) - 1;
 			int day = Integer.parseInt(parsedDate[2]);
@@ -300,8 +325,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Integer.parseInt(parsedDate[1]) - 1;
 			int day = Integer.parseInt(parsedDate[2]);
@@ -315,16 +339,13 @@ public class DateParser {
 		int thisMonth = now.get(Calendar.MONTH);
 		int thisDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
 		if (dateMatches(date, TODAY)) {
-			currentDate = dateMatch(date, TODAY)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, TODAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
 		} else if (dateMatches(date, YESTERDAY)) {
-			currentDate = dateMatch(date, YESTERDAY)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, YESTERDAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth - 1);
 		} else if (dateMatches(date, TOMORROW)) {
-			currentDate = dateMatch(date, TOMORROW)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
 		} else {
 			return null;
@@ -374,7 +395,6 @@ public class DateParser {
 			int minute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2]);
 			int second = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
-			command = command.replaceFirst(parsedTime[0], "");
 		} else if (dateMatches(time, TIME_24)) {
 			String[] parsedTime = dateMatch(time, TIME_24);
 			int hour;
@@ -388,7 +408,6 @@ public class DateParser {
 			}
 			int second = parsedTime[3] == null ? 59 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
-			command = command.replaceFirst(parsedTime[0], "");
 		}
 		return t;
 	}
