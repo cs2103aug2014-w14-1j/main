@@ -382,6 +382,7 @@ public class DateParser {
 		} else if (dateMatches(period, YEAR)) {
 			now.add(Calendar.YEAR, periodLength);
 		}
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
 	}
 
@@ -400,6 +401,7 @@ public class DateParser {
 			now.add(Calendar.WEEK_OF_YEAR, -1);
 		}
 		now.set(Calendar.DAY_OF_WEEK, day);
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
 	}
 
