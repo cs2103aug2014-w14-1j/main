@@ -15,15 +15,15 @@ public class Parser {
 	private Command.COMMAND_TYPE commandType;
 	private final int TYPO_DISTANCE = 1;
 
-	private String[] addCommands = {"add","insert"};
-	private String[] editCommands = {"edit","update","change","modify"};
-	private String[] deleteCommands = {"delete","remove","destroy","del"};
+	private String[] addCommands = {"add", "insert"};
+	private String[] editCommands = {"edit", "update", "change", "modify"};
+	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
 	private String[] listCommands = {"list"};
-	private String[] searchCommands = {"search","find"};
-	private String[] completeCommands = {"complete","done"};
+	private String[] searchCommands = {"search", "find"};
+	private String[] completeCommands = {"complete", "done", "finish", "fin"};
 	private String[] undoCommands = {"undo"};
 	private String[] redoCommands = {"redo"};
-	private String[] exitCommands = {"quit","exit"};
+	private String[] exitCommands = {"quit", "exit"};
 	private String[] testCommands = {"runtest", "systest"};
 
 	public Command parseCommand(String userCommand) {
@@ -98,17 +98,17 @@ public class Parser {
 	private boolean isExitCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, exitCommands);
 	}
-	
+
 	private boolean isTestCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, testCommands);
 	}
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		boolean result = false;
-		for (String command: commands) {
-			if (command.equalsIgnoreCase("edit") && commandTypeString.equalsIgnoreCase("exit")) {
+		for (String command : commands) {
+			if (isFalsePositive("edit", "exit", command, commandTypeString)) {
 				return false;
-			} else if (command.equalsIgnoreCase("exit") && commandTypeString.equalsIgnoreCase("edit")) {
+			} else if (isFalsePositive("fin", "find", command, commandTypeString)) {
 				return false;
 			} else if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
 				result = true;
@@ -117,13 +117,24 @@ public class Parser {
 		return result;
 	}
 
+	private boolean isFalsePositive(String correctA, String correctB, String checkA, String checkB) {
+		if (checkA.equalsIgnoreCase(correctA) && checkB.equalsIgnoreCase(correctB)) {
+			return true;
+		} else if (checkA.equalsIgnoreCase(correctB) && checkB.equalsIgnoreCase(correctA)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
 	private Command generateCommandObj() {
 		commandObj = new Command();
 		commandObj.setCommandType(commandType);
 		String commandDetails = removeCommand();
 		if (!commandDetails.equals("")) {
 			switch (commandType) {
-				case ADD: case DEFAULT:
+				case ADD:
+				case DEFAULT:
 					generateAddCommandObj(commandDetails);
 					break;
 				case EDIT:
@@ -150,13 +161,11 @@ public class Parser {
 		if (commandType == Command.COMMAND_TYPE.DEFAULT) {
 			return command;
 		} else if (matches(command, "\\s+")) {
-			return command.replaceFirst("^(\\w+)\\s+","");
+			return command.replaceFirst("^(\\w+)\\s+", "");
 		} else {
 			return "";
 		}
 	}
-
-	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
 
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
@@ -194,9 +203,9 @@ public class Parser {
 		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
 		commandDetails = removeTaskTagsAddition(commandDetails);
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
-		String[] array = commandDetails.split("\\s+");
+		String[] array = commandDetails.trim().split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
-		for (String keyword: array) {
+		for (String keyword : array) {
 			keywords.add(removeLeadingAndClosingPunctuation(keyword));
 		}
 		commandObj.setSearchKeywords(keywords);
@@ -216,7 +225,39 @@ public class Parser {
 	}
 
 	private String[] parseMultipleTaskID(String commandDetails) {
-		return match(commandDetails, "/\\b(?:[TFOtfo]?(\\d+))\\b/g");
+		ArrayList<String> IDs = parseRangeIDs(commandDetails);
+		commandDetails = commandDetails.replaceAll("([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))", "");
+		String[] singleIDs = match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		if (singleIDs != null) {
+			IDs.addAll(Arrays.asList(singleIDs));
+		}
+		String[] allIDs = IDs.size() == 0 ? null : IDs.toArray(new String[IDs.size()]);
+		return allIDs;
+	}
+
+	private ArrayList<String> parseRangeIDs(String commandDetails) {
+		ArrayList<String> IDs = new ArrayList<String>();
+		String[] rangeIDs = match(commandDetails, "/([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))/g");
+		if (rangeIDs != null) {
+			for (int i = 0; i < rangeIDs.length; i += 4) {
+				int start = Integer.parseInt(rangeIDs[i + 1]);
+				int end = Integer.parseInt(rangeIDs[i + 3]);
+				String startID = rangeIDs[i];
+				String endID = rangeIDs[i + 2];
+				if (start > end) {
+					start = Integer.parseInt(rangeIDs[i + 3]);
+					end = Integer.parseInt(rangeIDs[i + 1]);
+					startID = rangeIDs[i + 2];
+					endID = rangeIDs[i];
+				}
+				IDs.add(startID);
+				for (Integer j = start + 1; j < end; j++) {
+					IDs.add(j.toString());
+				}
+				IDs.add(endID);
+			}
+		}
+		return IDs;
 	}
 
 	private String removeTaskID(String commandDetails) {

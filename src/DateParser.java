@@ -19,10 +19,15 @@ public class DateParser {
 	private final String NOV = "Nov(?:ember)?";
 	private final String DEC = "Dec(?:ember)?";
 
+	private final String SECOND = "seconds?";
+	private final String MINUTE = "minutes?";
+	private final String HOUR = "hours?";
 	private final String DAY = "days?";
 	private final String WEEK = "weeks?";
 	private final String MONTH = "months?";
 	private final String YEAR = "years?";
+	private final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String TIME_PERIOD = "("+SECOND+"|"+MINUTE+"|"+HOUR+")";
 
 	private final String DAILY = "daily";
 	private final String WEEKLY = "weekly";
@@ -30,12 +35,28 @@ public class DateParser {
 	private final String YEARLY = "yearly|annually";
 
 	private final String MON = "mon(?:day)?";
-	private final String TUE = "tue(?:sday)?";
+	private final String TUE = "tues|tue(?:sday)?";
 	private final String WED = "wed(?:nesday)?";
-	private final String THU = "thu(?:rsday)?";
+	private final String THU = "thurs?|thu(?:rsday)?";
 	private final String FRI = "fri(?:day)?";
 	private final String SAT = "sat(?:urday)?";
 	private final String SUN = "sun(?:day)?";
+	private final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+")";
+
+	private final String AFTER = "after";
+	private final String BEFORE = "before";
+	private final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
+	private final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
+
+	private final String LATER = "later";
+	private final String EARLIER = "earlier|ago";
+	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
+	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ TIME_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
+
+	private final String THIS = "this";
+	private final String NEXT = "next";
+	private final String PREVIOUS = "previous|last";
+	private final String WHICH_DAY = "(?:("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+)?"+DAY_NAMES;
 
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
@@ -46,8 +67,8 @@ public class DateParser {
 	private final String MMM = "("+JAN+"|"+FEB+"|"+MAR+"|"+APR+"|"+MAY+"|"+JUN+"|"+JUL+"|"+AUG+"|"+SEP+"|"+OCT+"|"+NOV+"|"+DEC+")";
 	private final String DD = "(0[1-9]|[12][0-9]|3[01])";
 	private final String D = "(0?[1-9]|[12][0-9]|3[01])";
-	private final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[\\:\\.]([0-5][0-9]))?(?:\\:([0-5][0-9]))?)\\s*(pm|am)";
-	private final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[\\:\\.]([0-5][0-9])(?:\\:([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
+	private final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(pm|am)";
+	private final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
 
 	private final String DD_MM_YYYY = D + DATE_CONNECTOR + M + DATE_CONNECTOR + YYYY;
 	private final String DD_MMM_YYYY = D + ORDINALS + DATE_CONNECTOR + MMM + DATE_CONNECTOR + YYYY;
@@ -73,12 +94,48 @@ public class DateParser {
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
 	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
+	private final String DATE_FORMATS = "(?:"+
+		DD_MM_YYYY+"|"+
+		DD_MMM_YYYY+"|"+
+		DDMMYYYY+"|"+
+		DD_MM_YY+"|"+
+		DD_MMM_YY+"|"+
+		DDMMYY+"|"+
+		MM_DD_YYYY+"|"+
+		MMM_DD_YYYY+"|"+
+		MMDDYYYY+"|"+
+		MM_DD_YY+"|"+
+		MMM_DD_YY+"|"+
+		MMDDYY+"|"+
+		DD_MM+"|"+
+		DD_MMM+"|"+
+		MM_DD+"|"+
+		MMM_DD+"|"+
+		TODAY+"|"+
+		TOMORROW+"|"+
+		YESTERDAY+"|"+
+		DATE_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_DATE_PERIOD+"|"+
+		WHICH_DAY+")";
+	private final String TIME_FORMATS = "(?:"+
+		TIME_12+"|"+
+		TIME_24+"|"+
+		TIME_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_TIME_PERIOD+")";
+	private final String DATETIME_FORMATS = "(?:"+
+		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
+		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
+		DATE_FORMATS+"|"+
+		TIME_FORMATS+")";
+
 	private final String CURRENT_CENTURY = "20";
 	private final String PM = "pm";
 	private final String AM = "am";
 
-	private final String FROM_TO = "from([- /.\\s\\w]+)to(?:\\s([- /.\\s\\w]+))?";
-	private final String DUE = "(?:due(?: on)?|by) (?:the )?([0-9a-zA-Z-\\./ ]+)[\\W\\D\\S]*";
+	private final String FROM = "(?:from\\s+)?("+DATETIME_FORMATS+")";
+	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
+	private final String FROM_TO = FROM + "\\s+" + TO;
+	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
@@ -88,9 +145,11 @@ public class DateParser {
 	public String parseCommand(String input, Command.COMMAND_TYPE type, Command commandObj) {
 		command = input;
 		if (dateMatches(command, FROM_TO)) {
-			String[] dates = dateMatch(command, FROM_TO);
-			Calendar startDate = parseDateTime(dates[1], 0, 0, 0);
-			Calendar endDate = parseDateTime(dates[2], 23, 59, 59);
+			String match = dateMatch(command, FROM_TO)[0];
+			String[] fromDate = dateMatch(match, FROM);
+			Calendar startDate = parseDateTime(fromDate[1], 0, 0, 0);
+			String[] toDate = dateMatch(match, TO);
+			Calendar endDate = parseDateTime(toDate[1], 23, 59, 59);
 			if (startDate != null && endDate != null) {
 				switch (type) {
 					case ADD:
@@ -105,27 +164,26 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
-				command = command.replaceFirst(FROM_TO, "");
+				command = command.replaceFirst(match, "");
 				parseRecur(commandObj);
 			}
 		} else if (dateMatches(command, DUE)) {
 			String[] dates = dateMatch(command, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
-				commandObj.setTaskStartDate(dueDate);
-				commandObj.setTaskEndDate((Calendar) dueDate.clone());
-				command = command.replaceFirst(DUE, "");
+				commandObj.setTaskEndDate(dueDate);
+				command = command.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
-		} else {
-			Calendar date = parseDateTime(command, 23, 59, 59);
+		} else if (dateMatches(command, DATETIME_FORMATS)) {
+			String[] dates = dateMatch(command, DATETIME_FORMATS);
+			Calendar date = parseDateTime(dates[0], 23, 59, 59);
 			if (date != null) {
 				switch (type) {
 					case ADD:
 					case EDIT:
 					case DEFAULT:
-						commandObj.setTaskStartDate(date);
-						commandObj.setTaskEndDate((Calendar) date.clone());
+						commandObj.setTaskEndDate(date);
 						break;
 					case LIST:
 					case SEARCH:
@@ -133,6 +191,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
+				command = command.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
 		}
@@ -173,12 +232,9 @@ public class DateParser {
 	}
 
 	private Calendar parseDateTime(String datetime, int default_hour, int default_min, int default_second) {
+		currentDate = datetime;
 		Calendar dateCal = parseDate(datetime);
-		if (currentDate != null) {
-			datetime = datetime.replaceFirst(currentDate, "");
-			currentDate = null;
-		}
-		Time time = parseTime(datetime);
+		Time time = parseTime(currentDate);
 		if (dateCal != null && time != null) {
 			dateCal.set(Calendar.HOUR_OF_DAY, time.getHour());
 			dateCal.set(Calendar.MINUTE, time.getMinute());
@@ -228,8 +284,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Integer.parseInt(parsedDate[3]);
 			int month = Integer.parseInt(parsedDate[2]) - 1;
 			int day = Integer.parseInt(parsedDate[1]);
@@ -248,8 +303,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Integer.parseInt(parsedDate[2]) - 1;
 			int day = Integer.parseInt(parsedDate[1]);
@@ -280,8 +334,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Integer.parseInt(parsedDate[3]);
 			int month = Integer.parseInt(parsedDate[1]) - 1;
 			int day = Integer.parseInt(parsedDate[2]);
@@ -300,8 +353,7 @@ public class DateParser {
 		if (parsedDate == null) {
 			return null;
 		} else {
-			currentDate = parsedDate[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
 			int year = Calendar.getInstance().get(Calendar.YEAR);
 			int month = Integer.parseInt(parsedDate[1]) - 1;
 			int day = Integer.parseInt(parsedDate[2]);
@@ -315,20 +367,102 @@ public class DateParser {
 		int thisMonth = now.get(Calendar.MONTH);
 		int thisDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
 		if (dateMatches(date, TODAY)) {
-			currentDate = dateMatch(date, TODAY)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, TODAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
 		} else if (dateMatches(date, YESTERDAY)) {
-			currentDate = dateMatch(date, YESTERDAY)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, YESTERDAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth - 1);
 		} else if (dateMatches(date, TOMORROW)) {
-			currentDate = dateMatch(date, TOMORROW)[0];
-			command = command.replaceFirst(currentDate, "");
+			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
+		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
+			return matchDatePeriodLaterEarlier(date);
+		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
+			return matchAfterBeforeDatePeriod(date);
+		} else if (dateMatches(date, WHICH_DAY)) {
+			return matchWhichDay(date);
 		} else {
 			return null;
 		}
+	}
+
+	private Calendar matchAfterBeforeDatePeriod(String date) {
+		String[] parsedDate = dateMatch(date, AFTER_BEFORE_DATE_PERIOD);
+		Calendar now = Calendar.getInstance();
+		boolean add = parsedDate[1] == null || dateMatches(parsedDate[1], AFTER);
+		int periodLength = Integer.parseInt(parsedDate[2].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[3];
+		if (dateMatches(period, DAY)) {
+			now.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			now.add(Calendar.WEEK_OF_YEAR, periodLength);
+		} else if (dateMatches(period, MONTH)) {
+			now.add(Calendar.MONTH, periodLength);
+		} else if (dateMatches(period, YEAR)) {
+			now.add(Calendar.YEAR, periodLength);
+		}
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private Calendar matchDatePeriodLaterEarlier(String date) {
+		String[] parsedDate = dateMatch(date, DATE_PERIOD_LATER_EARLIER);
+		Calendar now = Calendar.getInstance();
+		boolean add = parsedDate[3] == null || dateMatches(parsedDate[3], LATER);
+		int periodLength = Integer.parseInt(parsedDate[1].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[2];
+		if (dateMatches(period, DAY)) {
+			now.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			now.add(Calendar.WEEK_OF_YEAR, periodLength);
+		} else if (dateMatches(period, MONTH)) {
+			now.add(Calendar.MONTH, periodLength);
+		} else if (dateMatches(period, YEAR)) {
+			now.add(Calendar.YEAR, periodLength);
+		}
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private Calendar matchWhichDay(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_DAY);
+		Calendar now = (Calendar) Calendar.getInstance().clone();
+		String whichDay = parsedDate[1];
+		int day = checkDay(parsedDate[2]);
+		if (whichDay == null) {
+			if (now.get(Calendar.DAY_OF_WEEK) > day) {
+				now.add(Calendar.WEEK_OF_YEAR, 1);
+			}
+		} else if (dateMatches(whichDay, NEXT)) {
+			now.add(Calendar.WEEK_OF_YEAR, 1);
+		} else if (dateMatches(whichDay, PREVIOUS)) {
+			now.add(Calendar.WEEK_OF_YEAR, -1);
+		}
+		now.set(Calendar.DAY_OF_WEEK, day);
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private int checkDay(String day) {
+		int calendarDay = -1;
+		if (dateMatches(day, MON)) {
+			calendarDay = Calendar.MONDAY;
+		} else if (dateMatches(day, TUE)) {
+			calendarDay = Calendar.TUESDAY;
+		} else if (dateMatches(day, WED)) {
+			calendarDay = Calendar.WEDNESDAY;
+		} else if (dateMatches(day, THU)) {
+			calendarDay = Calendar.THURSDAY;
+		} else if (dateMatches(day, FRI)) {
+			calendarDay = Calendar.FRIDAY;
+		} else if (dateMatches(day, SAT)) {
+			calendarDay = Calendar.SATURDAY;
+		} else if (dateMatches(day, SUN)) {
+			calendarDay = Calendar.SUNDAY;
+		}
+		return calendarDay;
 	}
 
 	private String toNumeral(String month) {
@@ -374,7 +508,6 @@ public class DateParser {
 			int minute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2]);
 			int second = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
-			command = command.replaceFirst(parsedTime[0], "");
 		} else if (dateMatches(time, TIME_24)) {
 			String[] parsedTime = dateMatch(time, TIME_24);
 			int hour;
@@ -388,35 +521,36 @@ public class DateParser {
 			}
 			int second = parsedTime[3] == null ? 59 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
-			command = command.replaceFirst(parsedTime[0], "");
+		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
+			String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
+			boolean add = parsedTime[3] == null || dateMatches(parsedTime[3], LATER);
+			int periodLength = Integer.parseInt(parsedTime[1].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			String period = parsedTime[2];
+			t = new Time();
+			if (dateMatches(period, SECOND)) {
+				t.setSecond(t.getSecond() + periodLength);
+			} else if (dateMatches(period, MINUTE)) {
+				t.setMinute(t.getMinute() + periodLength);
+			} else if (dateMatches(period, HOUR)) {
+				t.setHour(t.getHour() + periodLength);
+			}
+		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
+			String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
+			boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
+			int periodLength = Integer.parseInt(parsedTime[2].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			String period = parsedTime[3];
+			t = new Time();
+			if (dateMatches(period, SECOND)) {
+				t.setSecond(t.getSecond() + periodLength);
+			} else if (dateMatches(period, MINUTE)) {
+				t.setMinute(t.getMinute() + periodLength);
+			} else if (dateMatches(period, HOUR)) {
+				t.setHour(t.getHour() + periodLength);
+			}
 		}
 		return t;
-	}
-
-	private String removeDate(String input) {
-		String output = input;
-		String[] dateFormats = {
-			DD_MM_YYYY,
-			DD_MMM_YYYY,
-			DDMMYYYY,
-			DD_MM_YY,
-			DD_MMM_YY,
-			DDMMYY,
-			DD_MM,
-			DD_MMM,
-			MM_DD_YYYY,
-			MMM_DD_YYYY,
-			MMDDYYYY,
-			MM_DD_YY,
-			MMM_DD_YY,
-			MMDDYY,
-			MM_DD,
-			MMM_DD
-		};
-		for (String regex : dateFormats) {
-			output = output.replaceAll(regex, "");
-		}
-		return output;
 	}
 
 	private Calendar startOfDay(Calendar cal) {
@@ -446,18 +580,37 @@ public class DateParser {
 		private int minute;
 		private int second;
 
+		public Time() {
+			Calendar now = Calendar.getInstance();
+			this.hour = now.get(Calendar.HOUR_OF_DAY);
+			this.minute = now.get(Calendar.MINUTE);
+			this.second = now.get(Calendar.SECOND);
+		}
+
 		public Time(int hour, int minute, int second) {
 			this.hour = hour;
 			this.minute = minute;
 			this.second = second;
 		}
 
+		public void setHour(int hour) {
+			this.hour = hour;
+		}
+
 		public int getHour() {
 			return hour;
 		}
 
+		public void setMinute(int minute) {
+			this.minute = minute;
+		}
+
 		public int getMinute() {
 			return minute;
+		}
+
+		public void setSecond(int second) {
+			this.second = second;
 		}
 
 		public int getSecond() {
