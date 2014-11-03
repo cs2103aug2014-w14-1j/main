@@ -60,8 +60,8 @@ public class DateParser {
 	private final String MMM = "("+JAN+"|"+FEB+"|"+MAR+"|"+APR+"|"+MAY+"|"+JUN+"|"+JUL+"|"+AUG+"|"+SEP+"|"+OCT+"|"+NOV+"|"+DEC+")";
 	private final String DD = "(0[1-9]|[12][0-9]|3[01])";
 	private final String D = "(0?[1-9]|[12][0-9]|3[01])";
-	private final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[\\:\\.]([0-5][0-9]))?(?:\\:([0-5][0-9]))?)\\s*(pm|am)";
-	private final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[\\:\\.]([0-5][0-9])(?:\\:([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
+	private final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(pm|am)";
+	private final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
 
 	private final String DD_MM_YYYY = D + DATE_CONNECTOR + M + DATE_CONNECTOR + YYYY;
 	private final String DD_MMM_YYYY = D + ORDINALS + DATE_CONNECTOR + MMM + DATE_CONNECTOR + YYYY;
