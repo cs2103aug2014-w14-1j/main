@@ -49,7 +49,7 @@ public class DateParser {
 	private final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
 
 	private final String LATER = "later";
-	private final String EARLIER = "earlier";
+	private final String EARLIER = "earlier|ago";
 	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
 	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ TIME_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
 
