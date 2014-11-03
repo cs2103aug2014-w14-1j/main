@@ -49,7 +49,7 @@ public class MainController extends Application implements UIObserver {
 	}
 
 	private void display(String result) {
-		UI_.setMessageToUser(result);
+		UI_.setNotificationToUser(result);
 	}
 
 	private void repeatLastSearch() throws Exception {
@@ -113,7 +113,7 @@ public class MainController extends Application implements UIObserver {
 		try {
 			proceedCommand(currentCommand_);
 		} catch (Exception e) {
-			UI_.setMessageToUser(e.getMessage());
+			UI_.setNotificationToUser(e.getMessage());
 		}
 	}
 

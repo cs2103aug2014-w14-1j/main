@@ -55,7 +55,7 @@ public class UITest extends Application implements UIObserver {
 			displayTasks.add(t);
 		}
 		this.ui.displayTasks(displayTasks);
-		this.ui.setMessageToUser("Successful Testing");
+		this.ui.setNotificationToUser("Successful Testing");
 		
 	}
 	
