@@ -20,7 +20,7 @@ public class Parser {
 	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
 	private String[] listCommands = {"list"};
 	private String[] searchCommands = {"search", "find"};
-	private String[] completeCommands = {"complete", "done"};
+	private String[] completeCommands = {"complete", "done", "finish", "fin"};
 	private String[] undoCommands = {"undo"};
 	private String[] redoCommands = {"redo"};
 	private String[] exitCommands = {"quit", "exit"};
@@ -106,15 +106,25 @@ public class Parser {
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		boolean result = false;
 		for (String command : commands) {
-			if (command.equalsIgnoreCase("edit") && commandTypeString.equalsIgnoreCase("exit")) {
+			if (isFalsePositive("edit", "exit", command, commandTypeString)) {
 				return false;
-			} else if (command.equalsIgnoreCase("exit") && commandTypeString.equalsIgnoreCase("edit")) {
+			} else if (isFalsePositive("fin", "find", command, commandTypeString)) {
 				return false;
 			} else if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
 				result = true;
 			}
 		}
 		return result;
+	}
+
+	private boolean isFalsePositive(String correctA, String correctB, String checkA, String checkB) {
+		if (checkA.equalsIgnoreCase(correctA) && checkB.equalsIgnoreCase(correctB)) {
+			return true;
+		} else if (checkA.equalsIgnoreCase(correctB) && checkB.equalsIgnoreCase(correctA)) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private Command generateCommandObj() {
