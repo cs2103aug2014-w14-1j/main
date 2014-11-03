@@ -108,7 +108,7 @@ public class DateParser {
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
 		AFTER_BEFORE_PERIOD+"|"+
-		PERIOD_LATER_EARLIER +"|"+
+		PERIOD_LATER_EARLIER+"|"+
 		WHICH_DAY+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
@@ -123,8 +123,9 @@ public class DateParser {
 	private final String PM = "pm";
 	private final String AM = "am";
 
-	private final String FROM = "from\\s+("+DATETIME_FORMATS+")";
+	private final String FROM = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
+	private final String FROM_TO = FROM + "\\s+" + TO;
 	private final String DUE = "(?:due(?: on)?|by) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
@@ -134,10 +135,11 @@ public class DateParser {
 
 	public String parseCommand(String input, Command.COMMAND_TYPE type, Command commandObj) {
 		command = input;
-		if (dateMatches(command, FROM + "\\s+" + TO)) {
-			String[] fromDate = dateMatch(command, FROM);
+		if (dateMatches(command, FROM_TO)) {
+			String match = dateMatch(command, FROM_TO)[0];
+			String[] fromDate = dateMatch(match, FROM);
 			Calendar startDate = parseDateTime(fromDate[1], 0, 0, 0);
-			String[] toDate = dateMatch(command, TO);
+			String[] toDate = dateMatch(match, TO);
 			Calendar endDate = parseDateTime(toDate[1], 23, 59, 59);
 			if (startDate != null && endDate != null) {
 				switch (type) {
@@ -153,7 +155,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
-				command = command.replaceFirst(FROM + "\\s+" + TO, "");
+				command = command.replaceFirst(FROM_TO, "");
 				parseRecur(commandObj);
 			}
 		} else if (dateMatches(command, DUE)) {
