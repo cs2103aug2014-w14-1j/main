@@ -19,6 +19,7 @@ public class DateParser {
 	private final String NOV = "Nov(?:ember)?";
 	private final String DEC = "Dec(?:ember)?";
 
+	private final String SECOND = "seconds?";
 	private final String MINUTE = "minutes?";
 	private final String HOUR = "hours?";
 	private final String DAY = "days?";
@@ -26,7 +27,7 @@ public class DateParser {
 	private final String MONTH = "months?";
 	private final String YEAR = "years?";
 	private final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
-	private final String TIME_PERIOD = "("+MINUTE+"|"+HOUR+")";
+	private final String TIME_PERIOD = "("+SECOND+"|"+MINUTE+"|"+HOUR+")";
 
 	private final String DAILY = "daily";
 	private final String WEEKLY = "weekly";
@@ -44,11 +45,13 @@ public class DateParser {
 
 	private final String AFTER = "after";
 	private final String BEFORE = "before";
-	private final String AFTER_BEFORE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ DATE_PERIOD;
+	private final String AFTER_BEFORE_DATE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ DATE_PERIOD;
+	private final String AFTER_BEFORE_TIME_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ TIME_PERIOD;
 
 	private final String LATER = "later";
 	private final String EARLIER = "earlier";
-	private final String PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
+	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
+	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ TIME_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
 
 	private final String THIS = "this";
 	private final String NEXT = "next";
@@ -111,12 +114,14 @@ public class DateParser {
 		TODAY+"|"+
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
-		AFTER_BEFORE_PERIOD+"|"+
-		PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_DATE_PERIOD +"|"+
+		DATE_PERIOD_LATER_EARLIER +"|"+
 		WHICH_DAY+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
-		TIME_24+")";
+		TIME_24+"|"+
+		AFTER_BEFORE_TIME_PERIOD+"|"+
+		TIME_PERIOD_LATER_EARLIER+")";
 	private final String DATETIME_FORMATS = "(?:"+
 		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
 		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
@@ -370,10 +375,10 @@ public class DateParser {
 		} else if (dateMatches(date, TOMORROW)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
-		} else if (dateMatches(date, AFTER_BEFORE_PERIOD)) {
-			return matchAfterBeforePeriod(date);
-		} else if (dateMatches(date, PERIOD_LATER_EARLIER)) {
-			return matchPeriodLaterEarlier(date);
+		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
+			return matchAfterBeforeDatePeriod(date);
+		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
+			return matchDatePeriodLaterEarlier(date);
 		} else if (dateMatches(date, WHICH_DAY)) {
 			return matchWhichDay(date);
 		} else {
@@ -381,8 +386,8 @@ public class DateParser {
 		}
 	}
 
-	private Calendar matchAfterBeforePeriod(String date) {
-		String[] parsedDate = dateMatch(date, AFTER_BEFORE_PERIOD);
+	private Calendar matchAfterBeforeDatePeriod(String date) {
+		String[] parsedDate = dateMatch(date, AFTER_BEFORE_DATE_PERIOD);
 		Calendar now = Calendar.getInstance();
 		boolean add = dateMatches(parsedDate[1], AFTER);
 		int periodLength = Integer.parseInt(parsedDate[2].trim());
@@ -401,8 +406,8 @@ public class DateParser {
 		return now;
 	}
 
-	private Calendar matchPeriodLaterEarlier(String date) {
-		String[] parsedDate = dateMatch(date, PERIOD_LATER_EARLIER);
+	private Calendar matchDatePeriodLaterEarlier(String date) {
+		String[] parsedDate = dateMatch(date, DATE_PERIOD_LATER_EARLIER);
 		Calendar now = Calendar.getInstance();
 		boolean add = dateMatches(parsedDate[3], LATER);
 		int periodLength = Integer.parseInt(parsedDate[1].trim());
@@ -516,6 +521,34 @@ public class DateParser {
 			}
 			int second = parsedTime[3] == null ? 59 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
+		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
+			String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
+			boolean add = dateMatches(parsedTime[1], AFTER);
+			int periodLength = Integer.parseInt(parsedTime[2].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			String period = parsedTime[3];
+			t = new Time();
+			if (dateMatches(period, SECOND)) {
+				t.setSecond(t.getSecond() + periodLength);
+			} else if (dateMatches(period, MINUTE)) {
+				t.setMinute(t.getMinute() + periodLength);
+			} else if (dateMatches(period, HOUR)) {
+				t.setHour(t.getHour() + periodLength);
+			}
+		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
+			String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
+			boolean add = dateMatches(parsedTime[3], LATER);
+			int periodLength = Integer.parseInt(parsedTime[1].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			String period = parsedTime[2];
+			t = new Time();
+			if (dateMatches(period, SECOND)) {
+				t.setSecond(t.getSecond() + periodLength);
+			} else if (dateMatches(period, MINUTE)) {
+				t.setMinute(t.getMinute() + periodLength);
+			} else if (dateMatches(period, HOUR)) {
+				t.setHour(t.getHour() + periodLength);
+			}
 		}
 		return t;
 	}
@@ -547,18 +580,37 @@ public class DateParser {
 		private int minute;
 		private int second;
 
+		public Time() {
+			Calendar now = Calendar.getInstance();
+			this.hour = now.get(Calendar.HOUR_OF_DAY);
+			this.minute = now.get(Calendar.MINUTE);
+			this.second = now.get(Calendar.SECOND);
+		}
+
 		public Time(int hour, int minute, int second) {
 			this.hour = hour;
 			this.minute = minute;
 			this.second = second;
 		}
 
+		public void setHour(int hour) {
+			this.hour = hour;
+		}
+
 		public int getHour() {
 			return hour;
 		}
 
+		public void setMinute(int minute) {
+			this.minute = minute;
+		}
+
 		public int getMinute() {
 			return minute;
+		}
+
+		public void setSecond(int second) {
+			this.second = second;
 		}
 
 		public int getSecond() {
