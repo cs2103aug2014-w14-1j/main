@@ -36,6 +36,16 @@ public class DateParser {
 	private final String FRI = "fri(?:day)?";
 	private final String SAT = "sat(?:urday)?";
 	private final String SUN = "sun(?:day)?";
+	private final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+"|"+")";
+
+	private final String AFTER = "after";
+	private final String BEFORE = "before";
+	private final String AFTER_BEFORE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+
+	private final String THIS = "this";
+	private final String NEXT = "next";
+	private final String PREVIOUS = "previous|last";
+	private final String WHICH_DAY = "(?:("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+)?"+DAY_NAMES;
 
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
@@ -92,7 +102,9 @@ public class DateParser {
 		MMM_DD+"|"+
 		TODAY+"|"+
 		TOMORROW+"|"+
-		YESTERDAY+")";
+		YESTERDAY+"|"+
+		AFTER_BEFORE_PERIOD+"|"+
+		WHICH_DAY+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
 		TIME_24+")";
@@ -345,9 +357,70 @@ public class DateParser {
 		} else if (dateMatches(date, TOMORROW)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
+		} else if (dateMatches(date, AFTER_BEFORE_PERIOD)) {
+			return matchAfterBeforePeriod(date);
+		} else if (dateMatches(date, WHICH_DAY)) {
+			return matchWhichDay(date);
 		} else {
 			return null;
 		}
+	}
+
+	private Calendar matchAfterBeforePeriod(String date) {
+		String[] parsedDate = dateMatch(date, AFTER_BEFORE_PERIOD);
+		Calendar now = (Calendar) Calendar.getInstance().clone();
+		boolean add = dateMatches(parsedDate[1], AFTER);
+		int periodLength = Integer.parseInt(parsedDate[2].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[3];
+		if (dateMatches(period, DAY)) {
+			now.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			now.add(Calendar.WEEK_OF_YEAR, periodLength);
+		} else if (dateMatches(period, MONTH)) {
+			now.add(Calendar.MONTH, periodLength);
+		} else if (dateMatches(period, YEAR)) {
+			now.add(Calendar.YEAR, periodLength);
+		}
+		return now;
+	}
+
+	private Calendar matchWhichDay(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_DAY);
+		Calendar now = (Calendar) Calendar.getInstance().clone();
+		String whichDay = parsedDate[1];
+		int day = checkDay(parsedDate[2]);
+		if (whichDay == null) {
+			if (now.get(Calendar.DAY_OF_WEEK) > day) {
+				now.add(Calendar.WEEK_OF_YEAR, 1);
+			}
+		} else if (dateMatches(whichDay, NEXT)) {
+			now.add(Calendar.WEEK_OF_YEAR, 1);
+		} else if (dateMatches(whichDay, PREVIOUS)) {
+			now.add(Calendar.WEEK_OF_YEAR, -1);
+		}
+		now.set(Calendar.DAY_OF_WEEK, day);
+		return now;
+	}
+
+	private int checkDay(String day) {
+		int calendarDay = -1;
+		if (dateMatches(day, MON)) {
+			calendarDay = Calendar.MONDAY;
+		} else if (dateMatches(day, TUE)) {
+			calendarDay = Calendar.TUESDAY;
+		} else if (dateMatches(day, WED)) {
+			calendarDay = Calendar.WEDNESDAY;
+		} else if (dateMatches(day, THU)) {
+			calendarDay = Calendar.THURSDAY;
+		} else if (dateMatches(day, FRI)) {
+			calendarDay = Calendar.FRIDAY;
+		} else if (dateMatches(day, SAT)) {
+			calendarDay = Calendar.SATURDAY;
+		} else if (dateMatches(day, SUN)) {
+			calendarDay = Calendar.SUNDAY;
+		}
+		return calendarDay;
 	}
 
 	private String toNumeral(String month) {
