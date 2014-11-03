@@ -159,6 +159,12 @@ public class Task {
 			enddate = startdate;
 			startdate = temp;
 		}
+		
+		//perform a check and see if startdate is null when enddate is not. If so, clone startdate
+		if (enddate!=null && startdate == null) {
+			startdate = (Calendar) enddate.clone();
+		}
+		
 		this.start_date = startdate;
 		this.end_date = enddate;
 		this.recur_pattern = recurpattern;
