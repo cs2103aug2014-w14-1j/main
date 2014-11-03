@@ -164,7 +164,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
-				command = command.replaceFirst(FROM_TO, "");
+				command = command.replaceFirst(match, "");
 				parseRecur(commandObj);
 			}
 		} else if (dateMatches(command, DUE)) {
@@ -172,7 +172,7 @@ public class DateParser {
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
 				commandObj.setTaskEndDate(dueDate);
-				command = command.replaceFirst(DUE, "");
+				command = command.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
 		} else if (dateMatches(command, DATETIME_FORMATS)) {
@@ -191,7 +191,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
-				command = command.replaceFirst(DATETIME_FORMATS, "");
+				command = command.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
 		}
