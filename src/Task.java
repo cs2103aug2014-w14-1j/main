@@ -464,12 +464,7 @@ public class Task {
 		return tagsUI;
 	}
 
-	// Additional methods*****************************************
-
-	// Search methods********************
-
-	// Clone
-	// methods***************************************************************
+	// Clone methods***************************************************************
 
 	public Task clone() {
 		Task task = new Task();

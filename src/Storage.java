@@ -234,6 +234,13 @@ public class Storage {
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
+		if (end_date!=null && start_date != null) {
+			if (end_date.before(start_date)) {
+				Calendar temp = start_date;
+				start_date = end_date;
+				end_date = temp;
+			}
+		}
 		ArrayList<Task> search_results = new ArrayList<Task>();
 				
 		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
