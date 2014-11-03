@@ -42,6 +42,10 @@ public class DateParser {
 	private final String BEFORE = "before";
 	private final String AFTER_BEFORE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 
+	private final String LATER = "later";
+	private final String EARLIER = "earlier";
+	private final String PERIOD_LATER_EARLIER = "(\\d+)\\s+("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")\\s+("+LATER+"|"+EARLIER+")";
+
 	private final String THIS = "this";
 	private final String NEXT = "next";
 	private final String PREVIOUS = "previous|last";
@@ -104,6 +108,7 @@ public class DateParser {
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
 		AFTER_BEFORE_PERIOD+"|"+
+		PERIOD_LATER_EARLIER +"|"+
 		WHICH_DAY+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
@@ -359,6 +364,8 @@ public class DateParser {
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
 		} else if (dateMatches(date, AFTER_BEFORE_PERIOD)) {
 			return matchAfterBeforePeriod(date);
+		} else if (dateMatches(date, PERIOD_LATER_EARLIER)) {
+			return matchPeriodLaterEarlier(date);
 		} else if (dateMatches(date, WHICH_DAY)) {
 			return matchWhichDay(date);
 		} else {
@@ -368,11 +375,31 @@ public class DateParser {
 
 	private Calendar matchAfterBeforePeriod(String date) {
 		String[] parsedDate = dateMatch(date, AFTER_BEFORE_PERIOD);
-		Calendar now = (Calendar) Calendar.getInstance().clone();
+		Calendar now = Calendar.getInstance();
 		boolean add = dateMatches(parsedDate[1], AFTER);
 		int periodLength = Integer.parseInt(parsedDate[2].trim());
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[3];
+		if (dateMatches(period, DAY)) {
+			now.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			now.add(Calendar.WEEK_OF_YEAR, periodLength);
+		} else if (dateMatches(period, MONTH)) {
+			now.add(Calendar.MONTH, periodLength);
+		} else if (dateMatches(period, YEAR)) {
+			now.add(Calendar.YEAR, periodLength);
+		}
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private Calendar matchPeriodLaterEarlier(String date) {
+		String[] parsedDate = dateMatch(date, PERIOD_LATER_EARLIER);
+		Calendar now = Calendar.getInstance();
+		boolean add = dateMatches(parsedDate[3], LATER);
+		int periodLength = Integer.parseInt(parsedDate[1].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[2];
 		if (dateMatches(period, DAY)) {
 			now.add(Calendar.DAY_OF_YEAR, periodLength);
 		} else if (dateMatches(period, WEEK)) {
