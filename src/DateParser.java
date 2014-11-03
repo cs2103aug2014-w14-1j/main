@@ -164,8 +164,9 @@ public class DateParser {
 				command = command.replaceFirst(DUE, "");
 				parseRecur(commandObj);
 			}
-		} else {
-			Calendar date = parseDateTime(command, 23, 59, 59);
+		} else if (dateMatches(command, DATETIME_FORMATS)) {
+			String[] dates = dateMatch(command, DATETIME_FORMATS);
+			Calendar date = parseDateTime(dates[0], 23, 59, 59);
 			if (date != null) {
 				switch (type) {
 					case ADD:
@@ -179,6 +180,7 @@ public class DateParser {
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
+				command = command.replaceFirst(DATETIME_FORMATS, "");
 				parseRecur(commandObj);
 			}
 		}
