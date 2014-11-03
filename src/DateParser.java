@@ -19,11 +19,14 @@ public class DateParser {
 	private final String NOV = "Nov(?:ember)?";
 	private final String DEC = "Dec(?:ember)?";
 
+	private final String MINUTE = "minutes?";
+	private final String HOUR = "hours?";
 	private final String DAY = "days?";
 	private final String WEEK = "weeks?";
 	private final String MONTH = "months?";
 	private final String YEAR = "years?";
 	private final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String TIME_PERIOD = "("+MINUTE+"|"+HOUR+")";
 
 	private final String DAILY = "daily";
 	private final String WEEKLY = "weekly";
