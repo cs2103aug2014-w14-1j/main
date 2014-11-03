@@ -45,8 +45,8 @@ public class DateParser {
 
 	private final String AFTER = "after";
 	private final String BEFORE = "before";
-	private final String AFTER_BEFORE_DATE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ DATE_PERIOD;
-	private final String AFTER_BEFORE_TIME_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ TIME_PERIOD;
+	private final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
+	private final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
 
 	private final String LATER = "later";
 	private final String EARLIER = "earlier";
@@ -114,14 +114,14 @@ public class DateParser {
 		TODAY+"|"+
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
-		AFTER_BEFORE_DATE_PERIOD +"|"+
-		DATE_PERIOD_LATER_EARLIER +"|"+
+		DATE_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_DATE_PERIOD+"|"+
 		WHICH_DAY+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
 		TIME_24+"|"+
-		AFTER_BEFORE_TIME_PERIOD+"|"+
-		TIME_PERIOD_LATER_EARLIER+")";
+		TIME_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_TIME_PERIOD+")";
 	private final String DATETIME_FORMATS = "(?:"+
 		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
 		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
@@ -135,7 +135,7 @@ public class DateParser {
 	private final String FROM = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM + "\\s+" + TO;
-	private final String DUE = "(?:due(?: on)?|by) (?:the )?("+DATETIME_FORMATS+")";
+	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
@@ -389,7 +389,7 @@ public class DateParser {
 	private Calendar matchAfterBeforeDatePeriod(String date) {
 		String[] parsedDate = dateMatch(date, AFTER_BEFORE_DATE_PERIOD);
 		Calendar now = Calendar.getInstance();
-		boolean add = dateMatches(parsedDate[1], AFTER);
+		boolean add = parsedDate[1] == null || dateMatches(parsedDate[1], AFTER);
 		int periodLength = Integer.parseInt(parsedDate[2].trim());
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[3];
@@ -409,7 +409,7 @@ public class DateParser {
 	private Calendar matchDatePeriodLaterEarlier(String date) {
 		String[] parsedDate = dateMatch(date, DATE_PERIOD_LATER_EARLIER);
 		Calendar now = Calendar.getInstance();
-		boolean add = dateMatches(parsedDate[3], LATER);
+		boolean add = parsedDate[3] == null || dateMatches(parsedDate[3], LATER);
 		int periodLength = Integer.parseInt(parsedDate[1].trim());
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[2];
@@ -523,7 +523,7 @@ public class DateParser {
 			t = new Time(hour, minute, second);
 		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
 			String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
-			boolean add = dateMatches(parsedTime[1], AFTER);
+			boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
 			int periodLength = Integer.parseInt(parsedTime[2].trim());
 			periodLength = add ? periodLength : 0 - periodLength;
 			String period = parsedTime[3];
@@ -537,7 +537,7 @@ public class DateParser {
 			}
 		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
 			String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
-			boolean add = dateMatches(parsedTime[3], LATER);
+			boolean add = parsedTime[3] == null || dateMatches(parsedTime[3], LATER);
 			int periodLength = Integer.parseInt(parsedTime[1].trim());
 			periodLength = add ? periodLength : 0 - periodLength;
 			String period = parsedTime[2];
