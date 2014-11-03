@@ -30,9 +30,9 @@ public class DateParser {
 	private final String YEARLY = "yearly|annually";
 
 	private final String MON = "mon(?:day)?";
-	private final String TUE = "tue(?:sday)?";
+	private final String TUE = "tues|tue(?:sday)?";
 	private final String WED = "wed(?:nesday)?";
-	private final String THU = "thu(?:rsday)?";
+	private final String THU = "thurs?|thu(?:rsday)?";
 	private final String FRI = "fri(?:day)?";
 	private final String SAT = "sat(?:urday)?";
 	private final String SUN = "sun(?:day)?";
