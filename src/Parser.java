@@ -225,7 +225,38 @@ public class Parser {
 	}
 
 	private String[] parseMultipleTaskID(String commandDetails) {
-		return match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		ArrayList<String> IDs = parseRangeIDs(commandDetails);
+		commandDetails = commandDetails.replaceAll("([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))", "");
+		String[] singleIDs = match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		if (singleIDs != null) {
+			IDs.addAll(Arrays.asList(singleIDs));
+		}
+		return IDs.toArray(new String[IDs.size()]);
+	}
+
+	private ArrayList<String> parseRangeIDs(String commandDetails) {
+		ArrayList<String> IDs = new ArrayList<String>();
+		String[] rangeIDs = match(commandDetails, "/([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))/g");
+		if (rangeIDs != null) {
+			for (int i = 0; i < rangeIDs.length; i += 4) {
+				int start = Integer.parseInt(rangeIDs[i + 1]);
+				int end = Integer.parseInt(rangeIDs[i + 3]);
+				String startID = rangeIDs[i];
+				String endID = rangeIDs[i + 2];
+				if (start > end) {
+					start = Integer.parseInt(rangeIDs[i + 3]);
+					end = Integer.parseInt(rangeIDs[i + 1]);
+					startID = rangeIDs[i + 2];
+					endID = rangeIDs[i];
+				}
+				IDs.add(startID);
+				for (Integer j = start + 1; j < end; j++) {
+					IDs.add(j.toString());
+				}
+				IDs.add(endID);
+			}
+		}
+		return IDs;
 	}
 
 	private String removeTaskID(String commandDetails) {
