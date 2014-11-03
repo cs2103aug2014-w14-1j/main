@@ -333,6 +333,8 @@ public class Storage {
 	 * The outcome of this method should be all ids are compacted, and there are no "holes" within the
 	 * occupied ids.
 	 * 
+	 * Assumption: All ids >= 0. Negative ids are invalid and should not exist.
+	 * 
 	 * Note: Expensive operation
 	 */
 	private int updateIndex() {
