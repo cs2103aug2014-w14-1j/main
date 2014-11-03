@@ -412,32 +412,6 @@ public class DateParser {
 		return t;
 	}
 
-	private String removeDate(String input) {
-		String output = input;
-		String[] dateFormats = {
-			DD_MM_YYYY,
-			DD_MMM_YYYY,
-			DDMMYYYY,
-			DD_MM_YY,
-			DD_MMM_YY,
-			DDMMYY,
-			DD_MM,
-			DD_MMM,
-			MM_DD_YYYY,
-			MMM_DD_YYYY,
-			MMDDYYYY,
-			MM_DD_YY,
-			MMM_DD_YY,
-			MMDDYY,
-			MM_DD,
-			MMM_DD
-		};
-		for (String regex : dateFormats) {
-			output = output.replaceAll(regex, "");
-		}
-		return output;
-	}
-
 	private Calendar startOfDay(Calendar cal) {
 		cal.set(Calendar.HOUR_OF_DAY, 0);
 		cal.set(Calendar.MINUTE, 0);
