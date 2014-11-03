@@ -143,8 +143,7 @@ public class DateParser {
 			String[] dates = dateMatch(command, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
-				commandObj.setTaskStartDate(dueDate);
-				commandObj.setTaskEndDate((Calendar) dueDate.clone());
+				commandObj.setTaskEndDate(dueDate);
 				command = command.replaceFirst(DUE, "");
 				parseRecur(commandObj);
 			}
@@ -155,8 +154,7 @@ public class DateParser {
 					case ADD:
 					case EDIT:
 					case DEFAULT:
-						commandObj.setTaskStartDate(date);
-						commandObj.setTaskEndDate((Calendar) date.clone());
+						commandObj.setTaskEndDate(date);
 						break;
 					case LIST:
 					case SEARCH:
