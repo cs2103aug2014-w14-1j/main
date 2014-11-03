@@ -125,7 +125,7 @@ public class DateParser {
 
 	private final String FROM = "from\\s+("+DATETIME_FORMATS+")";
 	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
-	private final String DUE = "(?:due(?: on)?|by) (?:the )?("+DATE_FORMATS+")";
+	private final String DUE = "(?:due(?: on)?|by) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
