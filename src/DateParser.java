@@ -375,10 +375,10 @@ public class DateParser {
 		} else if (dateMatches(date, TOMORROW)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
-		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
-			return matchAfterBeforeDatePeriod(date);
 		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
 			return matchDatePeriodLaterEarlier(date);
+		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
+			return matchAfterBeforeDatePeriod(date);
 		} else if (dateMatches(date, WHICH_DAY)) {
 			return matchWhichDay(date);
 		} else {
@@ -521,12 +521,12 @@ public class DateParser {
 			}
 			int second = parsedTime[3] == null ? 59 : Integer.parseInt(parsedTime[3]);
 			t = new Time(hour, minute, second);
-		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
-			String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
-			boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
-			int periodLength = Integer.parseInt(parsedTime[2].trim());
+		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
+			String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
+			boolean add = parsedTime[3] == null || dateMatches(parsedTime[3], LATER);
+			int periodLength = Integer.parseInt(parsedTime[1].trim());
 			periodLength = add ? periodLength : 0 - periodLength;
-			String period = parsedTime[3];
+			String period = parsedTime[2];
 			t = new Time();
 			if (dateMatches(period, SECOND)) {
 				t.setSecond(t.getSecond() + periodLength);
@@ -535,12 +535,12 @@ public class DateParser {
 			} else if (dateMatches(period, HOUR)) {
 				t.setHour(t.getHour() + periodLength);
 			}
-		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
-			String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
-			boolean add = parsedTime[3] == null || dateMatches(parsedTime[3], LATER);
-			int periodLength = Integer.parseInt(parsedTime[1].trim());
+		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
+			String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
+			boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
+			int periodLength = Integer.parseInt(parsedTime[2].trim());
 			periodLength = add ? periodLength : 0 - periodLength;
-			String period = parsedTime[2];
+			String period = parsedTime[3];
 			t = new Time();
 			if (dateMatches(period, SECOND)) {
 				t.setSecond(t.getSecond() + periodLength);
