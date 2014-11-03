@@ -231,7 +231,8 @@ public class Parser {
 		if (singleIDs != null) {
 			IDs.addAll(Arrays.asList(singleIDs));
 		}
-		return IDs.toArray(new String[IDs.size()]);
+		String[] allIDs = IDs.size() == 0 ? null : IDs.toArray(new String[IDs.size()]);
+		return allIDs;
 	}
 
 	private ArrayList<String> parseRangeIDs(String commandDetails) {
