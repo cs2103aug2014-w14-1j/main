@@ -335,6 +335,17 @@ public class Task {
 		}
 		return this.dateCompleted.after(this.end_date);
 	}
+
+	/*
+	 * Returns dateCompleted as a String.
+	 * 
+	 * Note: Meant for UI
+	 * 
+	 * NOT USED as of V0.4.
+	 */
+	public String getDateCompletedAsString() {
+		return sdf.format(this.dateCompleted.getTime());
+	}
 	
 	// Other checks*******************************************************************************
 	
@@ -362,20 +373,37 @@ public class Task {
 			return false;
 		}
 
+		assert end_date != null;
 		Calendar now = Calendar.getInstance();
-
-		if (this.end_date.before(now)
-				&& (this.dateCompleted == null || this.end_date
-						.after(this.dateCompleted))) {
+		
+		if (this.end_date.before(now)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	public String getDateCompletedAsString() {
-		return sdf.format(this.dateCompleted.getTime());
+	/*
+	 * Checks whether the task is within two input dates. As long as one of the task dates is within
+	 * this interval, this check returns true. Floating and Overdue tasks immediately pass this check.
+	 */
+	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
+		if (isFloating()) {
+			return true;
+		}
+		if (isOverdue()) {
+			return true;
+		}
+		if (start_date == null || start_date.before(this.end_date)
+				|| start_date.equals(this.end_date)) {
+			if (end_date == null || end_date.after(this.start_date)
+					|| end_date.equals(this.start_date)) {
+				return true;
+			}
+		}
+		return false;
 	}
+
 	
 	// Task Reminder Dates Times***********************************
 
@@ -391,7 +419,7 @@ public class Task {
 		return sdf.format(reminderDate.getTime());
 	}
 
-	// Task Tags**************************************
+	// Task Tags**********************************************************************
 	public void addTag(String tag) {
 		this.tags.add(tag);
 	}
@@ -439,23 +467,6 @@ public class Task {
 	// Additional methods*****************************************
 
 	// Search methods********************
-	
-	public boolean withinDateRange(Calendar start_date, Calendar end_date) {
-		if (isFloating()) {
-			return true; // autopass
-		}
-		if (isOverdue()) {
-			return true;		//must display overdue no matter what
-		}
-		if (start_date == null || start_date.before(this.end_date)
-				|| start_date.equals(this.end_date)) {
-			if (end_date == null || end_date.after(this.start_date)
-					|| end_date.equals(this.start_date)) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	// Clone
 	// methods***************************************************************
