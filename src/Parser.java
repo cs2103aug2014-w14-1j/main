@@ -15,15 +15,15 @@ public class Parser {
 	private Command.COMMAND_TYPE commandType;
 	private final int TYPO_DISTANCE = 1;
 
-	private String[] addCommands = {"add","insert"};
-	private String[] editCommands = {"edit","update","change","modify"};
-	private String[] deleteCommands = {"delete","remove","destroy","del"};
+	private String[] addCommands = {"add", "insert"};
+	private String[] editCommands = {"edit", "update", "change", "modify"};
+	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
 	private String[] listCommands = {"list"};
-	private String[] searchCommands = {"search","find"};
-	private String[] completeCommands = {"complete","done"};
+	private String[] searchCommands = {"search", "find"};
+	private String[] completeCommands = {"complete", "done"};
 	private String[] undoCommands = {"undo"};
 	private String[] redoCommands = {"redo"};
-	private String[] exitCommands = {"quit","exit"};
+	private String[] exitCommands = {"quit", "exit"};
 	private String[] testCommands = {"runtest", "systest"};
 
 	public Command parseCommand(String userCommand) {
@@ -98,14 +98,14 @@ public class Parser {
 	private boolean isExitCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, exitCommands);
 	}
-	
+
 	private boolean isTestCommand(String commandTypeString) {
 		return containsCommand(commandTypeString, testCommands);
 	}
 
 	private boolean containsCommand(String commandTypeString, String[] commands) {
 		boolean result = false;
-		for (String command: commands) {
+		for (String command : commands) {
 			if (command.equalsIgnoreCase("edit") && commandTypeString.equalsIgnoreCase("exit")) {
 				return false;
 			} else if (command.equalsIgnoreCase("exit") && commandTypeString.equalsIgnoreCase("edit")) {
@@ -151,7 +151,7 @@ public class Parser {
 		if (commandType == Command.COMMAND_TYPE.DEFAULT) {
 			return command;
 		} else if (matches(command, "\\s+")) {
-			return command.replaceFirst("^(\\w+)\\s+","");
+			return command.replaceFirst("^(\\w+)\\s+", "");
 		} else {
 			return "";
 		}
@@ -195,7 +195,7 @@ public class Parser {
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
 		String[] array = commandDetails.split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
-		for (String keyword: array) {
+		for (String keyword : array) {
 			keywords.add(removeLeadingAndClosingPunctuation(keyword));
 		}
 		commandObj.setSearchKeywords(keywords);
