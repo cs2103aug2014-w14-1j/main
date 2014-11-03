@@ -23,6 +23,7 @@ public class DateParser {
 	private final String WEEK = "weeks?";
 	private final String MONTH = "months?";
 	private final String YEAR = "years?";
+	private final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 
 	private final String DAILY = "daily";
 	private final String WEEKLY = "weekly";
@@ -40,11 +41,11 @@ public class DateParser {
 
 	private final String AFTER = "after";
 	private final String BEFORE = "before";
-	private final String AFTER_BEFORE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String AFTER_BEFORE_PERIOD = "("+AFTER+"|"+BEFORE+")\\s+(\\d+)\\s+"+ DATE_PERIOD;
 
 	private final String LATER = "later";
 	private final String EARLIER = "earlier";
-	private final String PERIOD_LATER_EARLIER = "(\\d+)\\s+("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")\\s+("+LATER+"|"+EARLIER+")";
+	private final String PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
 
 	private final String THIS = "this";
 	private final String NEXT = "next";
