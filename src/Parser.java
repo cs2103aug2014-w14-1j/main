@@ -157,8 +157,6 @@ public class Parser {
 		}
 	}
 
-	private String[] dateIdentifiers = {"to","until","til","till","by","due","on","from"};
-
 	private void generateAddCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
