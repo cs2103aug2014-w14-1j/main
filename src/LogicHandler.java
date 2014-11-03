@@ -1,4 +1,3 @@
-
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
@@ -68,7 +67,7 @@ public class LogicHandler {
 			System.exit(0);
 		}
 		default:
-			return "Unregconized command type";
+			return "Unrecognized command type";
 		}		
 	}
 	

@@ -5,11 +5,29 @@ import org.json.JSONException;
 
 import com.google.gson.Gson;
 
+/*
+ * This class acts as the storage for the task manager software. It keeps track of lists of tasks
+ * the user adds, and allows the user to retrieve them. In addition, the Storage generates recurring
+ * instances of repeating tasks.
+ * 
+ * There are 4 types of task lists: Floating, Overdue, Completed and Task. See the Task class for
+ * more details. They are implemented as PriorityQueues.
+ * 
+ * The Storage contains an internal FileHandler class which handles all file operations.
+ * 
+ * The Storage requires JSON and GSON libraries.
+ * 
+ * Limitations (described in developer guide):
+ * When modifying a Task object, it is important to delete it from the Storage first before editing it,
+ * then insert it back. This is to ensure the Task is kept in the right list.
+ * 
+ * Exceptions thrown by the Storage: IOException, JSONException
+ */
 
 public class Storage {
 	
-	private static final int RECUR_YEAR_LIMIT = 3;
-	private static final int COUNTER_INCREASE = 1;
+	private static final int RECUR_YEAR_LIMIT = 3;				//the default limit for recurring tasks
+	private static final int ID_COUNTER_INCREASE = 1;
 	
 	private FileHandler filehandler;
 	
@@ -18,6 +36,8 @@ public class Storage {
 	private PriorityQueue<Task> al_task_overdue;
 	private PriorityQueue<Task> al_task_completed;
 	private int id_counter;
+	
+	//Constructor***************************************************************************
 
 	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
 		al_task = new PriorityQueue<Task>(new TaskComparator());
@@ -31,74 +51,83 @@ public class Storage {
 		checkForOverdueTasks();
 	}
 
-	//Insert methods*********************************************************
+	//Insert methods************************************************************************
 	
 	/*
-	 * Assumption: This task is unique and does not already exist inside the
-	 * lists. If it was an existing task, it should have been deleted
+	 * Inserts a task into its appropriate list. If it is a recurring task, generate
+	 * repeating copies of it.
+	 * 
+	 * Assumption: This task is unique and does not already exist inside the lists
+	 * If it was an existing task, it should have been deleted beforehand
 	 */
 	
 	public void insert(Task task) throws JSONException, IOException {
-		if (task.hasNoID()) {
+		
+		if (task.hasNoID()) {								//for new tasks with no ID
 			assignID(task);
 		}
+		
 		insert(task, retrieveTaskList(task));
 		
-		//is this is a recurring task, generate copies and insert them too
 		if (task.isRecur()) {
-			generateRecurringTasks(task);
+			ArrayList<Task> task_recur_chain = generateRecurringTasks(task);
+			for (Task recur_task : task_recur_chain) {
+				insert(recur_task, retrieveTaskList(recur_task));
+			}
 		}
+		
 		save();
-	}
-
-	private void insert(Task task, PriorityQueue<Task> list) throws JSONException,
-			IOException {
-		list.add(task);
-	}
-	
-	//this method is used to bind several tasks to the same ID before insertion
-	//usage: Same task with multiple dates (split into multiple tasks with different dates)
-	//tentative tasks
-	public void insert(ArrayList<Task> tasks) throws JSONException, IOException {
-		if (tasks.isEmpty()) {
-			return;
-		}
-		for (Task task : tasks) {
-			task.setId(tasks.get(0).getId());
-			insert(task);
-		}
 	}
 	
 	private void assignID(Task task) {
-		id_counter += COUNTER_INCREASE;
+		id_counter += ID_COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
+
+	private void insert(Task task, PriorityQueue<Task> list) throws JSONException, IOException {
+		list.add(task);
+	}
 	
-	private void generateRecurringTasks(Task task) throws IOException, JSONException {
+	/*
+	 * Generates copies of a task and returns them in an ArrayList. The task is cloned, then
+	 * the start and end dates are increased according to the recur pattern and period, until
+	 * the last task's end date exceeds the date limit.
+	 * 
+	 * This method should not be called for a non-recurring task. This means the task must have
+	 * non-null dates, appropriate recur pattern (Calendar field) and non-negative recur period
+	 */
+	private ArrayList<Task> generateRecurringTasks(Task task) throws IOException, JSONException {
+		assert task.isRecur();
+		
+		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
+		
 		Calendar limit = task.getRecurLimit();
 		if (limit == null) {							//there is no limit: use default
 			limit = getDefaultLimit();
 		}
-		while (task.getEndDate().before(limit)) {		//assumption: recur must have enddate
+		
+		//create new task instances. Increase their date
+		while (task.getEndDate().before(limit)) {
 			task = task.clone();
+			
 			Calendar start = task.getStartDate();
-			if (start != null) {
-				start.add(task.getRecurPattern(), task.getRecurPeriod());
-			}
+			start.add(task.getRecurPattern(), task.getRecurPeriod());
+			
 			Calendar end = task.getEndDate();
-			if (end != null) {
-				end.add(task.getRecurPattern(), task.getRecurPeriod());
-				if (end.after(limit)) {
-					break;
-				}
+			end.add(task.getRecurPattern(), task.getRecurPeriod());
+			if (end.after(limit)) {
+				break;
 			}
-			//increase date
+			
 			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
-			insert(task, retrieveTaskList(task));
+			task_recur_chain.add(task);
 		}
+		return task_recur_chain;
 	}
 	
-	//Get default limit, equal to time of insertion + RECUR_YEAR_LIMIT
+	/*
+	 * Get default limit, equal to time of insertion + RECUR_YEAR_LIMIT
+	 */
 	private Calendar getDefaultLimit() {
 		Calendar limit = Calendar.getInstance();
 		limit.add(Calendar.YEAR, RECUR_YEAR_LIMIT);
@@ -108,10 +137,15 @@ public class Storage {
 	//Delete methods***************************************************
 	
 	/*
-	 * Assumption: Task either does not exist in any of the lists, or exists
-	 * only in 1 list. Insertion should not insert any duplicates
+	 * Deletes a task and all tasks with the same ID as it
+	 * 
+	 * Assumption 1: Task is in its appropriate file list. There should not
+	 * be any exact duplicates of the task in different lists.
+	 * 
+	 * Assumption 2: If two or more tasks have the same ID, they belong to the
+	 * same recur chain. This method will only check for other tasks with the
+	 * same ID if the deleted task is recurring
 	 */
-	
 	public void delete(Task task) throws IOException{
 		delete(task, retrieveTaskList(task));
 		if (task.isRecur()) {
@@ -131,7 +165,40 @@ public class Storage {
 		}
 	}
 	
-	//Retrieval/search methods**********************************
+	//Retrieval/search methods*************************************************************
+	
+	//Internal search methods. To be used by Storage only
+	
+	/*
+	 * Searches for all tasks with the same ID.
+	 * 
+	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
+	 */
+	private ArrayList<Task> searchTaskByID(Integer id){
+		
+		ArrayList<Task> search_results = new ArrayList<Task>();
+		if (id == null || id < 0) {
+			return search_results;								//every task in storage should have a nonnegative ID
+		}
+		
+		searchForID(id, al_task, search_results);
+		searchForID(id, al_task_floating, search_results);
+		searchForID(id, al_task_overdue, search_results);
+		
+		return search_results;
+	}
+	
+	private ArrayList<Task> searchForID(Integer id,PriorityQueue<Task> list, ArrayList<Task> resultsList){
+		for(Task task: list){
+			if(task.getId() == id){
+				resultsList.add(task);
+			}
+		}
+		
+		return resultsList;
+	}
+	
+	//External search methods. Can be called by other classes and tests
 	
 	public ArrayList<Task> getTasksList() {
 		return translateQueueToList(al_task);
@@ -159,36 +226,21 @@ public class Storage {
 	}
 	
 	/*
-	 * Assumption: All tasks are unique. Only one result should be found
-	 */
-	public ArrayList<Task> searchTaskByID(Integer id){
-		
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		if (id == null) {
-			return search_results;		//every task in storage should have an ID
-		}
-		
-		searchForID(id, al_task, search_results);
-		searchForID(id, al_task_floating, search_results);
-		searchForID(id, al_task_overdue, search_results);
-		
-		return search_results;
-	}
-	
-	private ArrayList<Task> searchForID(Integer id,PriorityQueue<Task> list, ArrayList<Task> resultsList){
-		for(Task task: list){
-			if(task.getId() == id){
-				resultsList.add(task);
-			}
-		}
-		
-		return resultsList;
-	}
-	
-	/*
-	 * Driver search method. Search for all tasks with the specified parameters
+	 * Main search method. Searches for all tasks with the specified parameters: keywords, tags,
+	 * within a start and end date.
+	 * 
+	 * This method accepts null parameters.
+	 * 
+	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
+		if (end_date!=null && start_date != null) {
+			if (end_date.before(start_date)) {
+				Calendar temp = start_date;
+				start_date = end_date;
+				end_date = temp;
+			}
+		}
 		ArrayList<Task> search_results = new ArrayList<Task>();
 				
 		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
@@ -200,10 +252,9 @@ public class Storage {
 	}
 	
 	/*
-	 * Search function which only searches within a specified list and adds it
-	 * to an input search list. Assumes all parameters are given
+	 * Searches within a specified list and adds it to an input result list.
+	 * Search parameters can be null
 	 */
-	
 	private void searchList(ArrayList<Task> search_result, PriorityQueue<Task> list,
 			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
 		
@@ -218,7 +269,7 @@ public class Storage {
 	
 	//Clear methods**************************************************************
 	
-	public void clearAll() throws FileNotFoundException, IOException {
+	public void clearAll() throws IOException {
 		clear(al_task);
 		clear(al_task_floating);
 		clear(al_task_overdue);
@@ -230,30 +281,45 @@ public class Storage {
 		tasklist.clear();
 	}
 	
-	//Save methods**********************************************************
+	//Save methods***************************************************************
 	
-	private void save() throws FileNotFoundException, IOException {
+	private void save() throws IOException {
 		filehandler.writeFile(al_task);
 		filehandler.writeFile(al_task_floating);
 		filehandler.writeFile(al_task_overdue);
 		filehandler.writeFile(al_task_completed);
 	}
 	
-	//Miscellaneous methods*************************************************
+	//Miscellaneous methods******************************************************
 	
+	/*
+	 * Checks for overdue tasks as of time when this method was called, removes them from
+	 * the normal task list and inserts them in the overdue task.
+	 * 
+	 * Assumption 1: There should be no reason to shift overdue tasks back to normal tasks (time is always increasing)
+	 * Assumption 2: No reason to check completed tasks
+	 * Assumption 3: This is O(|tasklist.size|) timing, but in practice likely to be a small percentage
+	 * because user should not have so many overdue tasks, unless he/she didn't use the program for a long time
+	 */
 	private void checkForOverdueTasks() throws FileNotFoundException, IOException {
-		ArrayList<Task> task_to_overdue = new ArrayList<Task>();
+		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
 		for (Task task : al_task) {
 			if (task.isOverdue()) {
-				task_to_overdue.add(task);
+				now_overdue_tasks.add(task);
 			}
 		}
-		al_task_overdue.addAll(task_to_overdue);
-		al_task.removeAll(task_to_overdue);
+		al_task_overdue.addAll(now_overdue_tasks);
+		al_task.removeAll(now_overdue_tasks);
 		save();
 	}
 	
-	//expensive op that is of dubious value
+	/*
+	 * Looks for recurring tasks. If they have no specified recurring limit, update the
+	 * default limit as of when this method was called and generate new instances to that
+	 * limit.
+	 * 
+	 * NOT USED as of V0.4. Expensive operation that is of dubious value
+	 */
 	private void updateRecurringTasks() throws IOException, JSONException {
 		for (int i = 0; i < id_counter; i++) {
 			ArrayList<Task> searchlist = searchTaskByID(i);
@@ -266,6 +332,18 @@ public class Storage {
 		}
 	}
 	
+	/*
+	 * Updates the ids of the existing tasks in the Storage. Returns the new id_count as a result, which
+	 * should be equal to the number of used ids in Storage.
+	 * This is to prevent the ids from growing too much.
+	 * 
+	 * The outcome of this method should be all ids are compacted, and there are no "holes" within the
+	 * occupied ids.
+	 * 
+	 * Assumption: All ids >= 0. Negative ids are invalid and should not exist.
+	 * 
+	 * Note: Expensive operation
+	 */
 	private int updateIndex() {
 		int latest_id = 0;
 		int old_latest_id = getLatestID();
@@ -309,6 +387,9 @@ public class Storage {
 		return latest_id;
 	}
 	
+	/*
+	 * Initialises the task lists by reading from the text files.
+	 */
 	private void initFiles() throws IOException {
 		filehandler.readFile(al_task);
 		filehandler.readFile(al_task_floating);
@@ -316,6 +397,10 @@ public class Storage {
 		filehandler.readFile(al_task_overdue);
 	}
 
+	/*
+	 * Returns the appropriate list for an input task.
+	 * This method is primarily used in insert() and delete()
+	 */
 	private PriorityQueue<Task> retrieveTaskList(Task task) {
 		if (task.isFloating()) {
 			return al_task_floating;
@@ -330,6 +415,11 @@ public class Storage {
 	}
 	
 	//File Operations********************************************************
+	
+	/*
+	 * All file operations are handled by the FileHandler class. It pairs the Storage's
+	 * priority queues to files given by the input filenames.
+	 */
 	
 	class FileHandler {
 		

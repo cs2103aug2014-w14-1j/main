@@ -1,7 +1,9 @@
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+
 import org.junit.Test;
 
 public class StorageJUnitTest {
@@ -205,8 +207,13 @@ public class StorageJUnitTest {
 
 			// Storage
 			// tests*********************************************************************
+			
+			String storagetesttask = "storagetesttask.txt";
+			String storagetestfloat = "storagetestfloat.txt";
+			String storagetestoverdue = "storagetestoverdue.txt";
+			String storagetestcomplete = "storagetestcomplete.txt";
 
-			Storage storage = new Storage("testtask.txt","testfloat.txt","testoverdue.txt","testcompleted.txt");
+			Storage storage = new Storage(storagetesttask,storagetestfloat,storagetestoverdue,storagetestcomplete);
 			storage.clearAll();
 
 			// Insertion tests************************************
@@ -331,8 +338,8 @@ public class StorageJUnitTest {
 			ArrayList<Task> search3 = storage.search(null, null, search3_start,
 					search3_end);
 			test(search3.size(), 5);
-			test(search3.get(0).getTaskName(), "Bake chocolate cake");		//can find floating through date
-			test(search3.get(1).getTaskName(), "100 pushups");				//can find overdue through date
+			test(search3.get(0).getTaskName(), "100 pushups");				//can find overdue through date
+			test(search3.get(1).getTaskName(), "Bake chocolate cake");		//can find floating through date
 			test(search3.get(4).getTaskName(), "Casey's birthday");
 			test(search3.get(4).getDateAsString(), "Tue 29-Sep-15 0:00 AM -\nTue 29-Sep-15 23:59 PM");
 			
@@ -363,12 +370,17 @@ public class StorageJUnitTest {
 			search5 = storage.search(search5_keywords, null, null, null);
 			test(search5.size(), 3);
 
-			/*
-			 * //insert an already existing task storage.insert(task1);
-			 * test(storage.getTasksFile().size(), 7);
-			 */
-			System.out.println("All tests successful");
+			//cleanup
 			storage.clearAll();
+			File taskfile = new File(storagetesttask);
+			taskfile.deleteOnExit();
+			File floatfile = new File(storagetestfloat);
+			floatfile.deleteOnExit();
+			File overfile = new File(storagetestoverdue);
+			overfile.deleteOnExit();
+			File comfile = new File(storagetestcomplete);
+			comfile.deleteOnExit();
+			System.out.println("All tests successful");
 		}
 		
 		catch (Exception e) {
