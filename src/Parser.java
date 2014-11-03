@@ -203,7 +203,7 @@ public class Parser {
 		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
 		commandDetails = removeTaskTagsAddition(commandDetails);
 		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
-		String[] array = commandDetails.split("\\s+");
+		String[] array = commandDetails.trim().split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
 		for (String keyword : array) {
 			keywords.add(removeLeadingAndClosingPunctuation(keyword));
