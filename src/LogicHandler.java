@@ -115,7 +115,7 @@ public class LogicHandler {
 				allIDs.add("F" + id);
 				allIDs.add("O" + id);
 			} else {
-				allIDs.add(id);
+				allIDs.add(id.toUpperCase());
 			}
 		}
 		
@@ -205,7 +205,7 @@ public class LogicHandler {
 				allIDs.add("F" + id);
 				allIDs.add("O" + id);
 			} else {
-				allIDs.add(id);
+				allIDs.add(id.toUpperCase());
 			}
 		}
 		
