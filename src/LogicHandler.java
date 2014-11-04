@@ -158,8 +158,7 @@ public class LogicHandler {
 			newTask.setTaskName(command.getTaskName());
 		}
 
-		if (command.getTaskStartDate()!=null) {
-			assert command.getTaskEndDate() != null;
+		if (command.getTaskEndDate()!=null) {
 			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
 		}
 		
