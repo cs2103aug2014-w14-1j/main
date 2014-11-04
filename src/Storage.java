@@ -181,21 +181,21 @@ public class Storage {
 			return search_results;								//every task in storage should have a nonnegative ID
 		}
 		
-		searchForID(id, al_task, search_results);
-		searchForID(id, al_task_floating, search_results);
-		searchForID(id, al_task_overdue, search_results);
+		searchTaskByID(id, al_task, search_results);
+		searchTaskByID(id, al_task_floating, search_results);
+		searchTaskByID(id, al_task_overdue, search_results);
 		
 		return search_results;
 	}
 	
-	private ArrayList<Task> searchForID(Integer id,PriorityQueue<Task> list, ArrayList<Task> resultsList){
+	private ArrayList<Task> searchTaskByID(Integer id,PriorityQueue<Task> list, ArrayList<Task> searchResults){
 		for(Task task: list){
 			if(task.getId() == id){
-				resultsList.add(task);
+				searchResults.add(task);
 			}
 		}
 		
-		return resultsList;
+		return searchResults;
 	}
 	
 	//External search methods. Can be called by other classes and tests

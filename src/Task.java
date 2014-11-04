@@ -24,7 +24,6 @@ public class Task {
 	private Calendar start_date;
 	private Calendar end_date;
 	private Calendar dateCompleted;
-	private Calendar reminderDate;
 	private Integer recur_pattern;
 	private Integer recur_period;
 	private Calendar recur_limit;								//NOT USED as of V0.4. Always null
@@ -37,14 +36,13 @@ public class Task {
 	 * by provided setter methods
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, null, -1, -1, null,
+		this(null, "", "", null, null, null, -1, -1, null,
 				new ArrayList<String>());
 	}
 
 	//private constructor
 	private Task(Integer taskId, String displayId, String taskName,
-			Calendar taskStartDate, Calendar taskEndDate,
-			Calendar taskReminderDate, Calendar taskDateCompleted,
+			Calendar taskStartDate, Calendar taskEndDate, Calendar taskDateCompleted,
 			Integer recur, Integer recurPeriod, Calendar recurLimit, ArrayList<String> taskTag) {
 		this.id = taskId;
 		this.displayId = displayId;
@@ -52,7 +50,6 @@ public class Task {
 		this.start_date = taskStartDate;
 		this.end_date = taskEndDate;
 		this.dateCompleted = taskDateCompleted;
-		this.reminderDate = taskReminderDate;
 		this.recur_pattern = recur;
 		this.recur_period = recurPeriod;
 		this.recur_limit = recurLimit;
@@ -336,10 +333,10 @@ public class Task {
 		if (this.dateCompleted == null) {
 			return false;
 		}
-		if (this.end_date == null && this.dateCompleted != null) {		//again assumption that start_date != null and start_date <= end_date
+		if (this.end_date == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
 			return true;
 		}
-		return this.dateCompleted.after(this.end_date);
+		return this.dateCompleted.after(this.end_date);					//assumption that start_date.equals(end_date)
 	}
 
 	/*
@@ -410,21 +407,6 @@ public class Task {
 		return false;
 	}
 
-	
-	// Task Reminder Dates Times***********************************
-
-	public void setReminderDate(Calendar date) {
-		this.reminderDate = date;
-	}
-
-	public Calendar getReminderDate() {
-		return this.reminderDate;
-	}
-
-	public String getReminderDateAsString() {
-		return sdf.format(reminderDate.getTime());
-	}
-
 	// Task Tags**********************************************************************
 	public void addTag(String tag) {
 		this.tags.add(tag);
@@ -484,9 +466,6 @@ public class Task {
 		}
 		if (this.dateCompleted != null) {
 			task.setDateCompleted((Calendar) this.dateCompleted.clone());
-		}
-		if (this.reminderDate != null) {
-			task.setReminderDate((Calendar) this.reminderDate.clone());
 		}
 		task.setRecur(this.recur_pattern, this.recur_period);
 		if (this.recur_limit != null) {
