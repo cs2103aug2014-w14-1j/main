@@ -63,6 +63,7 @@ public class MainController extends Application implements UIObserver {
 		} else {
 			searchResults_ = searcher_.proceedCommand(command);
 			createTaskIDmap();
+			display(searchResults_.size() + " tasks found");
 			UI_.displayTasks(searchResults_);
 		}
 	}
@@ -117,33 +118,6 @@ public class MainController extends Application implements UIObserver {
 		}
 	}
 
-	private void createTestTaskIDmap() {
-		t_taskIDmap = new TreeMap<String, Task>();
-		int f = 1;
-		int o = 1;
-		int t = 1;
-
-		for (int i = 0; i < t_searchResults.size(); i++) {
-			Task task = t_searchResults.get(i);
-			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				o++;
-			} else if (c.equals("t")) {
-				String key = c + Integer.toString(t);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				t++;
-			} else {
-				String key = c + Integer.toString(f);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				f++;
-			}
-		}
-	}
 
 	private String getChar(Task task) {
 		if (task.isOverdue()) {
@@ -182,7 +156,7 @@ public class MainController extends Application implements UIObserver {
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
 		repeatLastSearch();
-		UI_.setNotificationToUser("Welcome to SPEED!");
+		display("Welcome to SPEED!");
 	}
 	
 	//System Test****************************************************************************
@@ -301,4 +275,33 @@ public class MainController extends Application implements UIObserver {
 			throw new Exception("MISMATCH: " + actual + " - " + expected);
 		}
 	}
+	
+	private void createTestTaskIDmap() {
+		t_taskIDmap = new TreeMap<String, Task>();
+		int f = 1;
+		int o = 1;
+		int t = 1;
+
+		for (int i = 0; i < t_searchResults.size(); i++) {
+			Task task = t_searchResults.get(i);
+			String c = getChar(task);
+			if (c.equals("o")) {
+				String key = c + Integer.toString(o);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				o++;
+			} else if (c.equals("t")) {
+				String key = c + Integer.toString(t);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				t++;
+			} else {
+				String key = c + Integer.toString(f);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				f++;
+			}
+		}
+	}
+
 }
