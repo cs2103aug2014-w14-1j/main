@@ -11,7 +11,7 @@ public class SearchHandler {
 		lastSearchCommand_ = null;
 	}
 	
-	public ArrayList<Task> proceedCommand(Command command) {
+	public ArrayList<Task> proceedCommand(Command command) throws Exception {
 		if (command.getCommandType() == Command.COMMAND_TYPE.SEARCH) {
 			return search(command);
 		} else if (command.getCommandType() == Command.COMMAND_TYPE.LIST) {
@@ -21,7 +21,7 @@ public class SearchHandler {
 		}
 	}
 
-	public ArrayList<Task> search(Command command) {
+	public ArrayList<Task> search(Command command) throws Exception {
 		lastSearchCommand_ = command;
 		
 		ArrayList<String> keywords = command.getSearchKeywords();
@@ -37,7 +37,7 @@ public class SearchHandler {
 		return storage_.search(keywords, tags, start_date, end_date);		
 	}
 	
-	public ArrayList<Task> list(Command command) {
+	public ArrayList<Task> list(Command command) throws Exception {
 		lastSearchCommand_ = command;
 		
 		ArrayList<String> keywords = new ArrayList<String>();
@@ -48,7 +48,7 @@ public class SearchHandler {
 		return storage_.search(keywords, tags, start_date, end_date);
 	}		
 	
-	public ArrayList<Task> repeatLastSearch() {
+	public ArrayList<Task> repeatLastSearch() throws Exception {
 		if (lastSearchCommand_ == null) {
 			return viewDefault();
 		} else {
@@ -56,7 +56,7 @@ public class SearchHandler {
 		}
 	}
 	
-	public ArrayList<Task> viewDefault() {
+	public ArrayList<Task> viewDefault() throws Exception {
 		
 		ArrayList<Task> searchResults = new ArrayList<Task>();
 		searchResults.addAll(storage_.search(null,null,null,null));

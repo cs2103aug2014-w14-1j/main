@@ -21,7 +21,7 @@ import com.google.gson.Gson;
  * When modifying a Task object, it is important to delete it from the Storage first before editing it,
  * then insert it back. This is to ensure the Task is kept in the right list.
  * 
- * Exceptions thrown by the Storage: IOException, JSONException
+ * Exceptions thrown by the Storage: IOException
  */
 
 public class Storage {
@@ -61,8 +61,8 @@ public class Storage {
 	 * If it was an existing task, it should have been deleted beforehand
 	 */
 	
-	public void insert(Task task) throws JSONException, IOException {
-		
+	public void insert(Task task) throws IOException {
+		checkForOverdueTasks();
 		if (task.hasNoID()) {								//for new tasks with no ID
 			assignID(task);
 		}
@@ -147,7 +147,7 @@ public class Storage {
 	 * same ID if the deleted task is recurring
 	 */
 	public void delete(Task task) throws IOException {
-		
+		checkForOverdueTasks();
 		delete(task, retrieveTaskList(task));
 		if (task.isRecur()) {
 			deleteRecurChain(task);
@@ -234,7 +234,9 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
+	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) 
+			throws IOException {
+		checkForOverdueTasks();
 		if (end_date!=null && start_date != null) {
 			if (end_date.before(start_date)) {
 				Calendar temp = start_date;
@@ -446,8 +448,8 @@ public class Storage {
 		// Interfaces with the textFiles(databases)*************************
 
 		private void readFile(PriorityQueue<Task> filelist) throws IOException {
-			String fileName = determineFileName(filelist);
-			File file = new File(fileName);
+			String filename = determineFileName(filelist);
+			File file = new File(filename);
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -463,10 +465,14 @@ public class Storage {
 		}
 		
 		private void writeFile(PriorityQueue<Task> fileToWrite)
-				throws FileNotFoundException {
+				throws IOException {
 			String filename = determineFileName(fileToWrite);
+			File file = new File(filename);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
 			// Start writing
-			printWriter = new PrintWriter(new FileOutputStream(filename));
+			printWriter = new PrintWriter(new FileOutputStream(file));
 			Gson gson = new Gson();
 			for (Task task : fileToWrite) {
 				String write = gson.toJson(task);

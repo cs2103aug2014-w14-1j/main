@@ -90,7 +90,7 @@ public class MainController extends Application implements UIObserver {
 	}
 
 	//view all
-	private void viewAll() {
+	private void viewAll() throws Exception {
 		searchResults_ = new ArrayList<Task>();
 		searchResults_.addAll(storage_.search(null, null, null, null));
 		
