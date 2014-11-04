@@ -57,6 +57,7 @@ public class DateParser {
 	private final String NEXT = "next";
 	private final String PREVIOUS = "previous|last";
 	private final String WHICH_DAY = "(?:("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+)?"+DAY_NAMES;
+	private final String WHICH_PERIOD = "("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+"+DATE_PERIOD;
 
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
@@ -114,7 +115,8 @@ public class DateParser {
 		TODAY+"|"+
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
-		WHICH_DAY+")";
+		WHICH_DAY+"|"+
+		WHICH_PERIOD+")";
 
 	private final String FROM = "from";
 	private final String PERIOD_AFTER_DATE = "(the|a|\\d+)\\s+"+DATE_PERIOD+"\\s+("+FROM+"|"+AFTER+"|"+BEFORE+")\\s+("+SIMPLE_DATE_FORMATS+")";
@@ -390,6 +392,8 @@ public class DateParser {
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
 		} else if (dateMatches(date, WHICH_DAY)) {
 			return matchWhichDay(date);
+		} else if (dateMatches(date, WHICH_PERIOD)) {
+			return matchWhichPeriod(date);
 		} else {
 			return null;
 		}
@@ -474,7 +478,7 @@ public class DateParser {
 
 	private Calendar matchWhichDay(String date) {
 		String[] parsedDate = dateMatch(date, WHICH_DAY);
-		Calendar now = (Calendar) Calendar.getInstance().clone();
+		Calendar now = Calendar.getInstance();
 		String whichDay = parsedDate[1];
 		int day = checkDay(parsedDate[2]);
 		if (whichDay == null) {
@@ -489,6 +493,32 @@ public class DateParser {
 		now.set(Calendar.DAY_OF_WEEK, day);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
+	}
+
+	private Calendar matchWhichPeriod(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_PERIOD);
+		Calendar cal = Calendar.getInstance();
+		String whichPeriod = parsedDate[1];
+		String period = parsedDate[2];
+		int addition = 0;
+		if (dateMatches(whichPeriod, NEXT)) {
+			addition = 1;
+		} else if (dateMatches(whichPeriod, PREVIOUS)) {
+			addition = -1;
+		}
+		if (dateMatches(period, DAY)) {
+			cal.add(Calendar.DAY_OF_YEAR, addition);
+		} else if (dateMatches(period, WEEK)) {
+			cal.add(Calendar.WEEK_OF_YEAR, addition);
+			cal.set(Calendar.DAY_OF_WEEK, cal.getActualMaximum(Calendar.DAY_OF_WEEK));
+		} else if (dateMatches(period, MONTH)) {
+			cal.add(Calendar.MONTH, addition);
+			cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+		} else if (dateMatches(period, YEAR)) {
+			cal.add(Calendar.YEAR, addition);
+			cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
+		}
+		return cal;
 	}
 
 	private int checkDay(String day) {
