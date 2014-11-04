@@ -182,6 +182,7 @@ public class MainController extends Application implements UIObserver {
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
 		repeatLastSearch();
+		UI_.setNotificationToUser("Welcome to SPEED!");
 	}
 	
 	//System Test****************************************************************************
