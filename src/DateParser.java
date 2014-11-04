@@ -486,24 +486,7 @@ public class DateParser {
 		}
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[2];
-		if (dateMatches(period, DAY)) {
-			cal.add(Calendar.DAY_OF_YEAR, periodLength);
-		} else if (dateMatches(period, WEEK)) {
-			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
-			if (isEndOfPeriod) {
-				cal.set(Calendar.DAY_OF_WEEK, cal.getActualMaximum(Calendar.DAY_OF_WEEK));
-			}
-		} else if (dateMatches(period, MONTH)) {
-			cal.add(Calendar.MONTH, periodLength);
-			if (isEndOfPeriod) {
-				cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-			}
-		} else if (dateMatches(period, YEAR)) {
-			cal.add(Calendar.YEAR, periodLength);
-			if (isEndOfPeriod) {
-				cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
-			}
-		}
+		parseDatePeriodAndSetDate(cal, isEndOfPeriod, periodLength, period);
 		return cal;
 	}
 
@@ -514,15 +497,7 @@ public class DateParser {
 		int periodLength = Integer.parseInt(parsedDate[2].trim());
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[3];
-		if (dateMatches(period, DAY)) {
-			now.add(Calendar.DAY_OF_YEAR, periodLength);
-		} else if (dateMatches(period, WEEK)) {
-			now.add(Calendar.WEEK_OF_YEAR, periodLength);
-		} else if (dateMatches(period, MONTH)) {
-			now.add(Calendar.MONTH, periodLength);
-		} else if (dateMatches(period, YEAR)) {
-			now.add(Calendar.YEAR, periodLength);
-		}
+		parseDatePeriodAndSetDate(now, false, periodLength, period);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
 	}
@@ -534,17 +509,30 @@ public class DateParser {
 		int periodLength = Integer.parseInt(parsedDate[1].trim());
 		periodLength = add ? periodLength : 0 - periodLength;
 		String period = parsedDate[2];
-		if (dateMatches(period, DAY)) {
-			now.add(Calendar.DAY_OF_YEAR, periodLength);
-		} else if (dateMatches(period, WEEK)) {
-			now.add(Calendar.WEEK_OF_YEAR, periodLength);
-		} else if (dateMatches(period, MONTH)) {
-			now.add(Calendar.MONTH, periodLength);
-		} else if (dateMatches(period, YEAR)) {
-			now.add(Calendar.YEAR, periodLength);
-		}
+		parseDatePeriodAndSetDate(now, false, periodLength, period);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
+	}
+
+	private void parseDatePeriodAndSetDate(Calendar cal, boolean isEndOfPeriod, int periodLength, String period) {
+		if (dateMatches(period, DAY)) {
+			cal.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
+		} else if (dateMatches(period, MONTH)) {
+			cal.add(Calendar.MONTH, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
+		} else if (dateMatches(period, YEAR)) {
+			cal.add(Calendar.YEAR, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
+		}
+	}
+
+	private void setEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
+		if (isEndOfPeriod) {
+			cal.set(period, cal.getActualMaximum(period));
+		}
 	}
 
 	private Calendar matchWhichDay(String date) {
