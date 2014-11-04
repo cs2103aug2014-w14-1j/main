@@ -4,8 +4,7 @@ import java.util.Calendar;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-
-
+//@author A0111660W
 public class UITest extends Application implements UIObserver {
 	private UI ui = new UI();
 		
@@ -40,7 +39,7 @@ public class UITest extends Application implements UIObserver {
 	public void update() {
 		String command = ui.getUserInput();
 		ArrayList<Task> displayTasks = new ArrayList<Task>();
-		if(command.equalsIgnoreCase("2"));
+		if(command.equalsIgnoreCase("test 2"));
 		for(int i = 0; i < 10; i ++ ){
 			Task t = new Task();
 			t.setId(i);
