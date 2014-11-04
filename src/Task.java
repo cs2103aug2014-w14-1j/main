@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 public class Task {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EE d-MMM-yy H:mm a");
+	private static final int RECUR_PATTERN_INVALID = -1;
+	private static final int RECUR_PERIOD_VALID_MINIMUM = 1;
 	
 	private Integer id;
 	private String taskName;
@@ -36,8 +38,8 @@ public class Task {
 	 * by provided setter methods
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, -1, -1, null,
-				new ArrayList<String>());
+		this(null, "", "", null, null, null, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM - 1,
+				null, new ArrayList<String>());
 	}
 
 	//private constructor
@@ -143,7 +145,7 @@ public class Task {
 	 * 
 	 * ASSUMPTION 2: For tasks with a single date, the start_date and end_date are the same.
 	 * 
-	 * ASSUMPTION 3: recur_pattern is an appropriate Calendar field.
+	 * ASSUMPTION 3: recur_pattern is either INVALID or an appropriate Calendar field.
 	 * 
 	 * ASSUMPTION 4: recur_period is not negative.
 	 */
@@ -176,7 +178,7 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public void setDates(Calendar startdate, Calendar enddate) {
-		setDates(startdate, enddate, -1, -1, null);
+		setDates(startdate, enddate, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM - 1, null);
 	}
 
 	/*
@@ -195,7 +197,7 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public void setDate(Calendar date) {
-		setDate(date, -1, -1, null);
+		setDate(date, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM, null);
 	}
 	
 	/*
@@ -255,12 +257,13 @@ public class Task {
 	/*
 	 * Checks whether this is a recurring task. Recurring tasks are classified as:
 	 * Appropriate pattern: (Default invalid: -1)
-	 * Appropriate period (>0)
+	 * Appropriate period (>=1)
 	 * Non-null start and end dates (not floating)
 	 */
 	public boolean isRecur() {
-		return this.recur_pattern != -1 && this.recur_period > 0 && this.start_date != null
-				&& this.end_date != null;
+		return this.recur_pattern != RECUR_PATTERN_INVALID &&
+				this.recur_period >= RECUR_PERIOD_VALID_MINIMUM &&
+				this.start_date != null && this.end_date != null;
 	}
 
 	/*
