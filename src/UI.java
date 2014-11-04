@@ -576,6 +576,9 @@ public class UI extends FlowPane {
 	}
 
 	private void doTaskTableDelete() {
+		if(taskUserSelected == null){
+			return;
+		}
 		userCommands.setText("delete " + taskUserSelected.getDisplayId());
 		notifyObservers();
 	}
