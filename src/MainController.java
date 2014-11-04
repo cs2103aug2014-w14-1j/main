@@ -92,29 +92,14 @@ public class MainController extends Application implements UIObserver {
 	
 	private void createTaskIDmap() {
 		taskIDmap_ = new TreeMap<String, Task>();
-		int f = 1;
-		int o = 1;
-		int t = 1;
+		int id_number = 1;
 
 		for (int i = 0; i < searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
-			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				o++;
-			} else if (c.equals("t")) {
-				String key = c + Integer.toString(t);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				t++;
-			} else {
-				String key = c + Integer.toString(f);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				f++;
-			}
+			String key = getChar(task) + Integer.toString(id_number);
+			taskIDmap_.put(key, task);
+			task.setDisplayId(key);
+			id_number++;
 		}
 	}
 
