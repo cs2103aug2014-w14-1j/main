@@ -110,13 +110,10 @@ public class LogicHandler {
 		ArrayList<String> allIDs = new ArrayList<String>();
 		
 		for (String id: ids) {
-			if (isNumeric(id)) {
-				allIDs.add("T" + id);
-				allIDs.add("F" + id);
-				allIDs.add("O" + id);
-			} else {
-				allIDs.add(id.toUpperCase());
-			}
+			allIDs.add("T" + id);
+			allIDs.add("F" + id);
+			allIDs.add("O" + id);
+			allIDs.add(id.toUpperCase());
 		}
 		
 		ArrayList<Task> tasks = new ArrayList<Task>();
@@ -199,13 +196,10 @@ public class LogicHandler {
 		ArrayList<String> allIDs = new ArrayList<String>();
 		
 		for (String id: ids) {
-			if (isNumeric(id)) {
-				allIDs.add("T" + id);
-				allIDs.add("F" + id);
-				allIDs.add("O" + id);
-			} else {
-				allIDs.add(id.toUpperCase());
-			}
+			allIDs.add("T" + id);
+			allIDs.add("F" + id);
+			allIDs.add("O" + id);
+			allIDs.add(id.toUpperCase());
 		}
 		
 		for (String id: allIDs ) {
@@ -283,13 +277,5 @@ public class LogicHandler {
 		for (Task task: oldTasks) {
 			storage_.insert(task);
 		}	
-	}
-	
-	private static boolean isNumeric(String str)
-	{
-	  NumberFormat formatter = NumberFormat.getInstance();
-	  ParsePosition pos = new ParsePosition(0);
-	  formatter.parse(str, pos);
-	  return str.length() == pos.getIndex();
 	}
 }
