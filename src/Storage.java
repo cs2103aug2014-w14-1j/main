@@ -1,3 +1,4 @@
+//@author A0097299E
 import java.util.*;
 import java.io.*;
 
@@ -47,7 +48,7 @@ public class Storage {
 		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
 		id_counter = updateIndex();
-		updateRecurringTasks();
+		//updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -276,8 +277,8 @@ public class Storage {
 		clear(al_task_floating);
 		clear(al_task_overdue);
 		clear(al_task_completed);
-		id_counter = 0;
 		save();
+		id_counter = 0;			//after save, in case there is an IOException
 	}
 	
 	private void clear(PriorityQueue<Task> tasklist) {
@@ -415,6 +416,7 @@ public class Storage {
 		return latest_id;
 	}
 	
+	//@author A0111660W
 	//File Operations********************************************************
 	
 	/*

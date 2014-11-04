@@ -32,25 +32,6 @@ public class MainController extends Application implements UIObserver {
 	private LogicHandler logic_;
 	private SearchHandler searcher_;
 	
-	//Test variables********************************************************
-	
-	private static final String TEST_TASK_FILENAME = "systestt.txt";
-	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
-	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
-	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
-	
-	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
-	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
-	
-	private static final int TEST_SEARCH_LIMIT = 30;
-	
-	private ArrayList<Task> t_searchResults;
-	private Parser t_parser;
-	private TreeMap<String, Task> t_taskIDmap;
-	private Storage t_storage;
-	private LogicHandler t_logic;
-	private SearchHandler t_searcher;
-	
 	//Methods**************************************************************
 
 	public void proceedCommand(Command command) throws Exception {
@@ -146,8 +127,40 @@ public class MainController extends Application implements UIObserver {
 		display("Welcome to SPEED!");
 	}
 	
+	//@author A0097299E
 	//System Test****************************************************************************
 	
+	//Test variables********************************************************
+	//placed below for the ease of collating
+	
+	private static final String TEST_TASK_FILENAME = "systestt.txt";
+	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
+	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
+	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
+	
+	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
+	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
+	
+	private static final int TEST_SEARCH_LIMIT = 30;
+	
+	private ArrayList<Task> t_searchResults;
+	private Parser t_parser;
+	private TreeMap<String, Task> t_taskIDmap;
+	private Storage t_storage;
+	private LogicHandler t_logic;
+	private SearchHandler t_searcher;
+	
+	/*
+	 * Runs a system test by initialising test variables and running a series of commands
+	 * from an input file. After that checks the displayed tasks' tasknames against an
+	 * expected output file. A message stating success or failure (where it failed) is returned.
+	 * 
+	 * Limitations of the test: Only checks the task name. Does not check the display index
+	 * and date because of time sensitivity. Also does not check the UI
+	 * 
+	 * WARNING: Due to time sensitivity, the test file must be changed regularly. E.g. some
+	 * months have 5 weeks
+	 */
 	private String runSystemTest() {
 		try {
 			t_parser = new Parser();
@@ -193,6 +206,7 @@ public class MainController extends Application implements UIObserver {
 			}
 					
 			//delete the created test files
+			t_storage.clearAll();
 			File t_file = new File(TEST_TASK_FILENAME);
 			t_file.delete();
 			t_file = new File(TEST_FLOATING_TASK_FILENAME);
@@ -203,7 +217,6 @@ public class MainController extends Application implements UIObserver {
 			t_file.delete();
 			t_reader.close();
 			e_reader.close();
-			t_storage.clearAll();
 			return "Tests successful!";
 		}
 		catch (Exception e) {
@@ -219,29 +232,14 @@ public class MainController extends Application implements UIObserver {
 	
 	private void createTestTaskIDmap() {
 		t_taskIDmap = new TreeMap<String, Task>();
-		int f = 1;
-		int o = 1;
-		int t = 1;
+		int index_number = 1;
 
 		for (int i = 0; i < t_searchResults.size(); i++) {
 			Task task = t_searchResults.get(i);
-			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				o++;
-			} else if (c.equals("t")) {
-				String key = c + Integer.toString(t);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				t++;
-			} else {
-				String key = c + Integer.toString(f);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				f++;
-			}
+			String key = getChar(task) + Integer.toString(index_number);
+			t_taskIDmap.put(key, task);
+			task.setDisplayId(key);
+			index_number++;
 		}
 	}
 
