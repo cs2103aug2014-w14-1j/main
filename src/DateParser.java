@@ -86,7 +86,7 @@ public class DateParser {
 	private final String MMDDYY =  MM + DD + YY;
 
 	private final String DD_MM = D + DATE_CONNECTOR + M;
-	private final String DD_MMM = D + ORDINALS + DATE_CONNECTOR + MMM;
+	private final String DD_MMM = D + ORDINALS + "(?:" + DATE_CONNECTOR + "|" + "\\s+of\\s+)" + MMM;
 
 	private final String MM_DD = M + DATE_CONNECTOR + D;
 	private final String MMM_DD =  MMM + DATE_CONNECTOR + D + ORDINALS;
