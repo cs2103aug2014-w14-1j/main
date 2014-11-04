@@ -1,3 +1,4 @@
+//@author A0111660W
 import java.util.ArrayList;
 
 import javafx.collections.ListChangeListener;
@@ -27,7 +28,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
-//@author A0111660W
+
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
 
@@ -657,6 +658,7 @@ public class UI extends FlowPane {
 
 }
 
+//@author A0111660W
 class TaskLblColTableCell extends TableCell<Task, String> {
 	// CSS
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
