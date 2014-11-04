@@ -137,15 +137,15 @@ public class ParserTest {
 		assertEquals(expectedDate.get(Calendar.YEAR), actualStartDate.get(Calendar.YEAR));
 		assertEquals(expectedDate.get(Calendar.MONTH), actualStartDate.get(Calendar.MONTH));
 		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualStartDate.get(Calendar.DAY_OF_MONTH));
-//		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
-//		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
-//		assertEquals(0, actualStartDate.get(Calendar.SECOND));
+		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
+		assertEquals(0, actualStartDate.get(Calendar.SECOND));
 		assertEquals(expectedDate.get(Calendar.YEAR), actualEndDate.get(Calendar.YEAR));
 		assertEquals(expectedDate.get(Calendar.MONTH), actualEndDate.get(Calendar.MONTH));
 		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH)+2, actualEndDate.get(Calendar.DAY_OF_MONTH));
-//		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
-//		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
-//		assertEquals(59, actualEndDate.get(Calendar.SECOND));
+		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
+		assertEquals(59, actualEndDate.get(Calendar.SECOND));
 	}
 
 	@Test

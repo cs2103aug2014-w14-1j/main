@@ -127,6 +127,7 @@ public class DateTimeRegexHandler {
 	protected final String MM_DD = M + DATE_CONNECTOR + D;
 	protected final String MMM_DD =  MMM + DATE_CONNECTOR + D + ORDINALS;
 
+	protected final String NOW = "now";
 	protected final String TODAY = "today";
 	protected final String TOMORROW = "tomorrow|tmr|tmrw|tml";
 	protected final String YESTERDAY = "yesterday|yda|yta|ytd";
@@ -151,6 +152,7 @@ public class DateTimeRegexHandler {
 		DD_MMM+"|"+
 		MM_DD+"|"+
 		MMM_DD+"|"+
+		NOW+"|"+
 		TODAY+"|"+
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
