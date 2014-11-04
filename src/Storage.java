@@ -276,6 +276,7 @@ public class Storage {
 		clear(al_task_floating);
 		clear(al_task_overdue);
 		clear(al_task_completed);
+		id_counter = 0;
 		save();
 	}
 	

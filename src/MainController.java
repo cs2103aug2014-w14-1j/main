@@ -42,6 +42,8 @@ public class MainController extends Application implements UIObserver {
 	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
 	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
 	
+	private static final int TEST_SEARCH_LIMIT = 30;
+	
 	private ArrayList<Task> t_searchResults;
 	private Parser t_parser;
 	private TreeMap<String, Task> t_taskIDmap;
@@ -151,6 +153,7 @@ public class MainController extends Application implements UIObserver {
 			t_parser = new Parser();
 			t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
 					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
+			t_storage.clearAll();
 			t_logic = new LogicHandler(t_storage);
 			t_searcher = new SearchHandler(t_storage);
 			
@@ -159,12 +162,17 @@ public class MainController extends Application implements UIObserver {
 			createTestTaskIDmap();
 			
 			BufferedReader t_reader = new BufferedReader(new FileReader(new File(TEST_INPUT_FILENAME)));
+			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
+			
 			String input = null;
+			int line = 0;
 			while ((input = t_reader.readLine()) != null) {
+				line++;
 				Command t_command = t_parser.parseCommand(input);
 				assert t_command.getCommandType() != Command.COMMAND_TYPE.TEST;
 				if (isLogic(t_command)) {
-					t_logic.executeCommand(t_taskIDmap, t_command);
+					String msg = t_logic.executeCommand(t_taskIDmap, t_command);
+					//testOneLine(msg, e_reader.readLine());
 					t_searchResults = t_searcher.repeatLastSearch();
 					createTestTaskIDmap();
 				}
@@ -172,71 +180,26 @@ public class MainController extends Application implements UIObserver {
 					t_searchResults = t_searcher.proceedCommand(t_command);
 					createTestTaskIDmap();
 				}
+				int search_limit;
+				if (t_searchResults.size() < TEST_SEARCH_LIMIT) {
+					search_limit = t_searchResults.size();
+				}
+				else {
+					search_limit = TEST_SEARCH_LIMIT;
+				}
+				for (int i = 0; i < search_limit; i++) {
+					testOneLine(t_searchResults.get(i).getTaskName(), e_reader.readLine(), line);
+				}
 			}
-			
-			t_reader.close();
-			
-			//check output
-			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
-			
+					
+			//delete the created test files
 			File t_file = new File(TEST_TASK_FILENAME);
-			t_reader = new BufferedReader(new FileReader(t_file));
-			try {
-				testFile(t_reader, e_reader);
-			}
-			catch (Exception e) {
-				t_reader.close();
-				e_reader.close();
-				t_storage.clearAll();
-				t_file.delete();
-				return e.getMessage();
-			}
 			t_file.delete();
-			t_reader.close();
-			
 			t_file = new File(TEST_FLOATING_TASK_FILENAME);
-			t_reader = new BufferedReader(new FileReader(t_file));
-			try {
-				testFile(t_reader, e_reader);
-			}
-			catch (Exception e) {
-				t_reader.close();
-				e_reader.close();
-				t_storage.clearAll();
-				t_file.delete();
-				return e.getMessage();
-			}
 			t_file.delete();
-			t_reader.close();
-			
 			t_file = new File(TEST_OVERDUE_TASK_FILENAME);
-			t_reader = new BufferedReader(new FileReader(t_file));
-			try {
-				
-				testFile(t_reader, e_reader);
-			}
-			catch (Exception e) {
-				t_reader.close();
-				e_reader.close();
-				t_storage.clearAll();
-				t_file.delete();
-				return e.getMessage();
-			}
 			t_file.delete();
-			t_reader.close();
-			
 			t_file = new File(TEST_COMPLETED_TASK_FILENAME);
-			t_reader = new BufferedReader(new FileReader(t_file));
-			try {
-				testFile(t_reader, e_reader);
-			}
-			catch (Exception e) {
-				t_reader.close();
-				e_reader.close();
-				t_storage.clearAll();
-				t_file.delete();
-				return e.getMessage();
-			}
 			t_file.delete();
 			t_reader.close();
 			e_reader.close();
@@ -248,16 +211,9 @@ public class MainController extends Application implements UIObserver {
 		}
 	}
 	
-	private void testFile(BufferedReader t_reader, BufferedReader e_reader) throws Exception {
-		String input;
-		while ((input = t_reader.readLine()) != null) {
-			testOneLine(input, e_reader.readLine());
-		}
-	}
-	
-	private void testOneLine(String actual, String expected) throws Exception {
+	private void testOneLine(String actual, String expected, int i) throws Exception {
 		if (!actual.equals(expected)) {
-			throw new Exception("MISMATCH: " + actual + " - " + expected);
+			throw new Exception("MISMATCH: Line " + i + " " + actual + " " + expected);
 		}
 	}
 	

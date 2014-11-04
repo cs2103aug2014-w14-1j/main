@@ -16,7 +16,7 @@ FLOATTAG @tag
 NORMALTAG @tag 1 dec 2015
 delete F3
 undo
-remove O1
+delete O1
 undo
 redo
 destroy t7
@@ -33,7 +33,7 @@ modify T6 RECURYEAREDIT 2 Oct 2015 yearly
 search RECUR
 complete T1
 find normal
-done T3
+done 3
 search @tag
 completed f1
 search from 1 Nov 2014 to 1 Oct 2015
