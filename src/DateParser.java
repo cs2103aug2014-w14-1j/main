@@ -208,6 +208,21 @@ public class DateParser extends DateTimeRegexHandler {
 		return now;
 	}
 
+	private Calendar matchWhichPeriod(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_PERIOD);
+		Calendar cal = Calendar.getInstance();
+		String whichPeriod = parsedDate[1];
+		String period = parsedDate[2];
+		int addition = 0;
+		if (dateMatches(whichPeriod, NEXT)) {
+			addition = 1;
+		} else if (dateMatches(whichPeriod, PREVIOUS)) {
+			addition = -1;
+		}
+		parseDatePeriodAndSetDate(cal, true, addition, period);
+		return cal;
+	}
+
 	private void parseDatePeriodAndSetDate(Calendar cal, boolean isEndOfPeriod, int periodLength, String period) {
 		if (dateMatches(period, DAY)) {
 			cal.add(Calendar.DAY_OF_YEAR, periodLength);
@@ -246,32 +261,6 @@ public class DateParser extends DateTimeRegexHandler {
 		now.set(Calendar.DAY_OF_WEEK, day);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;
-	}
-
-	private Calendar matchWhichPeriod(String date) {
-		String[] parsedDate = dateMatch(date, WHICH_PERIOD);
-		Calendar cal = Calendar.getInstance();
-		String whichPeriod = parsedDate[1];
-		String period = parsedDate[2];
-		int addition = 0;
-		if (dateMatches(whichPeriod, NEXT)) {
-			addition = 1;
-		} else if (dateMatches(whichPeriod, PREVIOUS)) {
-			addition = -1;
-		}
-		if (dateMatches(period, DAY)) {
-			cal.add(Calendar.DAY_OF_YEAR, addition);
-		} else if (dateMatches(period, WEEK)) {
-			cal.add(Calendar.WEEK_OF_YEAR, addition);
-			cal.set(Calendar.DAY_OF_WEEK, cal.getActualMaximum(Calendar.DAY_OF_WEEK));
-		} else if (dateMatches(period, MONTH)) {
-			cal.add(Calendar.MONTH, addition);
-			cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
-		} else if (dateMatches(period, YEAR)) {
-			cal.add(Calendar.YEAR, addition);
-			cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
-		}
-		return cal;
 	}
 
 	private int checkDay(String day) {
