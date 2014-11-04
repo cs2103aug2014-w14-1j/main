@@ -5,15 +5,17 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	/**
 	 * Regex for parsing datetime in command
 	 */
-	private final String SIMPLE_FROM_TO = "(?:"+
+	private final String SIMPLE_FROM_TO = "(?:(?:from\\s+)?"+
 		DATE_FORMATS+"(?:,?\\s+)("+TIME_RANGE_12+"|"+TIME_RANGE_24+")"+"|"+
-		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+")(?:,?\\s+)"+DATE_FORMATS+")";
+		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+")(?:,?\\s+)"+DATE_FORMATS+"|"+
+		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+"))";
 	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
 	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
-	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	private final String RECUR = "(?:recurs?\\s+)?(?:every\\s*?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
+	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
 
 	private DateParser dateParser = new DateParser();
 	private String input;
@@ -25,6 +27,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 		if (dateMatches(input, SIMPLE_FROM_TO)) {
 			String match = dateMatch(input, SIMPLE_FROM_TO)[0];
 			Calendar startDate = dateParser.parseDate(match);
+			startDate = startDate == null ? Calendar.getInstance() : startDate;
 			Calendar endDate = (Calendar) startDate.clone();
 			parseSimpleFromToDateRange(match, startDate, endDate);
 			switch (type) {
@@ -40,6 +43,11 @@ public class DateTimeParser extends DateTimeRegexHandler{
 					commandObj.setSearchEndDate(endDate);
 					break;
 			}
+			if (dateMatches(input, RECUR_DAY)) {
+				String[] recurMatch = dateMatch(input, RECUR_DAY);
+				output = output.replaceFirst(recurMatch[2], "");
+			}
+			parseRecur(commandObj);
 			output = output.replaceFirst(match, "");
 		} else if (dateMatches(input, FROM_TO)) {
 			String match = dateMatch(input, FROM_TO)[0];
@@ -88,8 +96,12 @@ public class DateTimeParser extends DateTimeRegexHandler{
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
-				output = output.replaceFirst(dates[0], "");
+				if (dateMatches(input, RECUR_DAY)) {
+					String[] recurMatch = dateMatch(input, RECUR_DAY);
+					output = output.replaceFirst(recurMatch[2], "");
+				}
 				parseRecur(commandObj);
+				output = output.replaceFirst(dates[0], "");
 			}
 		}
 		return output.replaceAll("\"", "");
@@ -187,7 +199,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 		int recurPattern = -1;
 		if (dateMatches(pattern, DAY) || dateMatches(pattern, DAILY)) {
 			recurPattern = Calendar.DAY_OF_YEAR;
-		} else if (dateMatches(pattern, WEEK) || dateMatches(pattern, WEEKLY)) {
+		} else if (dateMatches(pattern, WEEK) || dateMatches(pattern, WEEKLY) || dateMatches(pattern, DAY_NAMES)) {
 			recurPattern = Calendar.WEEK_OF_YEAR;
 		} else if (dateMatches(pattern, MONTH) || dateMatches(pattern, MONTHLY)) {
 			recurPattern = Calendar.MONTH;
