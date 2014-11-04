@@ -27,6 +27,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
+//@author A0111660W
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
 
