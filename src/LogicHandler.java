@@ -30,7 +30,11 @@ public class LogicHandler {
 	private Storage storage_;
 	private Stack<SimpleCommand> histories_;
 	private Stack<SimpleCommand> future_;
-
+	private final String ERROR_NO_NAME = "Cannot add a task with no description.";
+	private final String ERROR_NO_CHANGE = "No change was made.";
+	private final String ERROR_INVALID_ID = "Invalid id to update";
+	private final String ERROR_INVALID_IDS = "All ids are invalid";
+	
 	public LogicHandler(Storage storage) {
 		storage_ = storage;
 		histories_ = new Stack<SimpleCommand>();
@@ -73,9 +77,11 @@ public class LogicHandler {
 	
 	private String executeAdd(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
 		
-		if (command.getTaskName().equals("")) {
-			throw new Exception("Can not add a task with no descriptions");
-		}
+		String taskName = command.getTaskName();
+		
+		if (taskName == null) {
+			return ERROR_NO_NAME;
+		} 
 		
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
@@ -141,34 +147,45 @@ public class LogicHandler {
 	}
 	
 	private String executeUpdate(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+		
 		String id = command.getTaskID();
 		id = id.toUpperCase();
 		
 		if (!taskIDmap.containsKey(id)) {
-			return "Invalid index to update.";
+			return ERROR_INVALID_ID;
 		} 
 		
 		Task oldTask = taskIDmap.get(id);
 		Task newTask = oldTask.clone();
+		
+		boolean unchanged = true;
 
 		if (!command.getTaskName().equals("")) {
 			newTask.setTaskName(command.getTaskName());
+			unchanged = false;
 		}
 
 		if (command.getTaskEndDate()!=null) {
 			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
+			unchanged = false;
 		}
 		
 		if (command.getTaskTagsToAdd()!=null) {
 			for (String tag : command.getTaskTagsToAdd()) {
 				newTask.addTag(tag);
 			}
+			unchanged = false;
 		}
 		
 		if (command.getTaskTagsToRemove()!=null) {
 			for (String tag : command.getTaskTagsToRemove()) {
 				newTask.removeTag(tag);
 			}
+			unchanged = false;
+		}
+		
+		if (unchanged) {
+			return ERROR_NO_CHANGE;
 		}
 		
 		ArrayList<Task> oldTasks = new ArrayList<Task> ();
@@ -210,7 +227,7 @@ public class LogicHandler {
 		}
 
 		if (oldTasks.isEmpty()) {
-			return "All ids are invalid";
+			return ERROR_INVALID_IDS;
 		} else {
 			ArrayList<Task> newTasks = new ArrayList<Task> ();
 			
