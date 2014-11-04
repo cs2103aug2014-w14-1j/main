@@ -315,9 +315,15 @@ public class DateParser {
 			return null;
 		} else {
 			currentDate = currentDate.replaceFirst(parsedDate[0], "");
-			int year = Calendar.getInstance().get(Calendar.YEAR);
-			int month = Integer.parseInt(parsedDate[2]) - 1;
+			Calendar now = Calendar.getInstance();
 			int day = Integer.parseInt(parsedDate[1]);
+			int month = Integer.parseInt(parsedDate[2]) - 1;
+			int year = now.get(Calendar.YEAR);
+			if (now.get(Calendar.MONTH) > month) {
+				year += 1;
+			} else if (now.get(Calendar.MONTH) == month && now.get(Calendar.DAY_OF_MONTH) > day) {
+				year += 1;
+			}
 			return new GregorianCalendar(year, month, day);
 		}
 	}
@@ -365,9 +371,15 @@ public class DateParser {
 			return null;
 		} else {
 			currentDate = currentDate.replaceFirst(parsedDate[0], "");
-			int year = Calendar.getInstance().get(Calendar.YEAR);
-			int month = Integer.parseInt(parsedDate[1]) - 1;
+			Calendar now = Calendar.getInstance();
 			int day = Integer.parseInt(parsedDate[2]);
+			int month = Integer.parseInt(parsedDate[1]) - 1;
+			int year = now.get(Calendar.YEAR);
+			if (now.get(Calendar.MONTH) > month) {
+				year += 1;
+			} else if (now.get(Calendar.MONTH) == month && now.get(Calendar.DAY_OF_MONTH) > day) {
+				year += 1;
+			}
 			return new GregorianCalendar(year, month, day);
 		}
 	}
