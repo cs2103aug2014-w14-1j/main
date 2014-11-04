@@ -88,15 +88,6 @@ public class MainController extends Application implements UIObserver {
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
-
-	//view all
-	private void viewAll() throws Exception {
-		searchResults_ = new ArrayList<Task>();
-		searchResults_.addAll(storage_.search(null, null, null, null));
-		
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
 	
 	private void createTaskIDmap() {
 		taskIDmap_ = new TreeMap<String, Task>();
@@ -190,7 +181,7 @@ public class MainController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewAll();
+		repeatLastSearch();
 	}
 	
 	//System Test****************************************************************************
