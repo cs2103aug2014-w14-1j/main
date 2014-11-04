@@ -8,7 +8,7 @@ import static org.mentaregex.Regex.matches;
 
 public class Parser {
 
-	DateParser dateParser = new DateParser();
+	DateTimeParser dateTimeParser = new DateTimeParser();
 
 	private String command;
 	private Command commandObj;
@@ -171,7 +171,7 @@ public class Parser {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
 		commandDetails = removeTaskTagsAddition(commandDetails);
-		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
 
@@ -184,7 +184,7 @@ public class Parser {
 		commandDetails = removeTaskTagsRemoval(commandDetails);
 		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
 		commandDetails = removeTaskTagsAddition(commandDetails);
-		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 		commandObj.setTaskName(parseTaskName(commandDetails));
 	}
 
@@ -195,14 +195,14 @@ public class Parser {
 
 	private void generateListCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
-		dateParser.parseCommand(commandDetails, commandType, commandObj);
+		dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 	}
 
 	private void generateSearchCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
 		commandDetails = removeTaskTagsAddition(commandDetails);
-		commandDetails = dateParser.parseCommand(commandDetails, commandType, commandObj);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 		String[] array = commandDetails.trim().split("\\s+");
 		ArrayList<String> keywords = new ArrayList<String>();
 		for (String keyword : array) {
