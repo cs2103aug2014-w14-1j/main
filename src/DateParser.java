@@ -6,6 +6,9 @@ import static org.mentaregex.Regex.matches;
 
 public class DateParser {
 
+	/**
+	 * Regex for month names
+	 */
 	private final String JAN = "Jan(?:uary)?";
 	private final String FEB = "Feb(?:ruary)?";
 	private final String MAR = "Mar(?:ch)?";
@@ -19,6 +22,9 @@ public class DateParser {
 	private final String NOV = "Nov(?:ember)?";
 	private final String DEC = "Dec(?:ember)?";
 
+	/**
+	 * Regex for datetime measurements
+	 */
 	private final String SECOND = "seconds?";
 	private final String MINUTE = "minutes?";
 	private final String HOUR = "hours?";
@@ -29,11 +35,17 @@ public class DateParser {
 	private final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String TIME_PERIOD = "("+SECOND+"|"+MINUTE+"|"+HOUR+")";
 
+	/**
+	 * Regex for recurrence in natural language
+ 	 */
 	private final String DAILY = "daily";
 	private final String WEEKLY = "weekly";
 	private final String MONTHLY = "monthly";
 	private final String YEARLY = "yearly|annually";
 
+	/**
+	 * Regex for days in week
+	 */
 	private final String MON = "mon(?:day)?";
 	private final String TUE = "tues|tue(?:sday)?";
 	private final String WED = "wed(?:nesday)?";
@@ -43,22 +55,42 @@ public class DateParser {
 	private final String SUN = "sun(?:day)?";
 	private final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+")";
 
+	/**
+	 * Regex for natural language such as
+	 * after 3 hours
+	 * before 1 month
+	 * 3 years time
+	 */
 	private final String AFTER = "after";
 	private final String BEFORE = "before";
 	private final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
 	private final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
 
+	/**
+	 * Regex for natural language such as
+	 * 5 minutes later
+	 * 3 years ago
+	 */
 	private final String LATER = "later";
 	private final String EARLIER = "earlier|ago";
 	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+DATE_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+TIME_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 
+	/**
+	 * Regex for natural language such as
+	 * this monday
+	 * next wed
+	 * last week
+	 */
 	private final String THIS = "this";
 	private final String NEXT = "next";
 	private final String PREVIOUS = "previous|last";
 	private final String WHICH_DAY = "(?:("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+)?"+DAY_NAMES;
 	private final String WHICH_PERIOD = "("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+"+DATE_PERIOD;
 
+	/**
+	 * Regex for broken down datetime formats
+	 */
 	private final String DATE_CONNECTOR = "[- /.]";
 	private final String ORDINALS = "(?:st|nd|rd|th)?";
 	private final String YY = "(\\d\\d)";
@@ -70,7 +102,12 @@ public class DateParser {
 	private final String D = "(0?[1-9]|[12][0-9]|3[01])";
 	private final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(pm|am)";
 	private final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
+	private final String PM = "pm";
+	private final String AM = "am";
 
+	/**
+	 * Regex for common date formats
+	 */
 	private final String DD_MM_YYYY = D + DATE_CONNECTOR + M + DATE_CONNECTOR + YYYY;
 	private final String DD_MMM_YYYY = D + ORDINALS + DATE_CONNECTOR + MMM + DATE_CONNECTOR + YYYY;
 	private final String DDMMYYYY = DD + MM + YYYY;
@@ -95,6 +132,9 @@ public class DateParser {
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
 	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
+	/**
+	 * Regex for combination of all common date formats
+	 */
 	private final String SIMPLE_DATE_FORMATS = "(?:"+
 		DD_MM_YYYY+"|"+
 		DD_MMM_YYYY+"|"+
@@ -118,35 +158,52 @@ public class DateParser {
 		WHICH_DAY+"|"+
 		WHICH_PERIOD+")";
 
+	/**
+	 * Regex for natural language such as
+	 * the day after tmr
+	 * a week from today
+	 */
 	private final String FROM = "from";
 	private final String PERIOD_AFTER_DATE = "(the|a|\\d+)\\s+"+DATE_PERIOD+"\\s+("+FROM+"|"+AFTER+"|"+BEFORE+")\\s+("+SIMPLE_DATE_FORMATS+")";
 
+	/**
+	 * Regex for all date formats
+	 */
 	private final String DATE_FORMATS = "(?:" +
 		PERIOD_AFTER_DATE+"|"+
 		DATE_PERIOD_LATER_EARLIER+"|"+
 		AFTER_BEFORE_DATE_PERIOD+"|"+
 		SIMPLE_DATE_FORMATS+")";
+
+	/**
+	 * Regex for all time formats
+	 */
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
 		TIME_24+"|"+
 		TIME_PERIOD_LATER_EARLIER+"|"+
 		AFTER_BEFORE_TIME_PERIOD+")";
+
+	/**
+	 * Regex for all datetime formats
+	 */
 	private final String DATETIME_FORMATS = "(?:"+
 		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
 		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
 		DATE_FORMATS+"|"+
 		TIME_FORMATS+")";
 
-	private final String CURRENT_CENTURY = "20";
-	private final String PM = "pm";
-	private final String AM = "am";
-
+	/**
+	 * Regex for parsing datetime in command
+	 */
 	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
 	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
+
+	private final String CURRENT_CENTURY = "20";
 
 	private String input;
 	private String output;
