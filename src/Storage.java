@@ -84,7 +84,7 @@ public class Storage {
 		task.setId(id_counter);
 	}
 
-	private void insert(Task task, PriorityQueue<Task> list) throws JSONException, IOException {
+	private void insert(Task task, PriorityQueue<Task> list) {
 		list.add(task);
 	}
 	
@@ -96,7 +96,7 @@ public class Storage {
 	 * This method should not be called for a non-recurring task. This means the task must have
 	 * non-null dates, appropriate recur pattern (Calendar field) and non-negative recur period
 	 */
-	private ArrayList<Task> generateRecurringTasks(Task task) throws IOException, JSONException {
+	private ArrayList<Task> generateRecurringTasks(Task task) {
 		assert task.isRecur();
 		
 		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
@@ -146,7 +146,8 @@ public class Storage {
 	 * same recur chain. This method will only check for other tasks with the
 	 * same ID if the deleted task is recurring
 	 */
-	public void delete(Task task) throws IOException{
+	public void delete(Task task) throws IOException {
+		
 		delete(task, retrieveTaskList(task));
 		if (task.isRecur()) {
 			deleteRecurChain(task);
@@ -154,11 +155,11 @@ public class Storage {
 		save();
 	}
 
-	private void delete(Task task, PriorityQueue<Task> list) throws IOException {
+	private void delete(Task task, PriorityQueue<Task> list) {
 		list.remove(task);
 	}
 	
-	private void deleteRecurChain(Task task) throws IOException {
+	private void deleteRecurChain(Task task) {
 		ArrayList<Task> recur_chain = searchTaskByID(task.getId());
 		for (Task other_task : recur_chain) {
 			delete(other_task, retrieveTaskList(other_task));
@@ -301,11 +302,14 @@ public class Storage {
 	 * Assumption 3: This is O(|tasklist.size|) timing, but in practice likely to be a small percentage
 	 * because user should not have so many overdue tasks, unless he/she didn't use the program for a long time
 	 */
-	private void checkForOverdueTasks() throws FileNotFoundException, IOException {
+	private void checkForOverdueTasks() throws IOException {
 		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
 		for (Task task : al_task) {
 			if (task.isOverdue()) {
 				now_overdue_tasks.add(task);
+			}
+			else {
+				break;						//assumes priority queue is always sorted correctly
 			}
 		}
 		al_task_overdue.addAll(now_overdue_tasks);
@@ -320,7 +324,7 @@ public class Storage {
 	 * 
 	 * NOT USED as of V0.4. Expensive operation that is of dubious value
 	 */
-	private void updateRecurringTasks() throws IOException, JSONException {
+	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
 			ArrayList<Task> searchlist = searchTaskByID(i);
 			if (!searchlist.isEmpty()) {
