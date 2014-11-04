@@ -31,6 +31,8 @@ public class TimeParser extends DateTimeRegexHandler {
 			t = parseTimePeriodLaterEarlier(time);
 		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
 			t = parseAfterBeforeTimePeriod(time);
+		} else if (dateMatches(time, NOW)) {
+			t = new Time();
 		}
 		return t;
 	}

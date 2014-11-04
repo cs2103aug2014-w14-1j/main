@@ -149,6 +149,8 @@ public class DateParser extends DateTimeRegexHandler {
 			return matchDatePeriodLaterEarlier(date);
 		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
 			return matchAfterBeforeDatePeriod(date);
+		} else if (dateMatches(date, NOW)) {
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
 		} else if (dateMatches(date, TODAY)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TODAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
