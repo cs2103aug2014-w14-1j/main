@@ -1,3 +1,4 @@
+//@author A0111660W
 import java.util.ArrayList;
 
 import javafx.collections.ListChangeListener;
@@ -27,7 +28,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
-//@author A0111660W
+
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
 
@@ -657,33 +658,58 @@ public class UI extends FlowPane {
 
 }
 
+//@author A0111660W
 class TaskLblColTableCell extends TableCell<Task, String> {
 	// CSS
 	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
 	private static final String CSS_NORMALTASKROW = "normalTaskRow";
-
+		
+	//Errors
+	private static final String ERROR_NO_OTHER_TASKTYPE = "There are no other task types!";
+		
+	//Program Variables
+	private static final String EMPTY_STRING = "";
+	private static final String INVALID = null;
+	private static final String FLOATING_TASK = "F";
+	private static final String OVERDUE_TASK = "O";
+	private static final String NORMAL_TASK = "T";
+	
 	@Override
 	protected void updateItem(final String item, final boolean empty) {
 		super.updateItem(item, empty);
 
-		setText(empty ? "" : item);
+		setText(empty ? EMPTY_STRING : item);
 		getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,
 				CSS_NORMALTASKROW);
-		updateStyles(empty ? null : item);
+		updateStyles(empty ? INVALID : item);
 	}
 
 	private void updateStyles(String item) {
-		if (item == null) {
+		if (item == INVALID) {
 			return;
 		}
 
-		if (item.contains("F")) {
+		if (isFloating(item)) {
 			getStyleClass().addAll(CSS_FLOATINGTASKROW);
-		} else if (item.contains("O")) {
+		} else if (isOverdue(item)) {
 			getStyleClass().add(CSS_OVERDUETASKROW);
-		} else if (item.contains("T")) {
+		} else if (isNormalTask(item)) {
 			getStyleClass().add(CSS_NORMALTASKROW);
+		} else{
+			throw new Error(ERROR_NO_OTHER_TASKTYPE);
 		}
+	}
+	
+	private boolean isFloating(String itemValue){
+		return itemValue.contains(FLOATING_TASK);
+	}
+	
+	private boolean isOverdue(String itemValue){
+		return itemValue.contains(OVERDUE_TASK);
+	}
+	
+	private boolean isNormalTask(String itemValue){
+		return itemValue.contains(NORMAL_TASK);
 	}
 }
