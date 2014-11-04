@@ -1,3 +1,5 @@
+//@author A0112059N
+
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.text.ParsePosition;
@@ -147,6 +149,7 @@ public class LogicHandler {
 	}
 	
 	private String executeUpdate(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+	
 		
 		String id = command.getTaskID();
 		id = id.toUpperCase();
@@ -160,7 +163,7 @@ public class LogicHandler {
 		
 		boolean unchanged = true;
 
-		if (!command.getTaskName().equals("")) {
+		if (command.getTaskName()!=null) {
 			newTask.setTaskName(command.getTaskName());
 			unchanged = false;
 		}
