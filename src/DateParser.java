@@ -14,7 +14,10 @@ public class DateParser extends DateTimeRegexHandler {
 		return timeParser.parse(currentDate, dateCal, default_hour, default_min, default_second);
 	}
 
-	private Calendar parseDate(String date) {
+	public Calendar parseDate(String date) {
+		if (currentDate == null) {
+			currentDate = date;
+		}
 		Calendar cal = matchNaturalLanguage(date);
 		cal = cal == null ? matchDayMonthYear(date) : cal;
 		cal = cal == null ? matchDayMonth(date) : cal;

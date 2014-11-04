@@ -97,10 +97,12 @@ public class DateTimeRegexHandler {
 	protected final String MMM = "("+JAN+"|"+FEB+"|"+MAR+"|"+APR+"|"+MAY+"|"+JUN+"|"+JUL+"|"+AUG+"|"+SEP+"|"+OCT+"|"+NOV+"|"+DEC+")";
 	protected final String DD = "(0[1-9]|[12][0-9]|3[01])";
 	protected final String D = "(0?[1-9]|[12][0-9]|3[01])";
-	protected final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(pm|am)";
-	protected final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
 	protected final String PM = "pm";
 	protected final String AM = "am";
+	protected final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(am|pm)";
+	protected final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
+	protected final String TIME_RANGE_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(am|pm)?(?:\\s+to\\s+|\\s*-\\s*)"+TIME_12;
+	protected final String TIME_RANGE_24 = TIME_24+"(?:\\s+to\\s+|\\s*-\\s*)"+TIME_24;
 
 	/**
 	 * Regex for common date formats
