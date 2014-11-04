@@ -189,7 +189,6 @@ public class MainController extends Application implements UIObserver {
 	
 	private String runSystemTest() {
 		try {
-			
 			t_parser = new Parser();
 			t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
 					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
@@ -216,34 +215,70 @@ public class MainController extends Application implements UIObserver {
 				}
 			}
 			
+			t_reader.close();
+			
 			//check output
 			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
 			
-			ArrayList<Task> tlist = t_storage.getTasksList();
-			ArrayList<Task> flist = t_storage.getFloatingTasksList();
-			ArrayList<Task> olist = t_storage.getOverdueTasksList();
-			ArrayList<Task> clist = t_storage.getCompletedTasksList();
-			
-			for (int i = 0; i < tlist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			File t_file = new File(TEST_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
 			}
-			
-			for (int i = 0; i < flist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
 			}
+			t_file.delete();
+			t_reader.close();
 			
-			for (int i = 0; i < olist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			t_file = new File(TEST_FLOATING_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
 			}
-			
-			for (int i = 0; i < clist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
 			}
+			t_file.delete();
+			t_reader.close();
 			
+			t_file = new File(TEST_OVERDUE_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				
+				testFile(t_reader, e_reader);
+			}
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
+			}
+			t_file.delete();
+			t_reader.close();
+			
+			t_file = new File(TEST_COMPLETED_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
+			}
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
+			}
+			t_file.delete();
 			t_reader.close();
 			e_reader.close();
 			t_storage.clearAll();
@@ -254,8 +289,15 @@ public class MainController extends Application implements UIObserver {
 		}
 	}
 	
-	private void test(String actual, String expected) throws Exception {
-		if (actual.equals(expected)) {
+	private void testFile(BufferedReader t_reader, BufferedReader e_reader) throws Exception {
+		String input;
+		while ((input = t_reader.readLine()) != null) {
+			testOneLine(input, e_reader.readLine());
+		}
+	}
+	
+	private void testOneLine(String actual, String expected) throws Exception {
+		if (!actual.equals(expected)) {
 			throw new Exception("MISMATCH: " + actual + " - " + expected);
 		}
 	}

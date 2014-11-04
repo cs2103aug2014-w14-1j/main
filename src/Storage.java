@@ -195,7 +195,6 @@ public class Storage {
 				searchResults.add(task);
 			}
 		}
-		
 		return searchResults;
 	}
 	
@@ -461,7 +460,7 @@ public class Storage {
 				Task task = gson.fromJson(line, Task.class);
 				filelist.add(task);
 			}
-
+			bufferedReader.close();
 		}
 		
 		private void writeFile(PriorityQueue<Task> fileToWrite)
