@@ -50,8 +50,8 @@ public class DateParser {
 
 	private final String LATER = "later";
 	private final String EARLIER = "earlier|ago";
-	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ DATE_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
-	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+ TIME_PERIOD +"\\s+("+LATER+"|"+EARLIER+")";
+	private final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+DATE_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
+	private final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+TIME_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 
 	private final String THIS = "this";
 	private final String NEXT = "next";
@@ -94,7 +94,7 @@ public class DateParser {
 	private final String TOMORROW = "tomorrow|tmr|tmrw|tml";
 	private final String YESTERDAY = "yesterday|yda|yta|ytd";
 
-	private final String DATE_FORMATS = "(?:"+
+	private final String SIMPLE_DATE_FORMATS = "(?:"+
 		DD_MM_YYYY+"|"+
 		DD_MMM_YYYY+"|"+
 		DDMMYYYY+"|"+
@@ -114,9 +114,16 @@ public class DateParser {
 		TODAY+"|"+
 		TOMORROW+"|"+
 		YESTERDAY+"|"+
+		WHICH_DAY+")";
+
+	private final String FROM = "from";
+	private final String PERIOD_AFTER_DATE = "(the|a|\\d+)\\s+"+DATE_PERIOD+"\\s+("+FROM+"|"+AFTER+"|"+BEFORE+")\\s+("+SIMPLE_DATE_FORMATS+")";
+
+	private final String DATE_FORMATS = "(?:" +
+		PERIOD_AFTER_DATE+"|"+
 		DATE_PERIOD_LATER_EARLIER+"|"+
 		AFTER_BEFORE_DATE_PERIOD+"|"+
-		WHICH_DAY+")";
+		SIMPLE_DATE_FORMATS+")";
 	private final String TIME_FORMATS = "(?:"+
 		TIME_12+"|"+
 		TIME_24+"|"+
@@ -132,9 +139,9 @@ public class DateParser {
 	private final String PM = "pm";
 	private final String AM = "am";
 
-	private final String FROM = "(?:from\\s+)?("+DATETIME_FORMATS+")";
-	private final String TO = "to\\s+("+DATETIME_FORMATS+")";
-	private final String FROM_TO = FROM + "\\s+" + TO;
+	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
+	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
+	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
 	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
@@ -146,9 +153,9 @@ public class DateParser {
 		command = input;
 		if (dateMatches(command, FROM_TO)) {
 			String match = dateMatch(command, FROM_TO)[0];
-			String[] fromDate = dateMatch(match, FROM);
+			String[] fromDate = dateMatch(match, FROM_DATETIME);
 			Calendar startDate = parseDateTime(fromDate[1], 0, 0, 0);
-			String[] toDate = dateMatch(match, TO);
+			String[] toDate = dateMatch(match, TO_DATETIME);
 			Calendar endDate = parseDateTime(toDate[1], 23, 59, 59);
 			if (startDate != null && endDate != null) {
 				switch (type) {
@@ -253,11 +260,11 @@ public class DateParser {
 	}
 
 	private Calendar parseDate(String date) {
-		Calendar cal = matchDayMonthYear(date);
+		Calendar cal = matchNaturalLanguage(date);
+		cal = cal == null ? matchDayMonthYear(date) : cal;
 		cal = cal == null ? matchDayMonth(date) : cal;
 		cal = cal == null ? matchMonthDayYear(date) : cal;
 		cal = cal == null ? matchMonthDay(date) : cal;
-		cal = cal == null ? matchNaturalLanguage(date) : cal;
 		return cal;
 	}
 
@@ -366,7 +373,13 @@ public class DateParser {
 		int thisYear = now.get(Calendar.YEAR);
 		int thisMonth = now.get(Calendar.MONTH);
 		int thisDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
-		if (dateMatches(date, TODAY)) {
+		if (dateMatches(date, PERIOD_AFTER_DATE)) {
+			return matchPeriodAfterDate(date);
+		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
+			return matchDatePeriodLaterEarlier(date);
+		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
+			return matchAfterBeforeDatePeriod(date);
+		} else if (dateMatches(date, TODAY)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TODAY)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
 		} else if (dateMatches(date, YESTERDAY)) {
@@ -375,15 +388,48 @@ public class DateParser {
 		} else if (dateMatches(date, TOMORROW)) {
 			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
 			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
-		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
-			return matchDatePeriodLaterEarlier(date);
-		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
-			return matchAfterBeforeDatePeriod(date);
 		} else if (dateMatches(date, WHICH_DAY)) {
 			return matchWhichDay(date);
 		} else {
 			return null;
 		}
+	}
+
+	private Calendar matchPeriodAfterDate(String date) {
+		String[] parsedDate = dateMatch(date, PERIOD_AFTER_DATE);
+		Calendar cal = parseDate(parsedDate[4]);
+		boolean add = parsedDate[3] == null || dateMatches(parsedDate[3], FROM+"|"+AFTER);
+		boolean isEndOfPeriod = false;
+		int periodLength;
+		if (dateMatches(parsedDate[1], "a")) {
+			periodLength = 1;
+		} else if (dateMatches(parsedDate[1], "the")) {
+			periodLength = 1;
+			isEndOfPeriod = true;
+		} else {
+			periodLength = Integer.parseInt(parsedDate[1].trim());
+		}
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[2];
+		if (dateMatches(period, DAY)) {
+			cal.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
+			if (isEndOfPeriod) {
+				cal.set(Calendar.DAY_OF_WEEK, cal.getActualMaximum(Calendar.DAY_OF_WEEK));
+			}
+		} else if (dateMatches(period, MONTH)) {
+			cal.add(Calendar.MONTH, periodLength);
+			if (isEndOfPeriod) {
+				cal.set(Calendar.DAY_OF_MONTH, cal.getActualMaximum(Calendar.DAY_OF_MONTH));
+			}
+		} else if (dateMatches(period, YEAR)) {
+			cal.add(Calendar.YEAR, periodLength);
+			if (isEndOfPeriod) {
+				cal.set(Calendar.DAY_OF_YEAR, cal.getActualMaximum(Calendar.DAY_OF_YEAR));
+			}
+		}
+		return cal;
 	}
 
 	private Calendar matchAfterBeforeDatePeriod(String date) {
