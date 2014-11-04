@@ -294,6 +294,34 @@ public class Storage {
 	
 	//Miscellaneous methods******************************************************
 	
+	
+	/*
+	 * Initialises the task lists by reading from the text files.
+	 */
+	private void initFiles() throws IOException {
+		filehandler.readFile(al_task);
+		filehandler.readFile(al_task_floating);
+		filehandler.readFile(al_task_completed);
+		filehandler.readFile(al_task_overdue);
+	}
+
+	/*
+	 * Returns the appropriate list for an input task.
+	 * This method is primarily used in insert() and delete()
+	 */
+	private PriorityQueue<Task> retrieveTaskList(Task task) {
+		if (task.isFloating()) {
+			return al_task_floating;
+		}
+		else if (task.isOverdue()) {
+			return al_task_overdue;
+		}
+		else if (task.isCompleted()) {
+			return al_task_completed;
+		}
+		return al_task;
+	}
+	
 	/*
 	 * Checks for overdue tasks as of time when this method was called, removes them from
 	 * the normal task list and inserts them in the overdue task.
@@ -305,16 +333,10 @@ public class Storage {
 	 */
 	private void checkForOverdueTasks() throws IOException {
 		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
-		for (Task task : al_task) {
-			if (task.isOverdue()) {
-				now_overdue_tasks.add(task);
-			}
-			else {
-				break;						//assumes priority queue is always sorted correctly
-			}
+		while (!al_task.isEmpty() && al_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
+			now_overdue_tasks.add(al_task.poll());
 		}
 		al_task_overdue.addAll(now_overdue_tasks);
-		al_task.removeAll(now_overdue_tasks);
 		save();
 	}
 	
@@ -390,33 +412,6 @@ public class Storage {
 			}
 		}
 		return latest_id;
-	}
-	
-	/*
-	 * Initialises the task lists by reading from the text files.
-	 */
-	private void initFiles() throws IOException {
-		filehandler.readFile(al_task);
-		filehandler.readFile(al_task_floating);
-		filehandler.readFile(al_task_completed);
-		filehandler.readFile(al_task_overdue);
-	}
-
-	/*
-	 * Returns the appropriate list for an input task.
-	 * This method is primarily used in insert() and delete()
-	 */
-	private PriorityQueue<Task> retrieveTaskList(Task task) {
-		if (task.isFloating()) {
-			return al_task_floating;
-		}
-		else if (task.isOverdue()) {
-			return al_task_overdue;
-		}
-		else if (task.isCompleted()) {
-			return al_task_completed;
-		}
-		return al_task;
 	}
 	
 	//File Operations********************************************************
