@@ -372,14 +372,14 @@ public class StorageJUnitTest {
 
 			//cleanup
 			storage.clearAll();
-			File taskfile = new File(storagetesttask);
-			taskfile.deleteOnExit();
-			File floatfile = new File(storagetestfloat);
-			floatfile.deleteOnExit();
-			File overfile = new File(storagetestoverdue);
-			overfile.deleteOnExit();
-			File comfile = new File(storagetestcomplete);
-			comfile.deleteOnExit();
+			File del_file = new File(storagetesttask);
+			del_file.delete();
+			del_file = new File(storagetestfloat);
+			del_file.delete();
+			del_file = new File(storagetestoverdue);
+			del_file.delete();
+			del_file = new File(storagetestcomplete);
+			del_file.delete();
 			System.out.println("All tests successful");
 		}
 		

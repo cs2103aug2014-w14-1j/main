@@ -21,7 +21,7 @@ import com.google.gson.Gson;
  * When modifying a Task object, it is important to delete it from the Storage first before editing it,
  * then insert it back. This is to ensure the Task is kept in the right list.
  * 
- * Exceptions thrown by the Storage: IOException, JSONException
+ * Exceptions thrown by the Storage: IOException
  */
 
 public class Storage {
@@ -61,8 +61,8 @@ public class Storage {
 	 * If it was an existing task, it should have been deleted beforehand
 	 */
 	
-	public void insert(Task task) throws JSONException, IOException {
-		
+	public void insert(Task task) throws IOException {
+		checkForOverdueTasks();
 		if (task.hasNoID()) {								//for new tasks with no ID
 			assignID(task);
 		}
@@ -84,7 +84,7 @@ public class Storage {
 		task.setId(id_counter);
 	}
 
-	private void insert(Task task, PriorityQueue<Task> list) throws JSONException, IOException {
+	private void insert(Task task, PriorityQueue<Task> list) {
 		list.add(task);
 	}
 	
@@ -96,7 +96,7 @@ public class Storage {
 	 * This method should not be called for a non-recurring task. This means the task must have
 	 * non-null dates, appropriate recur pattern (Calendar field) and non-negative recur period
 	 */
-	private ArrayList<Task> generateRecurringTasks(Task task) throws IOException, JSONException {
+	private ArrayList<Task> generateRecurringTasks(Task task) {
 		assert task.isRecur();
 		
 		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
@@ -146,7 +146,8 @@ public class Storage {
 	 * same recur chain. This method will only check for other tasks with the
 	 * same ID if the deleted task is recurring
 	 */
-	public void delete(Task task) throws IOException{
+	public void delete(Task task) throws IOException {
+		checkForOverdueTasks();
 		delete(task, retrieveTaskList(task));
 		if (task.isRecur()) {
 			deleteRecurChain(task);
@@ -154,11 +155,11 @@ public class Storage {
 		save();
 	}
 
-	private void delete(Task task, PriorityQueue<Task> list) throws IOException {
+	private void delete(Task task, PriorityQueue<Task> list) {
 		list.remove(task);
 	}
 	
-	private void deleteRecurChain(Task task) throws IOException {
+	private void deleteRecurChain(Task task) {
 		ArrayList<Task> recur_chain = searchTaskByID(task.getId());
 		for (Task other_task : recur_chain) {
 			delete(other_task, retrieveTaskList(other_task));
@@ -181,21 +182,20 @@ public class Storage {
 			return search_results;								//every task in storage should have a nonnegative ID
 		}
 		
-		searchForID(id, al_task, search_results);
-		searchForID(id, al_task_floating, search_results);
-		searchForID(id, al_task_overdue, search_results);
+		searchTaskByID(id, al_task, search_results);
+		searchTaskByID(id, al_task_floating, search_results);
+		searchTaskByID(id, al_task_overdue, search_results);
 		
 		return search_results;
 	}
 	
-	private ArrayList<Task> searchForID(Integer id,PriorityQueue<Task> list, ArrayList<Task> resultsList){
+	private ArrayList<Task> searchTaskByID(Integer id,PriorityQueue<Task> list, ArrayList<Task> searchResults){
 		for(Task task: list){
 			if(task.getId() == id){
-				resultsList.add(task);
+				searchResults.add(task);
 			}
 		}
-		
-		return resultsList;
+		return searchResults;
 	}
 	
 	//External search methods. Can be called by other classes and tests
@@ -233,7 +233,9 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
+	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) 
+			throws IOException {
+		checkForOverdueTasks();
 		if (end_date!=null && start_date != null) {
 			if (end_date.before(start_date)) {
 				Calendar temp = start_date;
@@ -292,6 +294,34 @@ public class Storage {
 	
 	//Miscellaneous methods******************************************************
 	
+	
+	/*
+	 * Initialises the task lists by reading from the text files.
+	 */
+	private void initFiles() throws IOException {
+		filehandler.readFile(al_task);
+		filehandler.readFile(al_task_floating);
+		filehandler.readFile(al_task_completed);
+		filehandler.readFile(al_task_overdue);
+	}
+
+	/*
+	 * Returns the appropriate list for an input task.
+	 * This method is primarily used in insert() and delete()
+	 */
+	private PriorityQueue<Task> retrieveTaskList(Task task) {
+		if (task.isFloating()) {
+			return al_task_floating;
+		}
+		else if (task.isOverdue()) {
+			return al_task_overdue;
+		}
+		else if (task.isCompleted()) {
+			return al_task_completed;
+		}
+		return al_task;
+	}
+	
 	/*
 	 * Checks for overdue tasks as of time when this method was called, removes them from
 	 * the normal task list and inserts them in the overdue task.
@@ -301,15 +331,12 @@ public class Storage {
 	 * Assumption 3: This is O(|tasklist.size|) timing, but in practice likely to be a small percentage
 	 * because user should not have so many overdue tasks, unless he/she didn't use the program for a long time
 	 */
-	private void checkForOverdueTasks() throws FileNotFoundException, IOException {
+	private void checkForOverdueTasks() throws IOException {
 		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
-		for (Task task : al_task) {
-			if (task.isOverdue()) {
-				now_overdue_tasks.add(task);
-			}
+		while (!al_task.isEmpty() && al_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
+			now_overdue_tasks.add(al_task.poll());
 		}
 		al_task_overdue.addAll(now_overdue_tasks);
-		al_task.removeAll(now_overdue_tasks);
 		save();
 	}
 	
@@ -320,7 +347,7 @@ public class Storage {
 	 * 
 	 * NOT USED as of V0.4. Expensive operation that is of dubious value
 	 */
-	private void updateRecurringTasks() throws IOException, JSONException {
+	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
 			ArrayList<Task> searchlist = searchTaskByID(i);
 			if (!searchlist.isEmpty()) {
@@ -387,33 +414,6 @@ public class Storage {
 		return latest_id;
 	}
 	
-	/*
-	 * Initialises the task lists by reading from the text files.
-	 */
-	private void initFiles() throws IOException {
-		filehandler.readFile(al_task);
-		filehandler.readFile(al_task_floating);
-		filehandler.readFile(al_task_completed);
-		filehandler.readFile(al_task_overdue);
-	}
-
-	/*
-	 * Returns the appropriate list for an input task.
-	 * This method is primarily used in insert() and delete()
-	 */
-	private PriorityQueue<Task> retrieveTaskList(Task task) {
-		if (task.isFloating()) {
-			return al_task_floating;
-		}
-		else if (task.isOverdue()) {
-			return al_task_overdue;
-		}
-		else if (task.isCompleted()) {
-			return al_task_completed;
-		}
-		return al_task;
-	}
-	
 	//File Operations********************************************************
 	
 	/*
@@ -442,8 +442,8 @@ public class Storage {
 		// Interfaces with the textFiles(databases)*************************
 
 		private void readFile(PriorityQueue<Task> filelist) throws IOException {
-			String fileName = determineFileName(filelist);
-			File file = new File(fileName);
+			String filename = determineFileName(filelist);
+			File file = new File(filename);
 			if (!file.exists()) {
 				file.createNewFile();
 			}
@@ -455,14 +455,18 @@ public class Storage {
 				Task task = gson.fromJson(line, Task.class);
 				filelist.add(task);
 			}
-
+			bufferedReader.close();
 		}
 		
 		private void writeFile(PriorityQueue<Task> fileToWrite)
-				throws FileNotFoundException {
+				throws IOException {
 			String filename = determineFileName(fileToWrite);
+			File file = new File(filename);
+			if (!file.exists()) {
+				file.createNewFile();
+			}
 			// Start writing
-			printWriter = new PrintWriter(new FileOutputStream(filename));
+			printWriter = new PrintWriter(new FileOutputStream(file));
 			Gson gson = new Gson();
 			for (Task task : fileToWrite) {
 				String write = gson.toJson(task);

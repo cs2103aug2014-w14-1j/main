@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat;
 public class Task {
 
 	private static final SimpleDateFormat sdf = new SimpleDateFormat("EE d-MMM-yy H:mm a");
+	private static final int RECUR_PATTERN_INVALID = -1;
+	private static final int RECUR_PERIOD_VALID_MINIMUM = 1;
 	
 	private Integer id;
 	private String taskName;
@@ -24,7 +26,6 @@ public class Task {
 	private Calendar start_date;
 	private Calendar end_date;
 	private Calendar dateCompleted;
-	private Calendar reminderDate;
 	private Integer recur_pattern;
 	private Integer recur_period;
 	private Calendar recur_limit;								//NOT USED as of V0.4. Always null
@@ -37,14 +38,13 @@ public class Task {
 	 * by provided setter methods
 	 */
 	public Task() {
-		this(null, "", "", null, null, null, null, -1, -1, null,
-				new ArrayList<String>());
+		this(null, "", "", null, null, null, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM - 1,
+				null, new ArrayList<String>());
 	}
 
 	//private constructor
 	private Task(Integer taskId, String displayId, String taskName,
-			Calendar taskStartDate, Calendar taskEndDate,
-			Calendar taskReminderDate, Calendar taskDateCompleted,
+			Calendar taskStartDate, Calendar taskEndDate, Calendar taskDateCompleted,
 			Integer recur, Integer recurPeriod, Calendar recurLimit, ArrayList<String> taskTag) {
 		this.id = taskId;
 		this.displayId = displayId;
@@ -52,7 +52,6 @@ public class Task {
 		this.start_date = taskStartDate;
 		this.end_date = taskEndDate;
 		this.dateCompleted = taskDateCompleted;
-		this.reminderDate = taskReminderDate;
 		this.recur_pattern = recur;
 		this.recur_period = recurPeriod;
 		this.recur_limit = recurLimit;
@@ -146,7 +145,7 @@ public class Task {
 	 * 
 	 * ASSUMPTION 2: For tasks with a single date, the start_date and end_date are the same.
 	 * 
-	 * ASSUMPTION 3: recur_pattern is an appropriate Calendar field.
+	 * ASSUMPTION 3: recur_pattern is either INVALID or an appropriate Calendar field.
 	 * 
 	 * ASSUMPTION 4: recur_period is not negative.
 	 */
@@ -159,6 +158,12 @@ public class Task {
 			enddate = startdate;
 			startdate = temp;
 		}
+		
+		//perform a check and see if startdate is null when enddate is not. If so, clone startdate
+		if (enddate!=null && startdate == null) {
+			startdate = (Calendar) enddate.clone();
+		}
+		
 		this.start_date = startdate;
 		this.end_date = enddate;
 		this.recur_pattern = recurpattern;
@@ -173,7 +178,7 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public void setDates(Calendar startdate, Calendar enddate) {
-		setDates(startdate, enddate, -1, -1, null);
+		setDates(startdate, enddate, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM - 1, null);
 	}
 
 	/*
@@ -192,7 +197,7 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public void setDate(Calendar date) {
-		setDate(date, -1, -1, null);
+		setDate(date, RECUR_PATTERN_INVALID, RECUR_PERIOD_VALID_MINIMUM, null);
 	}
 	
 	/*
@@ -252,12 +257,13 @@ public class Task {
 	/*
 	 * Checks whether this is a recurring task. Recurring tasks are classified as:
 	 * Appropriate pattern: (Default invalid: -1)
-	 * Appropriate period (>0)
+	 * Appropriate period (>=1)
 	 * Non-null start and end dates (not floating)
 	 */
 	public boolean isRecur() {
-		return this.recur_pattern != -1 && this.recur_period > 0 && this.start_date != null
-				&& this.end_date != null;
+		return this.recur_pattern != RECUR_PATTERN_INVALID &&
+				this.recur_period >= RECUR_PERIOD_VALID_MINIMUM &&
+				this.start_date != null && this.end_date != null;
 	}
 
 	/*
@@ -330,10 +336,10 @@ public class Task {
 		if (this.dateCompleted == null) {
 			return false;
 		}
-		if (this.end_date == null && this.dateCompleted != null) {		//again assumption that start_date != null and start_date <= end_date
+		if (this.end_date == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
 			return true;
 		}
-		return this.dateCompleted.after(this.end_date);
+		return this.dateCompleted.after(this.end_date);					//assumption that start_date.equals(end_date)
 	}
 
 	/*
@@ -404,21 +410,6 @@ public class Task {
 		return false;
 	}
 
-	
-	// Task Reminder Dates Times***********************************
-
-	public void setReminderDate(Calendar date) {
-		this.reminderDate = date;
-	}
-
-	public Calendar getReminderDate() {
-		return this.reminderDate;
-	}
-
-	public String getReminderDateAsString() {
-		return sdf.format(reminderDate.getTime());
-	}
-
 	// Task Tags**********************************************************************
 	public void addTag(String tag) {
 		this.tags.add(tag);
@@ -478,9 +469,6 @@ public class Task {
 		}
 		if (this.dateCompleted != null) {
 			task.setDateCompleted((Calendar) this.dateCompleted.clone());
-		}
-		if (this.reminderDate != null) {
-			task.setReminderDate((Calendar) this.reminderDate.clone());
 		}
 		task.setRecur(this.recur_pattern, this.recur_period);
 		if (this.recur_limit != null) {

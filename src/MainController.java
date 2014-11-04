@@ -63,6 +63,7 @@ public class MainController extends Application implements UIObserver {
 		} else {
 			searchResults_ = searcher_.proceedCommand(command);
 			createTaskIDmap();
+			display(searchResults_.size() + " tasks found");
 			UI_.displayTasks(searchResults_);
 		}
 	}
@@ -88,71 +89,20 @@ public class MainController extends Application implements UIObserver {
 		createTaskIDmap();
 		UI_.displayTasks(searchResults_);
 	}
-
-	//view all
-	private void viewAll() {
-		searchResults_ = new ArrayList<Task>();
-		searchResults_.addAll(storage_.search(null, null, null, null));
-		
-		createTaskIDmap();
-		UI_.displayTasks(searchResults_);
-	}
 	
 	private void createTaskIDmap() {
 		taskIDmap_ = new TreeMap<String, Task>();
-		int f = 1;
-		int o = 1;
-		int t = 1;
+		int id_number = 1;
 
 		for (int i = 0; i < searchResults_.size(); i++) {
 			Task task = searchResults_.get(i);
-			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				o++;
-			} else if (c.equals("t")) {
-				String key = c + Integer.toString(t);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				t++;
-			} else {
-				String key = c + Integer.toString(f);
-				taskIDmap_.put(key, task);
-				task.setDisplayId(key);
-				f++;
-			}
+			String key = getChar(task) + Integer.toString(id_number);
+			taskIDmap_.put(key, task);
+			task.setDisplayId(key);
+			id_number++;
 		}
 	}
 
-	private void createTestTaskIDmap() {
-		t_taskIDmap = new TreeMap<String, Task>();
-		int f = 1;
-		int o = 1;
-		int t = 1;
-
-		for (int i = 0; i < t_searchResults.size(); i++) {
-			Task task = t_searchResults.get(i);
-			String c = getChar(task);
-			if (c.equals("o")) {
-				String key = c + Integer.toString(o);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				o++;
-			} else if (c.equals("t")) {
-				String key = c + Integer.toString(t);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				t++;
-			} else {
-				String key = c + Integer.toString(f);
-				t_taskIDmap.put(key, task);
-				task.setDisplayId(key);
-				f++;
-			}
-		}
-	}
 
 	private String getChar(Task task) {
 		if (task.isOverdue()) {
@@ -190,14 +140,14 @@ public class MainController extends Application implements UIObserver {
 
 		UI_.addUIObserver(this);
 		UI_.showStage(stage);
-		viewAll();
+		repeatLastSearch();
+		display("Welcome to SPEED!");
 	}
 	
 	//System Test****************************************************************************
 	
 	private String runSystemTest() {
 		try {
-			
 			t_parser = new Parser();
 			t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
 					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
@@ -224,34 +174,70 @@ public class MainController extends Application implements UIObserver {
 				}
 			}
 			
+			t_reader.close();
+			
 			//check output
 			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
 			
-			ArrayList<Task> tlist = t_storage.getTasksList();
-			ArrayList<Task> flist = t_storage.getFloatingTasksList();
-			ArrayList<Task> olist = t_storage.getOverdueTasksList();
-			ArrayList<Task> clist = t_storage.getCompletedTasksList();
-			
-			for (int i = 0; i < tlist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			File t_file = new File(TEST_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
 			}
-			
-			for (int i = 0; i < flist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
 			}
+			t_file.delete();
+			t_reader.close();
 			
-			for (int i = 0; i < olist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			t_file = new File(TEST_FLOATING_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
 			}
-			
-			for (int i = 0; i < clist.size(); i++) {
-				Task task = tlist.get(i);
-				test(task.getTaskName(), e_reader.readLine());
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
 			}
+			t_file.delete();
+			t_reader.close();
 			
+			t_file = new File(TEST_OVERDUE_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				
+				testFile(t_reader, e_reader);
+			}
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
+			}
+			t_file.delete();
+			t_reader.close();
+			
+			t_file = new File(TEST_COMPLETED_TASK_FILENAME);
+			t_reader = new BufferedReader(new FileReader(t_file));
+			try {
+				testFile(t_reader, e_reader);
+			}
+			catch (Exception e) {
+				t_reader.close();
+				e_reader.close();
+				t_storage.clearAll();
+				t_file.delete();
+				return e.getMessage();
+			}
+			t_file.delete();
 			t_reader.close();
 			e_reader.close();
 			t_storage.clearAll();
@@ -262,9 +248,45 @@ public class MainController extends Application implements UIObserver {
 		}
 	}
 	
-	private void test(String actual, String expected) throws Exception {
-		if (actual.equals(expected)) {
+	private void testFile(BufferedReader t_reader, BufferedReader e_reader) throws Exception {
+		String input;
+		while ((input = t_reader.readLine()) != null) {
+			testOneLine(input, e_reader.readLine());
+		}
+	}
+	
+	private void testOneLine(String actual, String expected) throws Exception {
+		if (!actual.equals(expected)) {
 			throw new Exception("MISMATCH: " + actual + " - " + expected);
 		}
 	}
+	
+	private void createTestTaskIDmap() {
+		t_taskIDmap = new TreeMap<String, Task>();
+		int f = 1;
+		int o = 1;
+		int t = 1;
+
+		for (int i = 0; i < t_searchResults.size(); i++) {
+			Task task = t_searchResults.get(i);
+			String c = getChar(task);
+			if (c.equals("o")) {
+				String key = c + Integer.toString(o);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				o++;
+			} else if (c.equals("t")) {
+				String key = c + Integer.toString(t);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				t++;
+			} else {
+				String key = c + Integer.toString(f);
+				t_taskIDmap.put(key, task);
+				task.setDisplayId(key);
+				f++;
+			}
+		}
+	}
+
 }
