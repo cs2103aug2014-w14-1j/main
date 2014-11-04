@@ -148,13 +148,15 @@ public class DateParser {
 	private final String RECUR = "(?:recurs?\\s)?(?:every\\s?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 
-	private String command;
+	private String input;
+	private String output;
 	private String currentDate;
 
-	public String parseCommand(String input, Command.COMMAND_TYPE type, Command commandObj) {
-		command = input;
-		if (dateMatches(command, FROM_TO)) {
-			String match = dateMatch(command, FROM_TO)[0];
+	public String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
+		output = command;
+		input = command.replaceAll("\"[^\"]+\"", "");
+		if (dateMatches(input, FROM_TO)) {
+			String match = dateMatch(input, FROM_TO)[0];
 			String[] fromDate = dateMatch(match, FROM_DATETIME);
 			Calendar startDate = parseDateTime(fromDate[1], 0, 0, 0);
 			String[] toDate = dateMatch(match, TO_DATETIME);
@@ -173,19 +175,19 @@ public class DateParser {
 						commandObj.setSearchEndDate(endDate);
 						break;
 				}
-				command = command.replaceFirst(match, "");
+				output = output.replaceFirst(match, "");
 				parseRecur(commandObj);
 			}
-		} else if (dateMatches(command, DUE)) {
-			String[] dates = dateMatch(command, DUE);
+		} else if (dateMatches(input, DUE)) {
+			String[] dates = dateMatch(input, DUE);
 			Calendar dueDate = parseDateTime(dates[1], 23, 59, 59);
 			if (dueDate != null) {
 				commandObj.setTaskEndDate(dueDate);
-				command = command.replaceFirst(dates[0], "");
+				output = output.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
-		} else if (dateMatches(command, DATETIME_FORMATS)) {
-			String[] dates = dateMatch(command, DATETIME_FORMATS);
+		} else if (dateMatches(input, DATETIME_FORMATS)) {
+			String[] dates = dateMatch(input, DATETIME_FORMATS);
 			Calendar date = parseDateTime(dates[0], 23, 59, 59);
 			if (date != null) {
 				switch (type) {
@@ -200,27 +202,27 @@ public class DateParser {
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
-				command = command.replaceFirst(dates[0], "");
+				output = output.replaceFirst(dates[0], "");
 				parseRecur(commandObj);
 			}
 		}
-		return command;
+		return output.replaceAll("\"", "");
 	}
 
 	private void parseRecur(Command commandObj) {
 		int recurPeriod = 1;
 		int recurPattern = -1;
-		if (dateMatches(command, RECUR)) {
-			String[] recur = dateMatch(command, RECUR);
+		if (dateMatches(input, RECUR)) {
+			String[] recur = dateMatch(input, RECUR);
 			recurPattern = parseRecurPattern(recur[2]);
 			if (recur[1] != null) {
 				recurPeriod = Integer.parseInt(recur[1].trim());
 			}
-			command = command.replaceFirst(RECUR, "");
-		} else if (dateMatches(command, SIMPLE_RECUR)) {
-			String[] recur = dateMatch(command, SIMPLE_RECUR);
+			output = output.replaceFirst(RECUR, "");
+		} else if (dateMatches(input, SIMPLE_RECUR)) {
+			String[] recur = dateMatch(input, SIMPLE_RECUR);
 			recurPattern = parseRecurPattern(recur[1]);
-			command = command.replaceFirst(SIMPLE_RECUR, "");
+			output = output.replaceFirst(SIMPLE_RECUR, "");
 		}
 		commandObj.setRecurPattern(recurPattern);
 		commandObj.setRecurPeriod(recurPeriod);
