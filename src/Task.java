@@ -441,6 +441,7 @@ public class Task {
 	// Task Tags**********************************************************************
 	public void addTag(String tag) {
 		this.tags.add(tag);
+		this.tags.sort(null);
 	}
 	
 	public void removeTag(String tag) {
