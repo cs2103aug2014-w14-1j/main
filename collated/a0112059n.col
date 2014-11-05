@@ -1,0 +1,531 @@
+//@author: a0112059n
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\LogicHandler.java
+	 */
+
+
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.text.ParsePosition;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Stack;
+import java.util.TreeMap;
+
+
+public class LogicHandler {	
+	
+	private class SimpleCommand {
+		private ArrayList<Task> oldTasks_;
+		private ArrayList<Task> newTasks_;
+	
+		public SimpleCommand(ArrayList<Task> oldTasks, ArrayList<Task> newTasks) {
+			oldTasks_ = oldTasks;
+			newTasks_ = newTasks;
+		}
+		
+		public ArrayList<Task> getOldTasks() {
+			return oldTasks_;
+		}
+		
+		public ArrayList<Task> getNewTasks() {
+			return newTasks_;
+		}
+	}
+
+	private Storage storage_;
+	private Stack<SimpleCommand> histories_;
+	private Stack<SimpleCommand> future_;
+	private final String ERROR_NO_NAME = "Cannot add a task with no description.";
+	private final String ERROR_NO_CHANGE = "No change was made.";
+	private final String ERROR_INVALID_ID = "Invalid id to update";
+	private final String ERROR_INVALID_IDS = "All ids are invalid";
+	
+	public LogicHandler(Storage storage) {
+		storage_ = storage;
+		histories_ = new Stack<SimpleCommand>();
+		future_ = new Stack<SimpleCommand>();
+	}
+	
+	private void addHistory(SimpleCommand command) {
+		histories_.add(command);
+		future_.clear();
+	}
+	
+	public String executeCommand(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
+		Command.COMMAND_TYPE commandType = command.getCommandType();
+		switch(commandType) {
+		case ADD: {
+			return executeAdd(taskIDmap, command);
+			}
+		case DELETE: {
+			return executeDelete(taskIDmap, command);
+			}
+		case EDIT: {
+			return executeUpdate(taskIDmap, command);
+			}
+		case UNDO: {
+			return executeUndo(taskIDmap, command);
+		}
+		case REDO: {
+			return executeRedo(taskIDmap, command);
+		}
+		case COMPLETE: {
+			return executeComplete(taskIDmap, command);
+		}
+		case EXIT: {
+			System.exit(0);
+		}
+		default:
+			return "Unrecognized command type";
+		}		
+	}
+	
+	private String executeAdd(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
+		
+		String taskName = command.getTaskName();
+		
+		if (taskName == null) {
+			return ERROR_NO_NAME;
+		} 
+		
+		Task task = new Task();
+		task.setTaskName(command.getTaskName());
+		
+		task.setDates(command.getTaskStartDate(), command.getTaskEndDate(), command.getRecurPattern(), command.getRecurPeriod(), null);
+		
+		if (command.getTaskTagsToAdd()!=null) {
+			for (String tag : command.getTaskTagsToAdd()) {
+				task.addTag(tag);
+			}
+		}
+		
+		
+		ArrayList<Task> newTasks = new ArrayList<Task>();
+		newTasks.add(task);
+		ArrayList<Task> oldTasks = new ArrayList<Task>();
+		
+		SimpleCommand addCommand = new SimpleCommand(oldTasks,newTasks);
+		SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
+		
+		addHistory(undoCommand);
+		executeSimpleCommand(addCommand);
+		
+		return ("Successfully added new task: " + task.getTaskName());
+		}
+	
+		
+	private String executeDelete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
+		
+		String[] ids = command.getTaskIDsToDelete();
+		
+		ArrayList<String> allIDs = new ArrayList<String>();
+		
+		for (String id: ids) {
+			allIDs.add("T" + id);
+			allIDs.add("F" + id);
+			allIDs.add("O" + id);
+			allIDs.add(id.toUpperCase());
+		}
+		
+		ArrayList<Task> tasks = new ArrayList<Task>();
+		
+		for (String id: allIDs ) {
+			Task task = taskIDmap.get(id);
+			if ((task!=null)&&(!tasks.contains(task))) {
+				tasks.add(task);
+			}
+		}
+		
+		if (tasks.isEmpty()) {
+			return "All ids are invalid";
+		} else {
+			ArrayList<Task> newTasks = new ArrayList<Task>();
+			
+			SimpleCommand deleteCommand = new SimpleCommand(tasks,newTasks);
+			SimpleCommand undoCommand = new SimpleCommand(newTasks,tasks);
+			addHistory(undoCommand);
+			
+			executeSimpleCommand(deleteCommand);
+			
+			return (tasks.size() + " tasks deleted from the Calendar");
+		}		
+	}
+	
+	private String executeUpdate(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+	
+		
+		String id = command.getTaskID();
+		id = id.toUpperCase();
+		
+		if (!taskIDmap.containsKey(id)) {
+			return ERROR_INVALID_ID;
+		} 
+		
+		Task oldTask = taskIDmap.get(id);
+		Task newTask = oldTask.clone();
+		
+		boolean unchanged = true;
+
+		if (command.getTaskName()!=null && !command.getTaskName().equals("")) {
+			newTask.setTaskName(command.getTaskName());
+			unchanged = false;
+		}
+
+		if (command.getTaskEndDate()!=null) {
+			newTask.setDates(command.getTaskStartDate(), command.getTaskEndDate(),command.getRecurPattern(),command.getRecurPeriod(),null);
+			unchanged = false;
+		}
+		
+		if (command.getTaskTagsToAdd()!=null) {
+			for (String tag : command.getTaskTagsToAdd()) {
+				newTask.addTag(tag);
+			}
+			unchanged = false;
+		}
+		
+		if (command.getTaskTagsToRemove()!=null) {
+			for (String tag : command.getTaskTagsToRemove()) {
+				newTask.removeTag(tag);
+			}
+			unchanged = false;
+		}
+		
+		if (unchanged) {
+			return ERROR_NO_CHANGE;
+		}
+		
+		ArrayList<Task> oldTasks = new ArrayList<Task> ();
+		ArrayList<Task> newTasks = new ArrayList<Task> ();
+		
+		oldTasks.add(oldTask);
+		newTasks.add(newTask);
+		
+		SimpleCommand updateCommand = new SimpleCommand(oldTasks,newTasks);
+		SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
+		
+		addHistory(undoCommand);
+		
+		executeSimpleCommand(updateCommand);
+		
+		return "Updated successfully";
+	}
+	
+	private String executeComplete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
+		
+		String[] ids = command.getTaskIDsToComplete();
+		
+		ArrayList<Task> oldTasks = new ArrayList<Task>();
+		
+		ArrayList<String> allIDs = new ArrayList<String>();
+		
+		for (String id: ids) {
+			allIDs.add("T" + id);
+			allIDs.add("F" + id);
+			allIDs.add("O" + id);
+			allIDs.add(id.toUpperCase());
+		}
+		
+		for (String id: allIDs ) {
+			Task task = taskIDmap.get(id);
+			if ((task!=null)&&(!oldTasks.contains(task))) {
+				oldTasks.add(task);
+			}
+		}
+
+		if (oldTasks.isEmpty()) {
+			return ERROR_INVALID_IDS;
+		} else {
+			ArrayList<Task> newTasks = new ArrayList<Task> ();
+			
+			for (Task task: oldTasks) {
+				Task completedTask = task.clone();
+				completedTask.setCompleted();
+				newTasks.add(completedTask);
+				}
+		
+			SimpleCommand completeCommand = new SimpleCommand(oldTasks,newTasks);
+			SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
+			
+			addHistory(undoCommand);
+			executeSimpleCommand(completeCommand);
+			return (oldTasks.size() + " tasks completed.");
+		}		
+	}
+
+	
+	private String executeUndo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+		if (histories_.empty()) {
+			return "Undo not available";
+		} else {
+			SimpleCommand undoCommand = histories_.pop();
+			future_.add(undoCommand);
+			executeSimpleCommand(undoCommand);
+			return "Undo successfully";
+		}
+	}
+	
+	private String executeRedo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
+		if (future_.isEmpty()) {
+			return "Redo not available";
+		} else {
+			SimpleCommand undoCommand = future_.pop();
+			histories_.add(undoCommand);
+			reverse(undoCommand);
+		
+			return "Redo successfully";
+		}
+	}
+	
+	private void executeSimpleCommand(SimpleCommand command) throws Exception {
+		ArrayList<Task> oldTasks = command.getOldTasks();
+		ArrayList<Task> newTasks = command.getNewTasks();
+		
+		for (Task task: oldTasks) {
+			storage_.delete(task);
+		}
+		
+		for (Task task: newTasks) {
+			storage_.insert(task);
+		}	
+	}
+	
+	private void reverse(SimpleCommand command) throws Exception {
+		ArrayList<Task> oldTasks = command.getOldTasks();
+		ArrayList<Task> newTasks = command.getNewTasks();
+		
+		for (Task task: newTasks) {
+			storage_.delete(task);
+		}
+		
+		for (Task task: oldTasks) {
+			storage_.insert(task);
+		}	
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\LogicHandler.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
+	 */
+
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.TreeMap;
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+import org.json.JSONException;
+
+public class MainController extends Application implements UIObserver {
+
+	private static final String TASK_FILENAME = "Task.txt";
+	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+		
+	private String inputCommand_;
+	private Command currentCommand_ = null;
+	private UI UI_;
+	private ArrayList<Task> searchResults_;
+	private Parser parser_;
+	private TreeMap<String, Task> taskIDmap_;
+	private Storage storage_;
+	private LogicHandler logic_;
+	private SearchHandler searcher_;
+	
+	//Methods**************************************************************
+
+	public void proceedCommand(Command command) throws Exception {
+		if (isTest(command)) {
+			String msg = runSystemTest();
+			display(msg);
+		}
+		else if (isLogic(command)) {
+			String msg = logic_.executeCommand(taskIDmap_, command);
+			display(msg);
+			repeatLastSearch();
+		} else {
+			searchResults_ = searcher_.proceedCommand(command);
+			createTaskIDmap();
+			display(searchResults_.size() + " tasks found");
+			UI_.displayTasks(searchResults_);
+		}
+	}
+	
+	private boolean isTest(Command command) {
+		return command.getCommandType() == Command.COMMAND_TYPE.TEST;
+	}
+	
+	private boolean isLogic(Command command) {
+		assert command.getCommandType() != Command.COMMAND_TYPE.TEST;
+		if ((command.getCommandType() == Command.COMMAND_TYPE.SEARCH) | (command.getCommandType() == Command.COMMAND_TYPE.LIST)) {
+			return false;
+		} 
+		return true;
+	}
+
+	private void display(String result) {
+		UI_.setNotificationToUser(result);
+	}
+
+	private void repeatLastSearch() throws Exception {
+		searchResults_ = searcher_.repeatLastSearch();
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
+	}
+	
+	private void createTaskIDmap() {
+		taskIDmap_ = new TreeMap<String, Task>();
+		int id_number = 1;
+
+		for (int i = 0; i < searchResults_.size(); i++) {
+			Task task = searchResults_.get(i);
+			String key = getChar(task) + Integer.toString(id_number);
+			taskIDmap_.put(key, task);
+			task.setDisplayId(key);
+			id_number++;
+		}
+	}
+
+
+	private String getChar(Task task) {
+		if (task.isOverdue()) {
+			return "O";
+		} else if (task.isFloating()) {
+			return "F";
+		} else {
+			return "T";
+		}
+	}
+
+	@Override
+	public void update() {
+		try {
+			inputCommand_ = UI_.getUserInput();
+			currentCommand_ = parser_.parseCommand(inputCommand_);
+			proceedCommand(currentCommand_);
+		} catch (Exception e) {
+			UI_.setNotificationToUser("Unknown error");
+		}
+	}
+
+	public static void main(String[] args) {
+		launch(args);
+	}
+
+	@Override
+	public void start(Stage stage) throws Exception {
+		this.storage_ = new Storage(TASK_FILENAME,FLOATING_TASK_FILENAME,OVERDUE_TASK_FILENAME,COMPLETED_TASK_FILENAME);
+		this.parser_ = new Parser();
+		this.UI_ = new UI();
+		this.logic_ = new LogicHandler(storage_);
+		this.searcher_ = new SearchHandler(storage_);
+
+		UI_.addUIObserver(this);
+		UI_.showStage(stage);
+		repeatLastSearch();
+		display("Welcome to SPEED!");
+	}
+	
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\SearchHandler.java
+	 */
+
+import java.util.ArrayList;
+import java.util.Calendar;
+
+
+public class SearchHandler {
+	private Storage storage_;
+	Command lastSearchCommand_;
+	
+	public SearchHandler(Storage storage) {
+		storage_ = storage;
+		lastSearchCommand_ = null;
+	}
+	
+	public ArrayList<Task> proceedCommand(Command command) throws Exception {
+		if (command.getCommandType() == Command.COMMAND_TYPE.SEARCH) {
+			return search(command);
+		} else if (command.getCommandType() == Command.COMMAND_TYPE.LIST) {
+			return list(command);
+		} else {
+			return new ArrayList<Task>(); 
+		}
+	}
+
+	public ArrayList<Task> search(Command command) throws Exception {
+		lastSearchCommand_ = command;
+		
+		ArrayList<String> keywords = command.getSearchKeywords();
+		ArrayList<String> tags = new ArrayList<String>();
+		if (command.getSearchTags()!=null) {
+			for (String tag : command.getSearchTags()) {
+				tags.add(tag);
+			}
+		}
+		Calendar start_date = command.getSearchStartDate();
+		Calendar end_date = command.getSearchEndDate();
+
+		return storage_.search(keywords, tags, start_date, end_date);		
+	}
+	
+	public ArrayList<Task> list(Command command) throws Exception {
+		lastSearchCommand_ = command;
+		
+		ArrayList<String> keywords = new ArrayList<String>();
+		ArrayList<String> tags = new ArrayList<String>();
+		Calendar start_date = command.getSearchStartDate();
+		Calendar end_date = command.getSearchEndDate();
+
+		return storage_.search(keywords, tags, start_date, end_date);
+	}		
+	
+	public ArrayList<Task> repeatLastSearch() throws Exception {
+		if (lastSearchCommand_ == null) {
+			return viewDefault();
+		} else {
+			return proceedCommand(lastSearchCommand_);
+		}
+	}
+	
+	public ArrayList<Task> viewDefault() throws Exception {
+		
+		ArrayList<Task> searchResults = new ArrayList<Task>();
+		searchResults.addAll(storage_.search(null,null,null,null));
+		
+		return searchResults;
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\SearchHandler.java
+
+
+
+
+
