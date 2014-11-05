@@ -17,9 +17,9 @@ public class Parser {
 	private final int TYPO_DISTANCE = 1;
 
 	private String[] addCommands = {"add", "insert"};
-	private String[] editCommands = {"edit", "update", "change", "modify"};
-	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
-	private String[] listCommands = {"list"};
+	private String[] editCommands = {"edit", "update", "change", "modify", "make"};
+	private String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
+	private String[] listCommands = {"list", "ls", "view"};
 	private String[] searchCommands = {"search", "find"};
 	private String[] completeCommands = {"complete", "done", "finish", "fin"};
 	private String[] undoCommands = {"undo"};
