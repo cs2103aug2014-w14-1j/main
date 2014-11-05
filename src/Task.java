@@ -303,6 +303,33 @@ public class Task {
 		return sdf.format(start_date.getTime()) + " -\n"
 				+ sdf.format(end_date.getTime());
 	}
+	
+	public String getRecurAsString() {
+		String result = "every ";
+		if (recur_period > 1) {
+			result += recur_period + " ";
+		}
+		switch (this.recur_pattern) {
+			case Calendar.YEAR:
+				result += "year";
+				break;
+			case Calendar.MONTH:
+				result += "month";
+				break;
+			case Calendar.WEEK_OF_YEAR:
+				result += "week";
+				break;
+			case Calendar.DAY_OF_YEAR:
+				result += "day";
+				break;
+			default:
+				return "";
+		}
+		if (recur_period > 1) {
+			result += "s";
+		}
+		return result;
+	}
 
 	// Task Completed******************************************************************
 	
