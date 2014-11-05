@@ -272,7 +272,7 @@ public class Parser {
 	}
 
 	private String[] parseTaskTagsRemoval(String commandDetails) {
-		String[] removalMatches = match(commandDetails, "/(remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
+		String[] removalMatches = match(commandDetails, "/((?:removes?|rm)\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
 		ArrayList<String> tagMatches = new ArrayList<String>();
 		if (removalMatches != null) {
 			for (String match : removalMatches) {
@@ -293,7 +293,7 @@ public class Parser {
 	}
 
 	private String removeTaskTagsRemoval(String commandDetails) {
-		return commandDetails.replaceAll("remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+", "");
+		return commandDetails.replaceAll("(?:removes?|rm)\\s?(?:@[a-zA-Z0-9-]+\\s?)+", "");
 	}
 
 	private String removeLeadingAndClosingPunctuation(String input) {
