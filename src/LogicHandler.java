@@ -163,7 +163,7 @@ public class LogicHandler {
 		
 		boolean unchanged = true;
 
-		if (command.getTaskName()!=null) {
+		if (command.getTaskName()!=null && !command.getTaskName().equals("")) {
 			newTask.setTaskName(command.getTaskName());
 			unchanged = false;
 		}
