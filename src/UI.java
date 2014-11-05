@@ -70,16 +70,19 @@ public class UI extends FlowPane {
 	private static final double WIDTH_OF_PROGRAM = 950;
 	private static final double WIDTH_OF_TASKVIEW_INSET_SPACING = 20;
 
-	private static final double WIDTH_OF_TASKTABLE = 580;
+	private static final double WIDTH_OF_TASKTABLE = 590;
 	private static final double HEIGHT_OF_TASKTABLE = 500;
 	private static final double WIDTH_OF_TASKLBLCOL = 40;
 	private static final double WIDTH_OF_TASKNAMECOL = 300;
+	private static final double HEIGHT_OF_TASKNAMECOL = 110;
 	private static final double WIDTH_OF_TASKSTARTENDDATECOL = 200;
-
-	private static final double WIDTH_OF_SPLIT2 = 350;
-	private static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
-	private static final double HEIGHT_OF_TASKNAME_TEXTAREA = 110;
 	private static final double HEIGHT_OF_TEXTAREAS = 60;
+
+	private static final double WIDTH_OF_SPLIT2 = 310;
+	private static final double WIDTH_OF_SPLIT2_INSET_SPACING = 10;
+	private static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
+	
+	
 
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double WIDTH_OF_USERCOMMANDS = WIDTH_OF_PROGRAM
@@ -110,7 +113,8 @@ public class UI extends FlowPane {
 	private static final String ERROR_SIZEOUTOFBOUNDS = "Size should not be out of bounds";
 
 	enum HotKey {
-		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID, TASKTABLE_DELETE, TASKTABLE_INVALID, TASKTABLE_EDIT
+		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID,
+		TASKTABLE_DELETE, TASKTABLE_INVALID, TASKTABLE_EDIT, TASKTABLE_UNDO, TASKTABLE_REDO
 	};
 
 	public UI() {
@@ -206,6 +210,13 @@ public class UI extends FlowPane {
 					break;
 				case TASKTABLE_EDIT:
 					doDisplayQuickEditToUserCommand();
+					break;
+				case TASKTABLE_UNDO :
+					doUndo();
+					break;
+				case TASKTABLE_REDO :
+					doRedo();
+					break;
 				case TASKTABLE_INVALID:
 					break;
 				default:
@@ -221,7 +232,7 @@ public class UI extends FlowPane {
 
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
 				"ID");
-		taskLblCol.setPrefWidth(WIDTH_OF_TASKLBLCOL);
+		taskLblCol.setMinWidth(WIDTH_OF_TASKLBLCOL);
 		taskLblCol.setResizable(false);
 		taskLblCol.setSortable(false);
 		taskLblCol.getStyleClass().add(CSS_TASKIDCOL);
@@ -307,14 +318,14 @@ public class UI extends FlowPane {
 	private void initTaskDetailsView() {
 		taskDetailsView = new VBox();
 		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
-		taskDetailsView.setSpacing(10);
+		taskDetailsView.setSpacing(WIDTH_OF_SPLIT2_INSET_SPACING);
 
 		taskIDtf.getStyleClass().add(CSS_VIEW2COMPONENTS);
 		taskIDtf.setDisable(true);
 
 		taskNameta.getStyleClass().add(CSS_TEXTAREA);
 		taskNameta.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskNameta.setPrefHeight(HEIGHT_OF_TASKNAME_TEXTAREA);
+		taskNameta.setPrefHeight(HEIGHT_OF_TASKNAMECOL);
 		taskNameta.setWrapText(true);
 		taskNameta.setDisable(true);
 
@@ -570,7 +581,14 @@ public class UI extends FlowPane {
 		} else if (keyEvent.isControlDown()) {
 			if (keyCode.equals(KeyCode.E)) {
 				return HotKey.TASKTABLE_EDIT;
-			} else {
+			} 
+			else if(keyCode.equals(KeyCode.Z)) {
+				return HotKey.TASKTABLE_UNDO;
+			}
+			else if(keyCode.equals(KeyCode.Y)){
+				return HotKey.TASKTABLE_REDO;
+			}
+			else {
 				return HotKey.TASKTABLE_INVALID;
 			}
 		} else {
