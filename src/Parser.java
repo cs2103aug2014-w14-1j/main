@@ -180,7 +180,7 @@ public class Parser {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String[] IDs = parseTaskID(commandDetails);
 		if (IDs != null) {
-			commandObj.setTaskID(IDs[0]);
+		commandObj.setTaskID(IDs[0]);
 		}
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
