@@ -96,10 +96,12 @@ public class DateTimeParser extends DateTimeRegexHandler{
 						break;
 					case LIST:
 					case SEARCH:
-						Calendar startDate = (Calendar) date.clone();
-						setPeriodStartDate(startDate);
+						Calendar startDate = date;
+						Calendar endDate = (Calendar) date.clone();
+						setPeriodStartEndDate(startDate, isStartDate);
+						setPeriodStartEndDate(endDate, isEndDate);
 						commandObj.setSearchStartDate(startOfDay(startDate));
-						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
+						commandObj.setSearchEndDate(endOfDay(endDate));
 						break;
 				}
 				if (dateMatches(input, RECUR_DAY)) {
@@ -113,13 +115,21 @@ public class DateTimeParser extends DateTimeRegexHandler{
 		return output.replaceAll("\"", "");
 	}
 
-	private void setPeriodStartDate(Calendar startDate) {
+	private void setPeriodStartEndDate(Calendar date, boolean isStartDate) {
 		if (dateMatches(input, PERIOD_AFTER_DATE)) {
 			String period = dateMatch(input, PERIOD_AFTER_DATE)[2];
-			setStartOfPeriod(startDate, period);
+			if (isStartDate) {
+				setStartOfPeriod(date, period);
+			} else {
+				setEndOfPeriod(date, period);
+			}
 		} else if (dateMatches(input, WHICH_PERIOD)) {
 			String period = input;
-			setStartOfPeriod(startDate, period);
+			if (isStartDate) {
+				setStartOfPeriod(date, period);
+			} else {
+				setEndOfPeriod(date, period);
+			}
 		}
 	}
 
@@ -130,6 +140,16 @@ public class DateTimeParser extends DateTimeRegexHandler{
 			startDate.set(Calendar.DAY_OF_MONTH, startDate.getActualMinimum(Calendar.DAY_OF_MONTH));
 		} else if (dateMatches(period, YEAR)) {
 			startDate.set(Calendar.DAY_OF_YEAR, startDate.getActualMinimum(Calendar.DAY_OF_YEAR));
+		}
+	}
+
+	private void setEndOfPeriod(Calendar startDate, String period) {
+		if (dateMatches(period, WEEK)) {
+			startDate.set(Calendar.DAY_OF_WEEK, startDate.getActualMaximum(Calendar.DAY_OF_WEEK));
+		} else if (dateMatches(period, MONTH)) {
+			startDate.set(Calendar.DAY_OF_MONTH, startDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+		} else if (dateMatches(period, YEAR)) {
+			startDate.set(Calendar.DAY_OF_YEAR, startDate.getActualMaximum(Calendar.DAY_OF_YEAR));
 		}
 	}
 
