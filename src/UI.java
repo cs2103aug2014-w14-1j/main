@@ -374,7 +374,7 @@ public class UI extends FlowPane {
 		taskNameta.setDisable(true);
 
 		taskStartDtesta.setDisable(false);
-		taskStartDtesta.setText(taskUserSelected.getDateAsString());
+		taskStartDtesta.setText(taskUserSelected.getDateAsString() + " " + taskUserSelected.getRecurAsString());
 		taskStartDtesta.setDisable(true);
 
 		taskTagsta.setDisable(false);
