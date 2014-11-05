@@ -1,3 +1,4 @@
+// @author A0116150X
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -16,9 +17,9 @@ public class Parser {
 	private final int TYPO_DISTANCE = 1;
 
 	private String[] addCommands = {"add", "insert"};
-	private String[] editCommands = {"edit", "update", "change", "modify"};
-	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
-	private String[] listCommands = {"list"};
+	private String[] editCommands = {"edit", "update", "change", "modify", "make"};
+	private String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
+	private String[] listCommands = {"list", "ls", "view"};
 	private String[] searchCommands = {"search", "find"};
 	private String[] completeCommands = {"complete", "done", "finish", "fin"};
 	private String[] undoCommands = {"undo"};
@@ -178,7 +179,9 @@ public class Parser {
 	private void generateEditCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String[] IDs = parseTaskID(commandDetails);
+		if (IDs != null) {
 		commandObj.setTaskID(IDs[0]);
+		}
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
 		commandDetails = removeTaskTagsRemoval(commandDetails);

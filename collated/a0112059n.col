@@ -1,4 +1,11 @@
-//@author A0112059N
+//@author: a0112059n
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\LogicHandler.java
+	 */
+
 
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -36,7 +43,6 @@ public class LogicHandler {
 	private final String ERROR_NO_CHANGE = "No change was made.";
 	private final String ERROR_INVALID_ID = "Invalid id to update";
 	private final String ERROR_INVALID_IDS = "All ids are invalid";
-	private final String ERROR_INVALID_UPDATE = "Invalid update command";
 	
 	public LogicHandler(Storage storage) {
 		storage_ = storage;
@@ -86,11 +92,6 @@ public class LogicHandler {
 			return ERROR_NO_NAME;
 		} 
 		
-		String[] name = taskName.split("\\s+");
-		if ((name.length == 0) || (name[0].equals(""))) {
-			return ERROR_NO_NAME;
-		}
-		
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
@@ -101,6 +102,7 @@ public class LogicHandler {
 				task.addTag(tag);
 			}
 		}
+		
 		
 		ArrayList<Task> newTasks = new ArrayList<Task>();
 		newTasks.add(task);
@@ -157,11 +159,6 @@ public class LogicHandler {
 	
 		
 		String id = command.getTaskID();
-		
-		if (id == null) {
-			return ERROR_INVALID_UPDATE;
-		}
-		
 		id = id.toUpperCase();
 		
 		if (!taskIDmap.containsKey(id)) {
@@ -309,3 +306,226 @@ public class LogicHandler {
 		}	
 	}
 }
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\LogicHandler.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
+	 */
+
+
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.File;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.LinkedList;
+import java.util.TreeMap;
+
+import javafx.application.Application;
+import javafx.stage.Stage;
+
+import org.json.JSONException;
+
+public class MainController extends Application implements UIObserver {
+
+	private static final String TASK_FILENAME = "Task.txt";
+	private static final String FLOATING_TASK_FILENAME = "FloatingTask.txt";
+	private static final String OVERDUE_TASK_FILENAME = "OverdueTask.txt";
+	private static final String COMPLETED_TASK_FILENAME = "CompletedTask.txt";
+		
+	private String inputCommand_;
+	private Command currentCommand_ = null;
+	private UI UI_;
+	private ArrayList<Task> searchResults_;
+	private Parser parser_;
+	private TreeMap<String, Task> taskIDmap_;
+	private Storage storage_;
+	private LogicHandler logic_;
+	private SearchHandler searcher_;
+	
+	//Methods**************************************************************
+
+	public void proceedCommand(Command command) throws Exception {
+		if (isTest(command)) {
+			String msg = runSystemTest();
+			display(msg);
+		}
+		else if (isLogic(command)) {
+			String msg = logic_.executeCommand(taskIDmap_, command);
+			display(msg);
+			repeatLastSearch();
+		} else {
+			searchResults_ = searcher_.proceedCommand(command);
+			createTaskIDmap();
+			display(searchResults_.size() + " tasks found");
+			UI_.displayTasks(searchResults_);
+		}
+	}
+	
+	private boolean isTest(Command command) {
+		return command.getCommandType() == Command.COMMAND_TYPE.TEST;
+	}
+	
+	private boolean isLogic(Command command) {
+		assert command.getCommandType() != Command.COMMAND_TYPE.TEST;
+		if ((command.getCommandType() == Command.COMMAND_TYPE.SEARCH) | (command.getCommandType() == Command.COMMAND_TYPE.LIST)) {
+			return false;
+		} 
+		return true;
+	}
+
+	private void display(String result) {
+		UI_.setNotificationToUser(result);
+	}
+
+	private void repeatLastSearch() throws Exception {
+		searchResults_ = searcher_.repeatLastSearch();
+		createTaskIDmap();
+		UI_.displayTasks(searchResults_);
+	}
+	
+	private void createTaskIDmap() {
+		taskIDmap_ = new TreeMap<String, Task>();
+		int id_number = 1;
+
+		for (int i = 0; i < searchResults_.size(); i++) {
+			Task task = searchResults_.get(i);
+			String key = getChar(task) + Integer.toString(id_number);
+			taskIDmap_.put(key, task);
+			task.setDisplayId(key);
+			id_number++;
+		}
+	}
+
+
+	private String getChar(Task task) {
+		if (task.isOverdue()) {
+			return "O";
+		} else if (task.isFloating()) {
+			return "F";
+		} else {
+			return "T";
+		}
+	}
+
+	@Override
+	public void update() {
+		try {
+			inputCommand_ = UI_.getUserInput();
+			currentCommand_ = parser_.parseCommand(inputCommand_);
+			proceedCommand(currentCommand_);
+		} catch (Exception e) {
+			UI_.setNotificationToUser("Unknown error");
+		}
+	}
+
+	public static void main(String[] args) {
+		launch(args);
+	}
+
+	@Override
+	public void start(Stage stage) throws Exception {
+		this.storage_ = new Storage(TASK_FILENAME,FLOATING_TASK_FILENAME,OVERDUE_TASK_FILENAME,COMPLETED_TASK_FILENAME);
+		this.parser_ = new Parser();
+		this.UI_ = new UI();
+		this.logic_ = new LogicHandler(storage_);
+		this.searcher_ = new SearchHandler(storage_);
+
+		UI_.addUIObserver(this);
+		UI_.showStage(stage);
+		repeatLastSearch();
+		display("Welcome to SPEED!");
+	}
+	
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\SearchHandler.java
+	 */
+
+import java.util.ArrayList;
+import java.util.Calendar;
+
+
+public class SearchHandler {
+	private Storage storage_;
+	Command lastSearchCommand_;
+	
+	public SearchHandler(Storage storage) {
+		storage_ = storage;
+		lastSearchCommand_ = null;
+	}
+	
+	public ArrayList<Task> proceedCommand(Command command) throws Exception {
+		if (command.getCommandType() == Command.COMMAND_TYPE.SEARCH) {
+			return search(command);
+		} else if (command.getCommandType() == Command.COMMAND_TYPE.LIST) {
+			return list(command);
+		} else {
+			return new ArrayList<Task>(); 
+		}
+	}
+
+	public ArrayList<Task> search(Command command) throws Exception {
+		lastSearchCommand_ = command;
+		
+		ArrayList<String> keywords = command.getSearchKeywords();
+		ArrayList<String> tags = new ArrayList<String>();
+		if (command.getSearchTags()!=null) {
+			for (String tag : command.getSearchTags()) {
+				tags.add(tag);
+			}
+		}
+		Calendar start_date = command.getSearchStartDate();
+		Calendar end_date = command.getSearchEndDate();
+
+		return storage_.search(keywords, tags, start_date, end_date);		
+	}
+	
+	public ArrayList<Task> list(Command command) throws Exception {
+		lastSearchCommand_ = command;
+		
+		ArrayList<String> keywords = new ArrayList<String>();
+		ArrayList<String> tags = new ArrayList<String>();
+		Calendar start_date = command.getSearchStartDate();
+		Calendar end_date = command.getSearchEndDate();
+
+		return storage_.search(keywords, tags, start_date, end_date);
+	}		
+	
+	public ArrayList<Task> repeatLastSearch() throws Exception {
+		if (lastSearchCommand_ == null) {
+			return viewDefault();
+		} else {
+			return proceedCommand(lastSearchCommand_);
+		}
+	}
+	
+	public ArrayList<Task> viewDefault() throws Exception {
+		
+		ArrayList<Task> searchResults = new ArrayList<Task>();
+		searchResults.addAll(storage_.search(null,null,null,null));
+		
+		return searchResults;
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\SearchHandler.java
+
+
+
+
+

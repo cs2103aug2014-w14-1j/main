@@ -1,0 +1,1458 @@
+//@author: a0116150x
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateParser.java
+	 */
+
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
+public class DateParser extends DateTimeRegexHandler {
+
+	private final String CURRENT_CENTURY = "20";
+	private TimeParser timeParser = new TimeParser();
+
+	private String currentDate;
+
+	public Calendar parse(String datetime, int default_hour, int default_min, int default_second) {
+		currentDate = datetime;
+		Calendar dateCal = parseDate(datetime);
+		return timeParser.parse(currentDate, dateCal, default_hour, default_min, default_second);
+	}
+
+	public Calendar parseDate(String date) {
+		if (currentDate == null) {
+			currentDate = date;
+		}
+		Calendar cal = matchNaturalLanguage(date);
+		cal = cal == null ? matchDayMonthYear(date) : cal;
+		cal = cal == null ? matchDayMonth(date) : cal;
+		cal = cal == null ? matchMonthDayYear(date) : cal;
+		cal = cal == null ? matchMonthDay(date) : cal;
+		return cal;
+	}
+
+	private Calendar matchDayMonthYear(String date) {
+		String[] parsedDate = null;
+		if (dateMatches(date, DD_MM_YYYY)) {
+			parsedDate = dateMatch(date, DD_MM_YYYY);
+		} else if (dateMatches(date, DD_MMM_YYYY)) {
+			parsedDate = dateMatch(date, DD_MMM_YYYY);
+			parsedDate[2] = toNumeral(parsedDate[2]);
+		} else if (dateMatches(date, DDMMYYYY)) {
+			parsedDate = dateMatch(date, DDMMYYYY);
+		} else if (dateMatches(date, DD_MM_YY)) {
+			parsedDate = dateMatch(date, DD_MM_YY);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+		} else if (dateMatches(date, DD_MMM_YY)) {
+			parsedDate = dateMatch(date, DD_MMM_YY);
+			parsedDate[2] = toNumeral(parsedDate[2]);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+		} else if (dateMatches(date, DDMMYY)) {
+			parsedDate = dateMatch(date, DDMMYY);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+		}
+		if (parsedDate == null) {
+			return null;
+		} else {
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
+			int year = Integer.parseInt(parsedDate[3]);
+			int month = Integer.parseInt(parsedDate[2]) - 1;
+			int day = Integer.parseInt(parsedDate[1]);
+			return new GregorianCalendar(year, month, day);
+		}
+	}
+
+	private Calendar matchDayMonth(String date) {
+		String[] parsedDate = null;
+		if (dateMatches(date, DD_MM)) {
+			parsedDate = dateMatch(date, DD_MM);
+		} else if (dateMatches(date, DD_MMM)) {
+			parsedDate = dateMatch(date, DD_MMM);
+			parsedDate[2] = toNumeral(parsedDate[2]);
+		}
+		if (parsedDate == null) {
+			return null;
+		} else {
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
+			Calendar now = Calendar.getInstance();
+			int day = Integer.parseInt(parsedDate[1]);
+			int month = Integer.parseInt(parsedDate[2]) - 1;
+			int year = now.get(Calendar.YEAR);
+			if (now.get(Calendar.MONTH) > month) {
+				year += 1;
+			} else if (now.get(Calendar.MONTH) == month && now.get(Calendar.DAY_OF_MONTH) > day) {
+				year += 1;
+			}
+			return new GregorianCalendar(year, month, day);
+		}
+	}
+
+	private Calendar matchMonthDayYear(String date) {
+		String[] parsedDate = null;
+		if (dateMatches(date, MM_DD_YYYY)) {
+			parsedDate = dateMatch(date, MM_DD_YYYY);
+		} else if (dateMatches(date, MMM_DD_YYYY)) {
+			parsedDate = dateMatch(date, MMM_DD_YYYY);
+			parsedDate[1] = toNumeral(parsedDate[1]);
+		} else if (dateMatches(date, MMDDYYYY)) {
+			parsedDate = dateMatch(date, MMDDYYYY);
+		} else if (dateMatches(date, MM_DD_YY)) {
+			parsedDate = dateMatch(date, MM_DD_YY);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+		} else if (dateMatches(date, MMM_DD_YY)) {
+			parsedDate = dateMatch(date, MMM_DD_YY);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+			parsedDate[1] = toNumeral(parsedDate[1]);
+		} else if (dateMatches(date, MMDDYY)) {
+			parsedDate = dateMatch(date, MMDDYY);
+			parsedDate[3] = CURRENT_CENTURY + parsedDate[3];
+		}
+		if (parsedDate == null) {
+			return null;
+		} else {
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
+			int year = Integer.parseInt(parsedDate[3]);
+			int month = Integer.parseInt(parsedDate[1]) - 1;
+			int day = Integer.parseInt(parsedDate[2]);
+			return new GregorianCalendar(year, month, day);
+		}
+	}
+
+	private Calendar matchMonthDay(String date) {
+		String[] parsedDate = null;
+		if (dateMatches(date, MM_DD)) {
+			parsedDate = dateMatch(date, MM_DD);
+		} else if (dateMatches(date, MMM_DD)) {
+			parsedDate = dateMatch(date, MMM_DD);
+			parsedDate[1] = toNumeral(parsedDate[1]);
+		}
+		if (parsedDate == null) {
+			return null;
+		} else {
+			currentDate = currentDate.replaceFirst(parsedDate[0], "");
+			Calendar now = Calendar.getInstance();
+			int day = Integer.parseInt(parsedDate[2]);
+			int month = Integer.parseInt(parsedDate[1]) - 1;
+			int year = now.get(Calendar.YEAR);
+			if (now.get(Calendar.MONTH) > month) {
+				year += 1;
+			} else if (now.get(Calendar.MONTH) == month && now.get(Calendar.DAY_OF_MONTH) > day) {
+				year += 1;
+			}
+			return new GregorianCalendar(year, month, day);
+		}
+	}
+
+	private Calendar matchNaturalLanguage(String date) {
+		Calendar now = Calendar.getInstance();
+		int thisYear = now.get(Calendar.YEAR);
+		int thisMonth = now.get(Calendar.MONTH);
+		int thisDayOfMonth = now.get(Calendar.DAY_OF_MONTH);
+		if (dateMatches(date, PERIOD_AFTER_DATE)) {
+			return matchPeriodAfterDate(date);
+		} else if (dateMatches(date, DATE_PERIOD_LATER_EARLIER)) {
+			return matchDatePeriodLaterEarlier(date);
+		} else if (dateMatches(date, AFTER_BEFORE_DATE_PERIOD)) {
+			return matchAfterBeforeDatePeriod(date);
+		} else if (dateMatches(date, NOW)) {
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
+		} else if (dateMatches(date, TODAY)) {
+			currentDate = currentDate.replaceFirst(dateMatch(date, TODAY)[0], "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth);
+		} else if (dateMatches(date, YESTERDAY)) {
+			currentDate = currentDate.replaceFirst(dateMatch(date, YESTERDAY)[0], "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth - 1);
+		} else if (dateMatches(date, TOMORROW)) {
+			currentDate = currentDate.replaceFirst(dateMatch(date, TOMORROW)[0], "");
+			return new GregorianCalendar(thisYear, thisMonth, thisDayOfMonth + 1);
+		} else if (dateMatches(date, WHICH_DAY)) {
+			return matchWhichDay(date);
+		} else if (dateMatches(date, WHICH_PERIOD)) {
+			return matchWhichPeriod(date);
+		} else {
+			return null;
+		}
+	}
+
+	private Calendar matchPeriodAfterDate(String date) {
+		String[] parsedDate = dateMatch(date, PERIOD_AFTER_DATE);
+		Calendar cal = parseDate(parsedDate[4]);
+		boolean add = parsedDate[3] == null || dateMatches(parsedDate[3], FROM+"|"+AFTER);
+		boolean isEndOfPeriod = false;
+		int periodLength;
+		if (dateMatches(parsedDate[1], "a")) {
+			periodLength = 1;
+		} else if (dateMatches(parsedDate[1], "the")) {
+			periodLength = 1;
+			isEndOfPeriod = true;
+		} else {
+			periodLength = Integer.parseInt(parsedDate[1].trim());
+		}
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[2];
+		parseDatePeriodAndSetDate(cal, isEndOfPeriod, periodLength, period);
+		return cal;
+	}
+
+	private Calendar matchAfterBeforeDatePeriod(String date) {
+		String[] parsedDate = dateMatch(date, AFTER_BEFORE_DATE_PERIOD);
+		Calendar now = Calendar.getInstance();
+		boolean add = parsedDate[1] == null || dateMatches(parsedDate[1], AFTER);
+		int periodLength = Integer.parseInt(parsedDate[2].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[3];
+		parseDatePeriodAndSetDate(now, false, periodLength, period);
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private Calendar matchDatePeriodLaterEarlier(String date) {
+		String[] parsedDate = dateMatch(date, DATE_PERIOD_LATER_EARLIER);
+		Calendar now = Calendar.getInstance();
+		boolean add = parsedDate[3] == null || dateMatches(parsedDate[3], LATER);
+		int periodLength = Integer.parseInt(parsedDate[1].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedDate[2];
+		parseDatePeriodAndSetDate(now, false, periodLength, period);
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private Calendar matchWhichPeriod(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_PERIOD);
+		Calendar cal = Calendar.getInstance();
+		String whichPeriod = parsedDate[1];
+		String period = parsedDate[2];
+		int addition = 0;
+		if (dateMatches(whichPeriod, NEXT)) {
+			addition = 1;
+		} else if (dateMatches(whichPeriod, PREVIOUS)) {
+			addition = -1;
+		}
+		parseDatePeriodAndSetDate(cal, true, addition, period);
+		return cal;
+	}
+
+	private void parseDatePeriodAndSetDate(Calendar cal, boolean isEndOfPeriod, int periodLength, String period) {
+		if (dateMatches(period, DAY)) {
+			cal.add(Calendar.DAY_OF_YEAR, periodLength);
+		} else if (dateMatches(period, WEEK)) {
+			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
+		} else if (dateMatches(period, MONTH)) {
+			cal.add(Calendar.MONTH, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
+		} else if (dateMatches(period, YEAR)) {
+			cal.add(Calendar.YEAR, periodLength);
+			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
+		}
+	}
+
+	private void setEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
+		if (isEndOfPeriod) {
+			cal.set(period, cal.getActualMaximum(period));
+		}
+	}
+
+	private Calendar matchWhichDay(String date) {
+		String[] parsedDate = dateMatch(date, WHICH_DAY);
+		Calendar now = Calendar.getInstance();
+		String whichDay = parsedDate[1];
+		int day = checkDay(parsedDate[2]);
+		if (whichDay == null) {
+			if (now.get(Calendar.DAY_OF_WEEK) > day) {
+				now.add(Calendar.WEEK_OF_YEAR, 1);
+			}
+		} else if (dateMatches(whichDay, NEXT)) {
+			now.add(Calendar.WEEK_OF_YEAR, 1);
+		} else if (dateMatches(whichDay, PREVIOUS)) {
+			now.add(Calendar.WEEK_OF_YEAR, -1);
+		}
+		now.set(Calendar.DAY_OF_WEEK, day);
+		currentDate = currentDate.replaceFirst(parsedDate[0], "");
+		return now;
+	}
+
+	private int checkDay(String day) {
+		int calendarDay = -1;
+		if (dateMatches(day, MON)) {
+			calendarDay = Calendar.MONDAY;
+		} else if (dateMatches(day, TUE)) {
+			calendarDay = Calendar.TUESDAY;
+		} else if (dateMatches(day, WED)) {
+			calendarDay = Calendar.WEDNESDAY;
+		} else if (dateMatches(day, THU)) {
+			calendarDay = Calendar.THURSDAY;
+		} else if (dateMatches(day, FRI)) {
+			calendarDay = Calendar.FRIDAY;
+		} else if (dateMatches(day, SAT)) {
+			calendarDay = Calendar.SATURDAY;
+		} else if (dateMatches(day, SUN)) {
+			calendarDay = Calendar.SUNDAY;
+		}
+		return calendarDay;
+	}
+
+	private String toNumeral(String month) {
+		String numeral = "";
+		if (dateMatches(month, JAN)) {
+			numeral = "1";
+		} else if (dateMatches(month, FEB)) {
+			numeral = "2";
+		} else if (dateMatches(month, MAR)) {
+			numeral = "3";
+		} else if (dateMatches(month, APR)) {
+			numeral = "4";
+		} else if (dateMatches(month, MAY)) {
+			numeral = "5";
+		} else if (dateMatches(month, JUN)) {
+			numeral = "6";
+		} else if (dateMatches(month, JUL)) {
+			numeral = "7";
+		} else if (dateMatches(month, AUG)) {
+			numeral = "8";
+		} else if (dateMatches(month, SEP)) {
+			numeral = "9";
+		} else if (dateMatches(month, OCT)) {
+			numeral = "10";
+		} else if (dateMatches(month, NOV)) {
+			numeral = "11";
+		} else if (dateMatches(month, DEC)) {
+			numeral = "12";
+		}
+		return numeral;
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateParser.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateTimeParser.java
+	 */
+
+import java.util.Calendar;
+
+public class DateTimeParser extends DateTimeRegexHandler{
+
+	/**
+	 * Regex for parsing datetime in command
+	 */
+	private final String SIMPLE_FROM_TO = "(?:(?:from\\s+)?"+
+		DATE_FORMATS+"(?:,?\\s+)("+TIME_RANGE_12+"|"+TIME_RANGE_24+")"+"|"+
+		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+")(?:,?\\s+)"+DATE_FORMATS+"|"+
+		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+"))";
+	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
+	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
+	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
+	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
+	private final String RECUR = "(?:recurs?\\s+)?(?:every\\s*?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
+	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
+	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
+
+	private DateParser dateParser = new DateParser();
+	private String input;
+	private String output;
+
+	public String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
+		output = command;
+		input = command.replaceAll("\"[^\"]+\"", "");
+		if (dateMatches(input, SIMPLE_FROM_TO)) {
+			String match = dateMatch(input, SIMPLE_FROM_TO)[0];
+			Calendar startDate = dateParser.parseDate(match);
+			startDate = startDate == null ? Calendar.getInstance() : startDate;
+			Calendar endDate = (Calendar) startDate.clone();
+			parseSimpleFromToDateRange(match, startDate, endDate);
+			switch (type) {
+				case ADD:
+				case EDIT:
+				case DEFAULT:
+					commandObj.setTaskStartDate(startDate);
+					commandObj.setTaskEndDate(endDate);
+					break;
+				case LIST:
+				case SEARCH:
+					commandObj.setSearchStartDate(startDate);
+					commandObj.setSearchEndDate(endDate);
+					break;
+			}
+			if (dateMatches(input, RECUR_DAY)) {
+				String[] recurMatch = dateMatch(input, RECUR_DAY);
+				output = output.replaceFirst(recurMatch[2], "");
+			}
+			parseRecur(commandObj);
+			output = output.replaceFirst(match, "");
+		} else if (dateMatches(input, FROM_TO)) {
+			String match = dateMatch(input, FROM_TO)[0];
+			String[] fromDate = dateMatch(match, FROM_DATETIME);
+			Calendar startDate = dateParser.parse(fromDate[1], 0, 0, 0);
+			String[] toDate = dateMatch(match, TO_DATETIME);
+			Calendar endDate = dateParser.parse(toDate[1], 23, 59, 59);
+			if (startDate != null && endDate != null) {
+				switch (type) {
+					case ADD:
+					case EDIT:
+					case DEFAULT:
+						commandObj.setTaskStartDate(startDate);
+						commandObj.setTaskEndDate(endDate);
+						break;
+					case LIST:
+					case SEARCH:
+						commandObj.setSearchStartDate(startDate);
+						commandObj.setSearchEndDate(endDate);
+						break;
+				}
+				output = output.replaceFirst(match, "");
+				parseRecur(commandObj);
+			}
+		} else if (dateMatches(input, DUE)) {
+			String[] dates = dateMatch(input, DUE);
+			Calendar dueDate = dateParser.parse(dates[1], 23, 59, 59);
+			if (dueDate != null) {
+				commandObj.setTaskEndDate(dueDate);
+				output = output.replaceFirst(dates[0], "");
+				parseRecur(commandObj);
+			}
+		} else if (dateMatches(input, DATETIME_FORMATS)) {
+			String[] dates = dateMatch(input, DATETIME_FORMATS);
+			Calendar date = dateParser.parse(dates[0], 23, 59, 59);
+			if (date != null) {
+				switch (type) {
+					case ADD:
+					case EDIT:
+					case DEFAULT:
+						commandObj.setTaskEndDate(date);
+						break;
+					case LIST:
+					case SEARCH:
+						commandObj.setSearchStartDate(startOfDay(date));
+						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
+						break;
+				}
+				if (dateMatches(input, RECUR_DAY)) {
+					String[] recurMatch = dateMatch(input, RECUR_DAY);
+					output = output.replaceFirst(recurMatch[2], "");
+				}
+				parseRecur(commandObj);
+				output = output.replaceFirst(dates[0], "");
+			}
+		}
+		return output.replaceAll("\"", "");
+	}
+
+	private void parseSimpleFromToDateRange(String match, Calendar startDate, Calendar endDate) {
+		if (dateMatches(match, TIME_RANGE_12)) {
+			parseDateRangeTime12Format(match, startDate, endDate);
+		} else if (dateMatches(match, TIME_RANGE_24)) {
+			parseDateRangeTime24Format(match, startDate, endDate);
+		}
+	}
+
+	private void parseDateRangeTime12Format(String match, Calendar startDate, Calendar endDate) {
+		String[] parsedTime = dateMatch(match, TIME_RANGE_12);
+		int startHour = Integer.parseInt(parsedTime[1].trim());
+		int startMinute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2].trim());
+		int startSecond = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3].trim());
+		if (parsedTime[4] == null) {
+			parsedTime[4] = parsedTime[8];
+		}
+		if (parsedTime[4].trim().equalsIgnoreCase(PM) && startHour < 12) {
+			startHour += 12;
+		} else if (parsedTime[4].trim().equalsIgnoreCase(AM) && startHour == 12) {
+			startHour -= 12;
+		}
+		int endHour = Integer.parseInt(parsedTime[5].trim());
+		int endMinute = parsedTime[6] == null ? 0 : Integer.parseInt(parsedTime[6].trim());
+		int endSecond = parsedTime[7] == null ? 0 : Integer.parseInt(parsedTime[7].trim());
+		if (parsedTime[8].trim().equalsIgnoreCase(PM) && endHour < 12) {
+			endHour += 12;
+		} else if (parsedTime[8].trim().equalsIgnoreCase(AM) && endHour == 12) {
+			endHour -= 12;
+		}
+		setTimeOfDate(startDate, startHour, startMinute, startSecond);
+		setTimeOfDate(endDate, endHour, endMinute, endSecond);
+		if (startDate.after(endDate)) {
+			endDate.add(Calendar.DAY_OF_YEAR, 1);
+		}
+	}
+
+	private void parseDateRangeTime24Format(String match, Calendar startDate, Calendar endDate) {
+		String[] parsedTime = dateMatch(match, TIME_RANGE_24);
+		int startHour;
+		int startMinute;
+		int startSecond;
+		int endHour;
+		int endMinute;
+		int endSecond;
+		if (parsedTime[1] == null) {
+			startHour = Integer.parseInt(parsedTime[4]);
+			startMinute = Integer.parseInt(parsedTime[5]);
+			startSecond = 0;
+		} else {
+			startHour = Integer.parseInt(parsedTime[1]);
+			startMinute = Integer.parseInt(parsedTime[2]);
+			startSecond = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
+		}
+		if (parsedTime[6] == null) {
+			endHour = Integer.parseInt(parsedTime[9]);
+			endMinute = Integer.parseInt(parsedTime[10]);
+			endSecond = 0;
+		} else {
+			endHour = Integer.parseInt(parsedTime[6]);
+			endMinute = Integer.parseInt(parsedTime[7]);
+			endSecond = parsedTime[8] == null ? 0 : Integer.parseInt(parsedTime[8]);
+		}
+		setTimeOfDate(startDate, startHour, startMinute, startSecond);
+		setTimeOfDate(endDate, endHour, endMinute, endSecond);
+		if (startDate.after(endDate)) {
+			endDate.add(Calendar.DAY_OF_YEAR, 1);
+		}
+	}
+
+	private void parseRecur(Command commandObj) {
+		int recurPeriod = 1;
+		int recurPattern = -1;
+		if (dateMatches(input, RECUR)) {
+			String[] recur = dateMatch(input, RECUR);
+			recurPattern = parseRecurPattern(recur[2]);
+			if (recur[1] != null) {
+				recurPeriod = Integer.parseInt(recur[1].trim());
+			}
+			output = output.replaceFirst(RECUR, "");
+		} else if (dateMatches(input, SIMPLE_RECUR)) {
+			String[] recur = dateMatch(input, SIMPLE_RECUR);
+			recurPattern = parseRecurPattern(recur[1]);
+			output = output.replaceFirst(SIMPLE_RECUR, "");
+		}
+		commandObj.setRecurPattern(recurPattern);
+		commandObj.setRecurPeriod(recurPeriod);
+	}
+
+	private int parseRecurPattern(String pattern) {
+		int recurPattern = -1;
+		if (dateMatches(pattern, DAY) || dateMatches(pattern, DAILY)) {
+			recurPattern = Calendar.DAY_OF_YEAR;
+		} else if (dateMatches(pattern, WEEK) || dateMatches(pattern, WEEKLY) || dateMatches(pattern, DAY_NAMES)) {
+			recurPattern = Calendar.WEEK_OF_YEAR;
+		} else if (dateMatches(pattern, MONTH) || dateMatches(pattern, MONTHLY)) {
+			recurPattern = Calendar.MONTH;
+		} else if (dateMatches(pattern, YEAR) || dateMatches(pattern, YEARLY)) {
+			recurPattern = Calendar.YEAR;
+		}
+		return recurPattern;
+	}
+
+	private void setTimeOfDate(Calendar date, int hour, int minute, int second) {
+		date.set(Calendar.HOUR_OF_DAY, hour);
+		date.set(Calendar.MINUTE, minute);
+		date.set(Calendar.SECOND, second);
+	}
+
+	private Calendar startOfDay(Calendar cal) {
+		setTimeOfDate(cal, 0, 0, 0);
+		return cal;
+	}
+
+	private Calendar endOfDay(Calendar cal) {
+		setTimeOfDate(cal, 23, 59, 59);
+		return cal;
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateTimeParser.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateTimeRegexHandler.java
+	 */
+
+import static org.mentaregex.Regex.match;
+import static org.mentaregex.Regex.matches;
+
+public class DateTimeRegexHandler {
+
+	/**
+	 * Regex for month names
+	 */
+	protected final String JAN = "Jan(?:uary)?";
+	protected final String FEB = "Feb(?:ruary)?";
+	protected final String MAR = "Mar(?:ch)?";
+	protected final String APR = "Apr(?:il)?";
+	protected final String MAY = "May";
+	protected final String JUN = "Jun(?:e)?";
+	protected final String JUL = "Jul(?:y)?";
+	protected final String AUG = "Aug(?:ust)?";
+	protected final String SEP = "Sep(?:tember)?";
+	protected final String OCT = "Oct(?:ober)?";
+	protected final String NOV = "Nov(?:ember)?";
+	protected final String DEC = "Dec(?:ember)?";
+
+	/**
+	 * Regex for datetime measurements
+	 */
+	protected final String SECOND = "seconds?";
+	protected final String MINUTE = "minutes?";
+	protected final String HOUR = "hours?";
+	protected final String DAY = "days?";
+	protected final String WEEK = "weeks?";
+	protected final String MONTH = "months?";
+	protected final String YEAR = "years?";
+	protected final String DATE_PERIOD = "("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+")";
+	protected final String TIME_PERIOD = "("+SECOND+"|"+MINUTE+"|"+HOUR+")";
+
+	/**
+	 * Regex for recurrence in natural language
+	 */
+	protected final String DAILY = "daily";
+	protected final String WEEKLY = "weekly";
+	protected final String MONTHLY = "monthly";
+	protected final String YEARLY = "yearly|annually";
+
+	/**
+	 * Regex for days in week
+	 */
+	protected final String MON = "mon(?:day)?";
+	protected final String TUE = "tues|tue(?:sday)?";
+	protected final String WED = "wed(?:nesday)?";
+	protected final String THU = "thurs?|thu(?:rsday)?";
+	protected final String FRI = "fri(?:day)?";
+	protected final String SAT = "sat(?:urday)?";
+	protected final String SUN = "sun(?:day)?";
+	protected final String DAY_NAMES = "("+MON+"|"+TUE+"|"+WED+"|"+THU+"|"+FRI+"|"+SAT+"|"+SUN+")";
+
+	/**
+	 * Regex for natural language such as
+	 * after 3 hours
+	 * before 1 month
+	 * 3 years time
+	 */
+	protected final String AFTER = "after";
+	protected final String BEFORE = "before";
+	protected final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
+	protected final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
+
+	/**
+	 * Regex for natural language such as
+	 * 5 minutes later
+	 * 3 years ago
+	 */
+	protected final String LATER = "later";
+	protected final String EARLIER = "earlier|ago";
+	protected final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+DATE_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
+	protected final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+TIME_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
+
+	/**
+	 * Regex for natural language such as
+	 * this monday
+	 * next wed
+	 * last week
+	 */
+	protected final String THIS = "this";
+	protected final String NEXT = "next";
+	protected final String PREVIOUS = "previous|last";
+	protected final String WHICH_DAY = "(?:("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+)?"+DAY_NAMES;
+	protected final String WHICH_PERIOD = "("+THIS+"|"+NEXT+"|"+PREVIOUS+")\\s+"+DATE_PERIOD;
+
+	/**
+	 * Regex for broken down datetime formats
+	 */
+	protected final String DATE_CONNECTOR = "[- /.]";
+	protected final String ORDINALS = "(?:st|nd|rd|th)?";
+	protected final String YY = "(\\d\\d)";
+	protected final String YYYY = "((?:19|20)\\d\\d)";
+	protected final String MM = "(0[1-9]|1[012])";
+	protected final String M = "(0?[1-9]|1[012])";
+	protected final String MMM = "("+JAN+"|"+FEB+"|"+MAR+"|"+APR+"|"+MAY+"|"+JUN+"|"+JUL+"|"+AUG+"|"+SEP+"|"+OCT+"|"+NOV+"|"+DEC+")";
+	protected final String DD = "(0[1-9]|[12][0-9]|3[01])";
+	protected final String D = "(0?[1-9]|[12][0-9]|3[01])";
+	protected final String PM = "pm";
+	protected final String AM = "am";
+	protected final String TIME_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(am|pm)";
+	protected final String TIME_24 = "(?:(2[0-3]|1[0-9]|0?[0-9])[:\\.]([0-5][0-9])(?::([0-5][0-9]|[0-9]))?|(2[0-3]|1[0-9]|0[0-9])([0-5][0-9]))";
+	protected final String TIME_RANGE_12 = "(?:(0?[1-9]|1[012])(?:[:\\.]([0-5][0-9]))?(?::([0-5][0-9]))?)\\s*(am|pm)?(?:\\s+to\\s+|\\s*-\\s*)"+TIME_12;
+	protected final String TIME_RANGE_24 = TIME_24+"(?:\\s+to\\s+|\\s*-\\s*)"+TIME_24;
+
+	/**
+	 * Regex for common date formats
+	 */
+	protected final String DD_MM_YYYY = D + DATE_CONNECTOR + M + DATE_CONNECTOR + YYYY;
+	protected final String DD_MMM_YYYY = D + ORDINALS + DATE_CONNECTOR + MMM + DATE_CONNECTOR + YYYY;
+	protected final String DDMMYYYY = DD + MM + YYYY;
+	protected final String DD_MM_YY = D + DATE_CONNECTOR + M + DATE_CONNECTOR + YY;
+	protected final String DD_MMM_YY = D + ORDINALS + DATE_CONNECTOR + MMM + DATE_CONNECTOR + YY;
+	protected final String DDMMYY = DD + MM + YY;
+
+	protected final String MM_DD_YYYY = M + DATE_CONNECTOR + D + DATE_CONNECTOR + YYYY;
+	protected final String MMM_DD_YYYY = MMM + DATE_CONNECTOR + D + ORDINALS + DATE_CONNECTOR + YYYY;
+	protected final String MMDDYYYY = MM + DD + YYYY;
+	protected final String MM_DD_YY = M + DATE_CONNECTOR + D + DATE_CONNECTOR + YY;
+	protected final String MMM_DD_YY = MMM + DATE_CONNECTOR + D + ORDINALS + DATE_CONNECTOR + YY;
+	protected final String MMDDYY =  MM + DD + YY;
+
+	protected final String DD_MM = D + DATE_CONNECTOR + M;
+	protected final String DD_MMM = D + ORDINALS + "(?:" + DATE_CONNECTOR + "|" + "\\s+of\\s+)" + MMM;
+
+	protected final String MM_DD = M + DATE_CONNECTOR + D;
+	protected final String MMM_DD =  MMM + DATE_CONNECTOR + D + ORDINALS;
+
+	protected final String NOW = "now";
+	protected final String TODAY = "today";
+	protected final String TOMORROW = "tomorrow|tmr|tmrw|tml";
+	protected final String YESTERDAY = "yesterday|yda|yta|ytd";
+
+	/**
+	 * Regex for combination of all common date formats
+	 */
+	protected final String SIMPLE_DATE_FORMATS = "(?:"+
+		DD_MM_YYYY+"|"+
+		DD_MMM_YYYY+"|"+
+		DDMMYYYY+"|"+
+		DD_MM_YY+"|"+
+		DD_MMM_YY+"|"+
+		DDMMYY+"|"+
+		MM_DD_YYYY+"|"+
+		MMM_DD_YYYY+"|"+
+		MMDDYYYY+"|"+
+		MM_DD_YY+"|"+
+		MMM_DD_YY+"|"+
+		MMDDYY+"|"+
+		DD_MM+"|"+
+		DD_MMM+"|"+
+		MM_DD+"|"+
+		MMM_DD+"|"+
+		NOW+"|"+
+		TODAY+"|"+
+		TOMORROW+"|"+
+		YESTERDAY+"|"+
+		WHICH_DAY+"|"+
+		WHICH_PERIOD+")";
+
+	/**
+	 * Regex for natural language such as
+	 * the day after tmr
+	 * a week from today
+	 */
+	protected final String FROM = "from";
+	protected final String PERIOD_AFTER_DATE = "(the|a|\\d+)\\s+"+DATE_PERIOD+"\\s+("+FROM+"|"+AFTER+"|"+BEFORE+")\\s+("+SIMPLE_DATE_FORMATS+")";
+
+	/**
+	 * Regex for all date formats
+	 */
+	protected final String DATE_FORMATS = "(?:" +
+		PERIOD_AFTER_DATE+"|"+
+		DATE_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_DATE_PERIOD+"|"+
+		SIMPLE_DATE_FORMATS+")";
+
+	/**
+	 * Regex for all time formats
+	 */
+	protected final String TIME_FORMATS = "(?:"+
+		TIME_12+"|"+
+		TIME_24+"|"+
+		TIME_PERIOD_LATER_EARLIER+"|"+
+		AFTER_BEFORE_TIME_PERIOD+")";
+
+	/**
+	 * Regex for all datetime formats
+	 */
+	protected final String DATETIME_FORMATS = "(?:"+
+		DATE_FORMATS+"(?:,?\\s+)"+TIME_FORMATS+"|"+
+		TIME_FORMATS+"(?:,?\\s+)"+DATE_FORMATS+"|"+
+		DATE_FORMATS+"|"+
+		TIME_FORMATS+")";
+
+	protected String[] dateMatch(String input, String regex) {
+		return match(input, "/(\\b" + regex + "\\b)/ig");
+	}
+
+	protected boolean dateMatches(String input, String regex) {
+		return matches(input, "/\\b" + regex + "\\b/ig");
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\DateTimeRegexHandler.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Parser.java
+	 */
+
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static org.mentaregex.Regex.match;
+import static org.mentaregex.Regex.matches;
+
+public class Parser {
+
+	DateTimeParser dateTimeParser = new DateTimeParser();
+
+	private String command;
+	private Command commandObj;
+	private Command.COMMAND_TYPE commandType;
+	private final int TYPO_DISTANCE = 1;
+
+	private String[] addCommands = {"add", "insert"};
+	private String[] editCommands = {"edit", "update", "change", "modify"};
+	private String[] deleteCommands = {"delete", "remove", "destroy", "del"};
+	private String[] listCommands = {"list"};
+	private String[] searchCommands = {"search", "find"};
+	private String[] completeCommands = {"complete", "done", "finish", "fin"};
+	private String[] undoCommands = {"undo"};
+	private String[] redoCommands = {"redo"};
+	private String[] exitCommands = {"quit", "exit"};
+	private String[] testCommands = {"runtest", "systest"};
+
+	public Command parseCommand(String userCommand) {
+		command = userCommand;
+		String commandTypeString = getFirstWord(command).trim().toLowerCase();
+		commandType = parserCommandType(commandTypeString);
+		return generateCommandObj();
+	}
+
+	private String getFirstWord(String input) {
+		return input.split("\\s+")[0];
+	}
+
+	private Command.COMMAND_TYPE parserCommandType(String commandTypeString) {
+		if (isAddCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.ADD;
+		} else if (isEditCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.EDIT;
+		} else if (isDeleteCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.DELETE;
+		} else if (isListCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.LIST;
+		} else if (isSearchCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.SEARCH;
+		} else if (isCompleteCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.COMPLETE;
+		} else if (isUndoCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.UNDO;
+		} else if (isRedoCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.REDO;
+		} else if (isExitCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.EXIT;
+		} else if (isTestCommand(commandTypeString)) {
+			return Command.COMMAND_TYPE.TEST;
+		} else {
+			return Command.COMMAND_TYPE.DEFAULT;
+		}
+	}
+
+	private boolean isAddCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, addCommands);
+	}
+
+	private boolean isEditCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, editCommands);
+	}
+
+	private boolean isDeleteCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, deleteCommands);
+	}
+
+	private boolean isListCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, listCommands);
+	}
+
+	private boolean isSearchCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, searchCommands);
+	}
+
+	private boolean isCompleteCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, completeCommands);
+	}
+
+	private boolean isUndoCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, undoCommands);
+	}
+
+	private boolean isRedoCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, redoCommands);
+	}
+
+	private boolean isExitCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, exitCommands);
+	}
+
+	private boolean isTestCommand(String commandTypeString) {
+		return containsCommand(commandTypeString, testCommands);
+	}
+
+	private boolean containsCommand(String commandTypeString, String[] commands) {
+		boolean result = false;
+		for (String command : commands) {
+			if (isFalsePositive("edit", "exit", command, commandTypeString)) {
+				return false;
+			} else if (isFalsePositive("fin", "find", command, commandTypeString)) {
+				return false;
+			} else if (StringUtils.getLevenshteinDistance(commandTypeString, command) <= TYPO_DISTANCE) {
+				result = true;
+			}
+		}
+		return result;
+	}
+
+	private boolean isFalsePositive(String correctA, String correctB, String checkA, String checkB) {
+		if (checkA.equalsIgnoreCase(correctA) && checkB.equalsIgnoreCase(correctB)) {
+			return true;
+		} else if (checkA.equalsIgnoreCase(correctB) && checkB.equalsIgnoreCase(correctA)) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private Command generateCommandObj() {
+		commandObj = new Command();
+		commandObj.setCommandType(commandType);
+		String commandDetails = removeCommand();
+		if (!commandDetails.equals("")) {
+			switch (commandType) {
+				case ADD:
+				case DEFAULT:
+					generateAddCommandObj(commandDetails);
+					break;
+				case EDIT:
+					generateEditCommandObj(commandDetails);
+					break;
+				case DELETE:
+					generateDeleteCommandObj(commandDetails);
+					break;
+				case LIST:
+					generateListCommandObj(commandDetails);
+					break;
+				case SEARCH:
+					generateSearchCommandObj(commandDetails);
+					break;
+				case COMPLETE:
+					generateCompleteCommandObj(commandDetails);
+					break;
+			}
+		}
+		return commandObj;
+	}
+
+	private String removeCommand() {
+		if (commandType == Command.COMMAND_TYPE.DEFAULT) {
+			return command;
+		} else if (matches(command, "\\s+")) {
+			return command.replaceFirst("^(\\w+)\\s+", "");
+		} else {
+			return "";
+		}
+	}
+
+	private void generateAddCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
+		commandObj.setTaskName(parseTaskName(commandDetails));
+	}
+
+	private void generateEditCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		String[] IDs = parseTaskID(commandDetails);
+		commandObj.setTaskID(IDs[0]);
+		commandDetails = removeTaskID(commandDetails);
+		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
+		commandDetails = removeTaskTagsRemoval(commandDetails);
+		commandObj.setTaskTagsToAdd(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
+		commandObj.setTaskName(parseTaskName(commandDetails));
+	}
+
+	private void generateDeleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskIDsToDelete(parseMultipleTaskID(commandDetails));
+	}
+
+	private void generateListCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
+	}
+
+	private void generateSearchCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setSearchTags(parseTaskTagsAddition(commandDetails));
+		commandDetails = removeTaskTagsAddition(commandDetails);
+		commandDetails = dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
+		String[] array = commandDetails.trim().split("\\s+");
+		ArrayList<String> keywords = new ArrayList<String>();
+		for (String keyword : array) {
+			keywords.add(removeLeadingAndClosingPunctuation(keyword));
+		}
+		commandObj.setSearchKeywords(keywords);
+	}
+
+	private void generateCompleteCommandObj(String commandDetails) {
+		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandObj.setTaskIDsToComplete(parseMultipleTaskID(commandDetails));
+	}
+
+	private String parseTaskName(String commandDetails) {
+		return removeLeadingAndClosingPunctuation(commandDetails);
+	}
+
+	private String[] parseTaskID(String commandDetails) {
+		return match(commandDetails, "/([TFOtfo]\\d+)/g");
+	}
+
+	private String[] parseMultipleTaskID(String commandDetails) {
+		ArrayList<String> IDs = parseRangeIDs(commandDetails);
+		commandDetails = commandDetails.replaceAll("([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))", "");
+		String[] singleIDs = match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		if (singleIDs != null) {
+			IDs.addAll(Arrays.asList(singleIDs));
+		}
+		String[] allIDs = IDs.size() == 0 ? null : IDs.toArray(new String[IDs.size()]);
+		return allIDs;
+	}
+
+	private ArrayList<String> parseRangeIDs(String commandDetails) {
+		ArrayList<String> IDs = new ArrayList<String>();
+		String[] rangeIDs = match(commandDetails, "/([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))/g");
+		if (rangeIDs != null) {
+			for (int i = 0; i < rangeIDs.length; i += 4) {
+				int start = Integer.parseInt(rangeIDs[i + 1]);
+				int end = Integer.parseInt(rangeIDs[i + 3]);
+				String startID = rangeIDs[i];
+				String endID = rangeIDs[i + 2];
+				if (start > end) {
+					start = Integer.parseInt(rangeIDs[i + 3]);
+					end = Integer.parseInt(rangeIDs[i + 1]);
+					startID = rangeIDs[i + 2];
+					endID = rangeIDs[i];
+				}
+				IDs.add(startID);
+				for (Integer j = start + 1; j < end; j++) {
+					IDs.add(j.toString());
+				}
+				IDs.add(endID);
+			}
+		}
+		return IDs;
+	}
+
+	private String removeTaskID(String commandDetails) {
+		return commandDetails.replaceFirst("[TFOtfo]\\d+", "");
+	}
+
+	private String[] parseTaskTagsAddition(String commandDetails) {
+		return match(commandDetails, "/(\\B@[a-zA-Z0-9-]+)/g");
+	}
+
+	private String[] parseTaskTagsRemoval(String commandDetails) {
+		String[] removalMatches = match(commandDetails, "/(remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+)/g");
+		ArrayList<String> tagMatches = new ArrayList<String>();
+		if (removalMatches != null) {
+			for (String match : removalMatches) {
+				tagMatches.addAll(Arrays.asList(parseTaskTagsAddition(match)));
+			}
+			String[] tags = new String[tagMatches.size()];
+			for (int i = 0; i < tagMatches.size(); i++) {
+				tags[i] = tagMatches.get(i);
+			}
+			return tags;
+		} else {
+			return null;
+		}
+	}
+
+	private String removeTaskTagsAddition(String commandDetails) {
+		return commandDetails.replaceAll("\\B@[a-zA-Z0-9-]+", "");
+	}
+
+	private String removeTaskTagsRemoval(String commandDetails) {
+		return commandDetails.replaceAll("remove\\s?(?:@[a-zA-Z0-9-]+\\s?)+", "");
+	}
+
+	private String removeLeadingAndClosingPunctuation(String input) {
+		return input.replaceFirst("^[^0-9a-zA-Z]+", "").replaceAll("[^0-9a-zA-Z]+$", "");
+	}
+}
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Parser.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\ParserTest.java
+	 */
+
+import org.junit.Test;
+
+import java.util.Calendar;
+
+import static org.junit.Assert.*;
+
+public class ParserTest {
+
+	Parser parser = new Parser();
+
+	@Test
+	public void testBasicAddCommand() throws Exception {
+		String input = "add unit testing";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
+		assertEquals("unit testing", addCommand.getTaskName());
+	}
+
+	@Test
+	public void testAddCommandWithDate() throws Exception {
+		String input = "add unit testing 10 Oct 2014";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
+		assertEquals("unit testing", addCommand.getTaskName());
+		Calendar actualCal = addCommand.getTaskEndDate();
+		assertEquals(2014, actualCal.get(Calendar.YEAR));
+		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
+		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
+	}
+
+	@Test
+	public void testAddCommandWithDateAndTime12Hours() throws Exception {
+		String input = "add unit testing 10 Oct 2014 10.45pm";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
+		assertEquals("unit testing", addCommand.getTaskName());
+		Calendar actualCal = addCommand.getTaskEndDate();
+		assertEquals(2014, actualCal.get(Calendar.YEAR));
+		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
+		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
+		assertEquals(22, actualCal.get(Calendar.HOUR_OF_DAY));
+		assertEquals(45, actualCal.get(Calendar.MINUTE));
+	}
+
+	@Test
+	public void testAddCommandWithDateAndTime24Hours() throws Exception {
+		String input = "add unit testing 10 Oct 2014 2245";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.ADD, addCommand.getCommandType());
+		assertEquals("unit testing", addCommand.getTaskName());
+		Calendar actualCal = addCommand.getTaskEndDate();
+		assertEquals(2014, actualCal.get(Calendar.YEAR));
+		assertEquals(Calendar.OCTOBER, actualCal.get(Calendar.MONTH));
+		assertEquals(10, actualCal.get(Calendar.DAY_OF_MONTH));
+		assertEquals(22, actualCal.get(Calendar.HOUR_OF_DAY));
+		assertEquals(45, actualCal.get(Calendar.MINUTE));
+	}
+
+	@Test
+	public void testEditCommandName() throws Exception {
+		String input = "edit t1 unit testing";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
+		assertEquals("t1", addCommand.getTaskID());
+		assertEquals("unit testing", addCommand.getTaskName());
+	}
+
+	@Test
+	public void testEditCommandDate() throws Exception {
+		String input = "edit t1 tomorrow";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.EDIT, addCommand.getCommandType());
+		assertEquals("t1", addCommand.getTaskID());
+		Calendar expectedCal = Calendar.getInstance();
+		Calendar actualCal = addCommand.getTaskEndDate();
+		assertEquals(expectedCal.get(Calendar.YEAR), actualCal.get(Calendar.YEAR));
+		assertEquals(expectedCal.get(Calendar.MONTH), actualCal.get(Calendar.MONTH));
+		assertEquals(expectedCal.get(Calendar.DAY_OF_MONTH)+1, actualCal.get(Calendar.DAY_OF_MONTH));
+	}
+
+	@Test
+	public void testBasicDeleteCommand() throws Exception {
+		String input = "delete t1";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
+	}
+
+	@Test
+	public void testMultipleDeleteCommand() throws Exception {
+		String input = "delete t1 o2 f3";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1", "o2", "f3"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
+	}
+
+	@Test
+	public void testInvalidIDDeleteCommand() throws Exception {
+		String input = "delete z3";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
+		assertNull(addCommand.getTaskIDsToDelete());
+	}
+
+	@Test
+	public void testListCommandSingleDate() throws Exception {
+		String input = "list today";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
+		Calendar expectedDate = Calendar.getInstance();
+		Calendar actualStartDate = addCommand.getSearchStartDate();
+		Calendar actualEndDate = addCommand.getSearchEndDate();
+		assertEquals(expectedDate.get(Calendar.YEAR), actualStartDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualStartDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualStartDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
+		assertEquals(0, actualStartDate.get(Calendar.SECOND));
+		assertEquals(expectedDate.get(Calendar.YEAR), actualEndDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualEndDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualEndDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
+		assertEquals(59, actualEndDate.get(Calendar.SECOND));
+	}
+
+	@Test
+	public void testListCommandDateRange() throws Exception {
+		String input = "list today to 2 days after";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.LIST, addCommand.getCommandType());
+		Calendar expectedDate = Calendar.getInstance();
+		Calendar actualStartDate = addCommand.getSearchStartDate();
+		Calendar actualEndDate = addCommand.getSearchEndDate();
+		assertEquals(expectedDate.get(Calendar.YEAR), actualStartDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualStartDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH), actualStartDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(0, actualStartDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(0, actualStartDate.get(Calendar.MINUTE));
+		assertEquals(0, actualStartDate.get(Calendar.SECOND));
+		assertEquals(expectedDate.get(Calendar.YEAR), actualEndDate.get(Calendar.YEAR));
+		assertEquals(expectedDate.get(Calendar.MONTH), actualEndDate.get(Calendar.MONTH));
+		assertEquals(expectedDate.get(Calendar.DAY_OF_MONTH)+2, actualEndDate.get(Calendar.DAY_OF_MONTH));
+		assertEquals(23, actualEndDate.get(Calendar.HOUR_OF_DAY));
+		assertEquals(59, actualEndDate.get(Calendar.MINUTE));
+		assertEquals(59, actualEndDate.get(Calendar.SECOND));
+	}
+
+	@Test
+	public void testBasicSearchCommand() throws Exception {
+		String input = "search hello";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
+		String[] expectedArray = {"hello"};
+		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
+	}
+
+	@Test
+	public void testMultipleSearchCommand() throws Exception {
+		String input = "search hello world";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.SEARCH, addCommand.getCommandType());
+		String[] expectedArray = {"hello", "world"};
+		assertArrayEquals(expectedArray, addCommand.getSearchKeywords().toArray());
+	}
+
+	@Test
+	public void testBasicCompleteCommand() throws Exception {
+		String input = "complete t1";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
+	}
+
+	@Test
+	public void testMultipleCompleteCommand() throws Exception {
+		String input = "complete t1 o2 f3";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
+		String[] expectedArray = {"t1", "o2", "f3"};
+		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
+	}
+
+	@Test
+	public void testUndoCommand() throws Exception {
+		String input = "undo";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.UNDO, addCommand.getCommandType());
+	}
+
+	@Test
+	public void testExitCommand() throws Exception {
+		String input = "quit";
+		Command addCommand = parser.parseCommand(input);
+		assertEquals(Command.COMMAND_TYPE.EXIT, addCommand.getCommandType());
+	}
+}
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\ParserTest.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\TimeParser.java
+	 */
+
+import java.util.Calendar;
+
+public class TimeParser extends DateTimeRegexHandler {
+
+	public Calendar parse(String datetime, Calendar cal, int default_hour, int default_min, int default_second){
+		Time time = parseTime(datetime);
+		if (cal != null && time != null) {
+			cal.set(Calendar.HOUR_OF_DAY, time.getHour());
+			cal.set(Calendar.MINUTE, time.getMinute());
+			cal.set(Calendar.SECOND, time.getSecond());
+		} else if (cal != null) {
+			cal.set(Calendar.HOUR_OF_DAY, default_hour);
+			cal.set(Calendar.MINUTE, default_min);
+			cal.set(Calendar.SECOND, default_second);
+		} else if (time != null) {
+			cal = Calendar.getInstance();
+			cal.set(Calendar.HOUR_OF_DAY, time.getHour());
+			cal.set(Calendar.MINUTE, time.getMinute());
+			cal.set(Calendar.SECOND, time.getSecond());
+		}
+		return cal;
+	}
+
+	private Time parseTime(String time) {
+		Time t = null;
+		if (dateMatches(time, TIME_12)) {
+			t = parseTime12Format(time);
+		} else if (dateMatches(time, TIME_24)) {
+			t = parseTime24Format(time);
+		} else if (dateMatches(time, TIME_PERIOD_LATER_EARLIER)) {
+			t = parseTimePeriodLaterEarlier(time);
+		} else if (dateMatches(time, AFTER_BEFORE_TIME_PERIOD)) {
+			t = parseAfterBeforeTimePeriod(time);
+		} else if (dateMatches(time, NOW)) {
+			t = new Time();
+		}
+		return t;
+	}
+
+	private Time parseTime12Format(String time) {
+		String[] parsedTime = dateMatch(time, TIME_12);
+		int hour = Integer.parseInt(parsedTime[1]);
+		if (parsedTime[4].trim().equalsIgnoreCase(PM) && hour < 12) {
+			hour += 12;
+		} else if (parsedTime[4].trim().equalsIgnoreCase(AM) && hour == 12) {
+			hour -= 12;
+		}
+		int minute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2]);
+		int second = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
+		return new Time(hour, minute, second);
+	}
+
+	private Time parseTime24Format(String time) {
+		String[] parsedTime = dateMatch(time, TIME_24);
+		int hour;
+		int minute;
+		if (parsedTime[1] == null) {
+			hour = Integer.parseInt(parsedTime[4]);
+			minute = Integer.parseInt(parsedTime[5]);
+		} else {
+			hour = Integer.parseInt(parsedTime[1]);
+			minute = Integer.parseInt(parsedTime[2]);
+		}
+		int second = parsedTime[3] == null ? 59 : Integer.parseInt(parsedTime[3]);
+		return new Time(hour, minute, second);
+	}
+
+	private Time parseTimePeriodLaterEarlier(String time) {
+		String[] parsedTime = dateMatch(time, TIME_PERIOD_LATER_EARLIER);
+		boolean add = parsedTime[3] == null || dateMatches(parsedTime[3], LATER);
+		int periodLength = Integer.parseInt(parsedTime[1].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedTime[2];
+		return parseTimePeriodAndSetTime(period, periodLength);
+	}
+
+	private Time parseAfterBeforeTimePeriod(String time) {
+		String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
+		boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
+		int periodLength = Integer.parseInt(parsedTime[2].trim());
+		periodLength = add ? periodLength : 0 - periodLength;
+		String period = parsedTime[3];
+		return parseTimePeriodAndSetTime(period, periodLength);
+	}
+
+	private Time parseTimePeriodAndSetTime(String period, int periodLength) {
+		Time t = new Time();
+		if (dateMatches(period, SECOND)) {
+			t.setSecond(t.getSecond() + periodLength);
+		} else if (dateMatches(period, MINUTE)) {
+			t.setMinute(t.getMinute() + periodLength);
+		} else if (dateMatches(period, HOUR)) {
+			t.setHour(t.getHour() + periodLength);
+		}
+		return t;
+	}
+
+	private class Time {
+		private int hour;
+		private int minute;
+		private int second;
+
+		public Time() {
+			Calendar now = Calendar.getInstance();
+			this.hour = now.get(Calendar.HOUR_OF_DAY);
+			this.minute = now.get(Calendar.MINUTE);
+			this.second = now.get(Calendar.SECOND);
+		}
+
+		public Time(int hour, int minute, int second) {
+			this.hour = hour;
+			this.minute = minute;
+			this.second = second;
+		}
+
+		public void setHour(int hour) {
+			this.hour = hour;
+		}
+
+		public int getHour() {
+			return hour;
+		}
+
+		public void setMinute(int minute) {
+			this.minute = minute;
+		}
+
+		public int getMinute() {
+			return minute;
+		}
+
+		public void setSecond(int second) {
+			this.second = second;
+		}
+
+		public int getSecond() {
+			return second;
+		}
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\TimeParser.java
+
+
+
+
+

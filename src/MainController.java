@@ -1,3 +1,5 @@
+//@author A0112059N
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.BufferedReader;
@@ -99,13 +101,12 @@ public class MainController extends Application implements UIObserver {
 
 	@Override
 	public void update() {
-		inputCommand_ = UI_.getUserInput();
-		currentCommand_ = parser_.parseCommand(inputCommand_);
-
 		try {
+			inputCommand_ = UI_.getUserInput();
+			currentCommand_ = parser_.parseCommand(inputCommand_);
 			proceedCommand(currentCommand_);
 		} catch (Exception e) {
-			UI_.setNotificationToUser(e.getMessage());
+			UI_.setNotificationToUser("Invalid command");
 		}
 	}
 
