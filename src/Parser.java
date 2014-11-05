@@ -179,7 +179,9 @@ public class Parser {
 	private void generateEditCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
 		String[] IDs = parseTaskID(commandDetails);
+		if (IDs != null) {
 		commandObj.setTaskID(IDs[0]);
+		}
 		commandDetails = removeTaskID(commandDetails);
 		commandObj.setTaskTagsToRemove(parseTaskTagsRemoval(commandDetails));
 		commandDetails = removeTaskTagsRemoval(commandDetails);
