@@ -85,6 +85,11 @@ public class LogicHandler {
 			return ERROR_NO_NAME;
 		} 
 		
+		String[] name = taskName.split("\\s+");
+		if ((name.length == 0) || (name[0].equals(""))) {
+			return ERROR_NO_NAME;
+		}
+		
 		Task task = new Task();
 		task.setTaskName(command.getTaskName());
 		
