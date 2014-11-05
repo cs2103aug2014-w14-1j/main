@@ -238,22 +238,30 @@ public class DateParser extends DateTimeRegexHandler {
 			cal.add(Calendar.DAY_OF_YEAR, periodLength);
 		} else if (dateMatches(period, WEEK)) {
 			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
 		} else if (dateMatches(period, MONTH)) {
 			cal.add(Calendar.MONTH, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
 		} else if (dateMatches(period, YEAR)) {
 			cal.add(Calendar.YEAR, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
 		}
 	}
 
-	private void setEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
+	private void setStartOrEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
 		if (isEndOfPeriod) {
-			cal.set(period, cal.getActualMaximum(period));
+			setEndOfPeriod(cal, period);
 		} else if (isStartDate) {
-			cal.set(period, cal.getActualMinimum(period));
+			setStartOfPeriod(cal, period);
 		}
+	}
+
+	public void setStartOfPeriod(Calendar cal, int period) {
+		cal.set(period, cal.getActualMinimum(period));
+	}
+
+	public void setEndOfPeriod(Calendar cal, int period) {
+		cal.set(period, cal.getActualMaximum(period));
 	}
 
 	private Calendar matchWhichDay(String date) {
