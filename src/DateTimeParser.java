@@ -18,6 +18,9 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
 
+	private final boolean isStartDate = true;
+	private final boolean isEndDate = false;
+
 	private DateParser dateParser = new DateParser();
 	private String input;
 	private String output;
@@ -53,9 +56,9 @@ public class DateTimeParser extends DateTimeRegexHandler{
 		} else if (dateMatches(input, FROM_TO)) {
 			String match = dateMatch(input, FROM_TO)[0];
 			String[] fromDate = dateMatch(match, FROM_DATETIME);
-			Calendar startDate = dateParser.parse(fromDate[1], 0, 0, 0);
+			Calendar startDate = dateParser.parse(fromDate[1], isStartDate, 0, 0, 0);
 			String[] toDate = dateMatch(match, TO_DATETIME);
-			Calendar endDate = dateParser.parse(toDate[1], 23, 59, 59);
+			Calendar endDate = dateParser.parse(toDate[1], isEndDate, 23, 59, 59);
 			if (startDate != null && endDate != null) {
 				switch (type) {
 					case ADD:
@@ -75,7 +78,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 			}
 		} else if (dateMatches(input, DUE)) {
 			String[] dates = dateMatch(input, DUE);
-			Calendar dueDate = dateParser.parse(dates[1], 23, 59, 59);
+			Calendar dueDate = dateParser.parse(dates[1], isEndDate, 23, 59, 59);
 			if (dueDate != null) {
 				commandObj.setTaskEndDate(dueDate);
 				output = output.replaceFirst(dates[0], "");
@@ -83,7 +86,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 			}
 		} else if (dateMatches(input, DATETIME_FORMATS)) {
 			String[] dates = dateMatch(input, DATETIME_FORMATS);
-			Calendar date = dateParser.parse(dates[0], 23, 59, 59);
+			Calendar date = dateParser.parse(dates[0], isEndDate, 23, 59, 59);
 			if (date != null) {
 				switch (type) {
 					case ADD:

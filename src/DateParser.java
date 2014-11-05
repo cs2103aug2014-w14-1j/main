@@ -8,14 +8,16 @@ public class DateParser extends DateTimeRegexHandler {
 	private TimeParser timeParser = new TimeParser();
 
 	private String currentDate;
+	private boolean isStartDate = false;
 
 	public Calendar parse(String datetime) {
 		currentDate = datetime;
 		return parseDate(datetime);
 	}
 
-	public Calendar parse(String datetime, int default_hour, int default_min, int default_second) {
+	public Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
 		currentDate = datetime;
+		this.isStartDate = isStartDate;
 		Calendar dateCal = parseDate(datetime);
 		return timeParser.parse(currentDate, dateCal, default_hour, default_min, default_second);
 	}
@@ -227,7 +229,7 @@ public class DateParser extends DateTimeRegexHandler {
 		} else if (dateMatches(whichPeriod, PREVIOUS)) {
 			addition = -1;
 		}
-		parseDatePeriodAndSetDate(cal, true, addition, period);
+		parseDatePeriodAndSetDate(cal, !isStartDate, addition, period);
 		return cal;
 	}
 
@@ -249,6 +251,8 @@ public class DateParser extends DateTimeRegexHandler {
 	private void setEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
 		if (isEndOfPeriod) {
 			cal.set(period, cal.getActualMaximum(period));
+		} else if (isStartDate) {
+			cal.set(period, cal.getActualMinimum(period));
 		}
 	}
 
