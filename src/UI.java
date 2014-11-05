@@ -77,8 +77,9 @@ public class UI extends FlowPane {
 	private static final double WIDTH_OF_TASKSTARTENDDATECOL = 200;
 
 	private static final double WIDTH_OF_SPLIT2 = 350;
-	private static final double HEIGHT_OF_NOTIFICATIONPANE = 100;
-	private static final int HEIGHT_OF_TEXTAREAS = 60;
+	private static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
+	private static final double HEIGHT_OF_TASKNAME_TEXTAREA = 110;
+	private static final double HEIGHT_OF_TEXTAREAS = 60;
 
 	private static final double HEIGHT_OF_USERCOMMANDS = 10;
 	private static final double WIDTH_OF_USERCOMMANDS = WIDTH_OF_PROGRAM
@@ -313,7 +314,7 @@ public class UI extends FlowPane {
 
 		taskNameta.getStyleClass().add(CSS_TEXTAREA);
 		taskNameta.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskNameta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
+		taskNameta.setPrefHeight(HEIGHT_OF_TASKNAME_TEXTAREA);
 		taskNameta.setWrapText(true);
 		taskNameta.setDisable(true);
 
