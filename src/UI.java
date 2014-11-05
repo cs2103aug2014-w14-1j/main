@@ -210,6 +210,7 @@ public class UI extends FlowPane {
 					break;
 				case TASKTABLE_EDIT:
 					doDisplayQuickEditToUserCommand();
+					break;
 				case TASKTABLE_UNDO :
 					doUndo();
 					break;
