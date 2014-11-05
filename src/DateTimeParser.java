@@ -115,7 +115,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 
 	private void setPeriodStartDate(Calendar startDate) {
 		if (dateMatches(input, PERIOD_AFTER_DATE)) {
-			String period = dateMatch(input, PERIOD_AFTER_DATE)[1];
+			String period = dateMatch(input, PERIOD_AFTER_DATE)[2];
 			setStartOfPeriod(startDate, period);
 		} else if (dateMatches(input, WHICH_PERIOD)) {
 			String period = input;
