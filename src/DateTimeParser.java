@@ -27,7 +27,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 		input = command.replaceAll("\"[^\"]+\"", "");
 		if (dateMatches(input, SIMPLE_FROM_TO)) {
 			String match = dateMatch(input, SIMPLE_FROM_TO)[0];
-			Calendar startDate = dateParser.parseDate(match);
+			Calendar startDate = dateParser.parse(match);
 			startDate = startDate == null ? Calendar.getInstance() : startDate;
 			Calendar endDate = (Calendar) startDate.clone();
 			parseSimpleFromToDateRange(match, startDate, endDate);

@@ -9,16 +9,18 @@ public class DateParser extends DateTimeRegexHandler {
 
 	private String currentDate;
 
+	public Calendar parse(String datetime) {
+		currentDate = datetime;
+		return parseDate(datetime);
+	}
+
 	public Calendar parse(String datetime, int default_hour, int default_min, int default_second) {
 		currentDate = datetime;
 		Calendar dateCal = parseDate(datetime);
 		return timeParser.parse(currentDate, dateCal, default_hour, default_min, default_second);
 	}
 
-	public Calendar parseDate(String date) {
-		if (currentDate == null) {
-			currentDate = date;
-		}
+	private Calendar parseDate(String date) {
 		Calendar cal = matchNaturalLanguage(date);
 		cal = cal == null ? matchDayMonthYear(date) : cal;
 		cal = cal == null ? matchDayMonth(date) : cal;
