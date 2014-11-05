@@ -106,7 +106,7 @@ public class MainController extends Application implements UIObserver {
 			currentCommand_ = parser_.parseCommand(inputCommand_);
 			proceedCommand(currentCommand_);
 		} catch (Exception e) {
-			UI_.setNotificationToUser("Unknown error");
+			UI_.setNotificationToUser("Invalid command");
 		}
 	}
 

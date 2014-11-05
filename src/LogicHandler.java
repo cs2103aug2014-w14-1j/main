@@ -36,6 +36,7 @@ public class LogicHandler {
 	private final String ERROR_NO_CHANGE = "No change was made.";
 	private final String ERROR_INVALID_ID = "Invalid id to update";
 	private final String ERROR_INVALID_IDS = "All ids are invalid";
+	private final String ERROR_INVALID_UPDATE = "Invalid update command";
 	
 	public LogicHandler(Storage storage) {
 		storage_ = storage;
@@ -101,7 +102,6 @@ public class LogicHandler {
 			}
 		}
 		
-		
 		ArrayList<Task> newTasks = new ArrayList<Task>();
 		newTasks.add(task);
 		ArrayList<Task> oldTasks = new ArrayList<Task>();
@@ -157,6 +157,11 @@ public class LogicHandler {
 	
 		
 		String id = command.getTaskID();
+		
+		if (id == null) {
+			return ERROR_INVALID_UPDATE;
+		}
+		
 		id = id.toUpperCase();
 		
 		if (!taskIDmap.containsKey(id)) {
