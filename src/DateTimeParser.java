@@ -93,7 +93,9 @@ public class DateTimeParser extends DateTimeRegexHandler{
 						break;
 					case LIST:
 					case SEARCH:
-						commandObj.setSearchStartDate(startOfDay(date));
+						Calendar startDate = (Calendar) date.clone();
+						setPeriodStartDate(startDate);
+						commandObj.setSearchStartDate(startOfDay(startDate));
 						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
 						break;
 				}
@@ -106,6 +108,26 @@ public class DateTimeParser extends DateTimeRegexHandler{
 			}
 		}
 		return output.replaceAll("\"", "");
+	}
+
+	private void setPeriodStartDate(Calendar startDate) {
+		if (dateMatches(input, PERIOD_AFTER_DATE)) {
+			String period = dateMatch(input, PERIOD_AFTER_DATE)[1];
+			setStartOfPeriod(startDate, period);
+		} else if (dateMatches(input, WHICH_PERIOD)) {
+			String period = input;
+			setStartOfPeriod(startDate, period);
+		}
+	}
+
+	private void setStartOfPeriod(Calendar startDate, String period) {
+		if (dateMatches(period, WEEK)) {
+			startDate.set(Calendar.DAY_OF_WEEK, startDate.getActualMinimum(Calendar.DAY_OF_WEEK));
+		} else if (dateMatches(period, MONTH)) {
+			startDate.set(Calendar.DAY_OF_MONTH, startDate.getActualMinimum(Calendar.DAY_OF_MONTH));
+		} else if (dateMatches(period, YEAR)) {
+			startDate.set(Calendar.DAY_OF_YEAR, startDate.getActualMinimum(Calendar.DAY_OF_YEAR));
+		}
 	}
 
 	private void parseSimpleFromToDateRange(String match, Calendar startDate, Calendar endDate) {
