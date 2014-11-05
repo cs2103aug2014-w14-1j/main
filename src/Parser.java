@@ -220,7 +220,7 @@ public class Parser {
 	}
 
 	private String parseTaskName(String commandDetails) {
-		return removeLeadingAndClosingPunctuation(commandDetails);
+		return removeLeadingAndClosingPunctuation(commandDetails).replaceAll("\"", "");
 	}
 
 	private String[] parseTaskID(String commandDetails) {
