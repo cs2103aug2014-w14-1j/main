@@ -61,8 +61,12 @@ public class DateTimeRegexHandler {
 	 */
 	protected final String AFTER = "after";
 	protected final String BEFORE = "before";
-	protected final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
-	protected final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
+	protected final String AFTER_BEFORE_DATE_PERIOD = "(?:(?:"+
+		"("+AFTER+"|"+BEFORE+")\\s+)(\\d+)\\s+"+DATE_PERIOD+")|(?:"+
+		"(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time))";
+	protected final String AFTER_BEFORE_TIME_PERIOD = "(?:(?:"+
+		"("+AFTER+"|"+BEFORE+")\\s+)(\\d+)\\s+"+TIME_PERIOD+")|(?:"+
+		"(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time))";
 
 	/**
 	 * Regex for natural language such as

@@ -13,8 +13,8 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
-	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
-	private final String RECUR = "(?:recurs?\\s+)?(?:every\\s*?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
+	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in|on)\\s+(?:the\\s+)?("+DATETIME_FORMATS+")";
+	private final String RECUR = "(?:recurs?\\s+)?(?:every)(?:\\s*)?(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
 
@@ -110,6 +110,25 @@ public class DateTimeParser extends DateTimeRegexHandler{
 				}
 				parseRecur(commandObj);
 				output = output.replaceFirst(dates[0], "");
+			}
+		} else {
+			parseRecur(commandObj);
+			if (commandObj.getRecurPattern() != -1) {
+				Calendar startDate = startOfDay(Calendar.getInstance());
+				Calendar endDate = endOfDay(Calendar.getInstance());
+				switch (type) {
+					case ADD:
+					case EDIT:
+					case DEFAULT:
+						commandObj.setTaskStartDate(startDate);
+						commandObj.setTaskEndDate(endDate);
+						break;
+					case LIST:
+					case SEARCH:
+						commandObj.setSearchStartDate(startDate);
+						commandObj.setSearchEndDate(endDate);
+						break;
+				}
 			}
 		}
 		return output.replaceAll("\"", "");
