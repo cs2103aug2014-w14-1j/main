@@ -73,8 +73,8 @@ public class DateTimeRegexHandler {
 	 * 5 minutes later
 	 * 3 years ago
 	 */
-	protected final String LATER = "later";
-	protected final String EARLIER = "earlier|ago";
+	protected final String LATER = "later|"+AFTER;
+	protected final String EARLIER = "earlier|ago|"+BEFORE;
 	protected final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+DATE_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 	protected final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+TIME_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 
