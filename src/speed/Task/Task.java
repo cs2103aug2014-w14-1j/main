@@ -2,7 +2,7 @@
 package speed.Task;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
+
 import java.text.SimpleDateFormat;
 
 /*
@@ -511,29 +511,3 @@ public class Task {
 	}
 }
 
-class TaskComparator implements Comparator<Task> {
-	public int compare(Task a, Task b) {
-		if (a.isOverdue() && !b.isOverdue()) {
-			return -1;
-		}
-		if (!a.isOverdue() && b.isOverdue()) {
-			return 1;
-		}
-		if (a.getStartDate() == null && b.getStartDate() == null) {
-			return a.getTaskName().compareTo(b.getTaskName());
-		}
-		if (a.getStartDate() == null && b.getStartDate() != null) {
-			return -1;
-		}
-		if (a.getStartDate() != null && b.getStartDate() == null) {
-			return 1;
-		}
-		if (a.getStartDate().before(b.getStartDate())) {
-			return -1;
-		}
-		if (a.getStartDate().equals(b.getStartDate())) {
-			return a.getTaskName().compareTo(b.getTaskName());
-		}
-		return 1;
-	}
-}
