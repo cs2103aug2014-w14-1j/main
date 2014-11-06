@@ -10,10 +10,10 @@ import javafx.scene.input.KeyEvent;
  * It is responsible for Creation and reaction of all Hot Keys of the UI.
  */
 
-public class UIKeyEventHandler {
+class UIKeyEventHandler {
 	private UI ui = null;
 
-	// Class variables
+	// Class values
 	private static final String PREVIOUS_USER_COMMAND = "previous";
 	private static final String NEXT_USER_COMMAND = "next";
 	private static final String REGEX_NUMBERS_ONLY = "^[0-9]*$";
@@ -143,16 +143,6 @@ public class UIKeyEventHandler {
 		}
 	}
 
-	private void doUndo() {
-		ui.userCommands.setText("undo");
-		ui.notifyObservers();
-	}
-
-	private void doRedo() {
-		ui.userCommands.setText("redo");
-		ui.notifyObservers();
-	}
-
 	private int sizeToIndex(int size) {
 		if (size <= 0) {
 			throw new Error(ERROR_SIZEOUTOFBOUNDS);
@@ -236,8 +226,8 @@ public class UIKeyEventHandler {
 	}
 
 	private void doDisplayQuickEditToUserCommand() {
-		String textToDisplay = "edit " + ui.taskIDtf.getText() + " "
-				+ ui.taskNameta.getText() + " ";
+		String textToDisplay = "edit " + ui.taskDetailsView.taskIDtf.getText()
+				+ " " + ui.taskDetailsView.taskNameta.getText() + " ";
 		ui.doDefaultUserCommands();
 		ui.userCommands.setText(textToDisplay);
 		ui.userCommands.positionCaret(textToDisplay.length());
@@ -245,5 +235,15 @@ public class UIKeyEventHandler {
 
 	// END - Functions from taskTable
 	// KeyListener***************************************
+
+	private void doUndo() {
+		ui.userCommands.setText("undo");
+		ui.notifyObservers();
+	}
+
+	private void doRedo() {
+		ui.userCommands.setText("redo");
+		ui.notifyObservers();
+	}
 
 }
