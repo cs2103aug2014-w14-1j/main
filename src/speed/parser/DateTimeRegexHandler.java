@@ -1,4 +1,6 @@
 // @author A0116150X
+package speed.parser;
+
 import static org.mentaregex.Regex.match;
 import static org.mentaregex.Regex.matches;
 

@@ -1,33 +1,27 @@
-package speed.UI;
 //@author A0111660W
-import java.util.ArrayList;
+package speed.view;
 
-import javafx.collections.ListChangeListener;
-
-import org.controlsfx.control.NotificationPane;
-
-import speed.Task.Task;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
+import javafx.scene.control.*;
 import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+import org.controlsfx.control.NotificationPane;
+import speed.task.Task;
+
+import java.util.ArrayList;
 
 
 public class UI extends FlowPane {

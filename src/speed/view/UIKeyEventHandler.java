@@ -1,5 +1,5 @@
 //@author A0111660W
-package speed.UI;
+package speed.view;
 
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;

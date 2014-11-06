@@ -1,9 +1,11 @@
 //@author A0112059N
+package speed.storage;
+
+import speed.parser.Command;
+import speed.task.Task;
+
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import speed.Task.Task;
-
 
 public class SearchHandler {
 	private Storage storage_;

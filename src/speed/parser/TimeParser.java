@@ -1,4 +1,6 @@
 // @author A0116150X
+package speed.parser;
+
 import java.util.Calendar;
 
 public class TimeParser extends DateTimeRegexHandler {
