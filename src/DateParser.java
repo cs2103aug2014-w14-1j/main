@@ -208,7 +208,6 @@ public class DateParser extends DateTimeRegexHandler {
 			periodLength = add ? periodLength : 0 - periodLength;
 			period = parsedDate[3];
 		}
-
 		parseDatePeriodAndSetDate(now, false, periodLength, period);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;

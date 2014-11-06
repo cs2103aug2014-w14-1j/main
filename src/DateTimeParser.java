@@ -14,6 +14,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
 	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in|on)\\s+(?:the\\s+)?("+DATETIME_FORMATS+")";
+	private final String DUE_WHICH_PERIOD = "(?:due(?:\\s+(?:on|in))?|by|in|on)\\s+(?:the\\s+)?(\\d+\\s+(?:"+DATE_PERIOD+"|"+TIME_PERIOD+"))";
 	private final String RECUR = "(?:recurs?\\s+)?(?:every)(?:\\s*)?(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
@@ -35,6 +36,8 @@ public class DateTimeParser extends DateTimeRegexHandler{
 			matchFromDateTimeToDateTime(type, commandObj);
 		} else if (dateMatches(input, DUE)) {
 			matchDueDateTime(commandObj);
+		} else if (dateMatches(input, DUE_WHICH_PERIOD)) {
+			matchDueWhichPeriod(commandObj);
 		} else if (dateMatches(input, DATETIME_FORMATS)) {
 			matchAnyDateTime(type, commandObj);
 		} else {
@@ -76,6 +79,17 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private void matchDueDateTime(Command commandObj) {
 		String[] dates = dateMatch(input, DUE);
 		// parses first instance of any datetime format found
+		Calendar dueDate = dateParser.parse(dates[1], isEndDate, 23, 59, 59);
+		if (dueDate != null) {
+			commandObj.setTaskEndDate(dueDate);
+			output = output.replaceFirst(dates[0], "");
+			parseRecur(commandObj);
+		}
+	}
+
+	private void matchDueWhichPeriod(Command commandObj) {
+		String[] dates = dateMatch(input, DUE_WHICH_PERIOD);
+		dates[1] = dates[1] + " time";
 		Calendar dueDate = dateParser.parse(dates[1], isEndDate, 23, 59, 59);
 		if (dueDate != null) {
 			commandObj.setTaskEndDate(dueDate);
