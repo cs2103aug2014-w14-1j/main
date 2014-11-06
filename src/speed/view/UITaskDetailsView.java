@@ -1,8 +1,8 @@
-package speed.UI;
+package speed.view;
 
 import org.controlsfx.control.NotificationPane;
 
-import speed.Task.Task;
+import speed.task.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;

@@ -1,13 +1,14 @@
 //@author A0097299E
-import static org.junit.Assert.*;
+package speed.storage;
+
+import org.junit.Test;
+import speed.task.Task;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import org.junit.Test;
-
-import speed.Task.Task;
+import static org.junit.Assert.assertEquals;
 
 public class StorageJUnitTest {
 

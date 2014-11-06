@@ -1,5 +1,5 @@
 //@author A0097299E
-package speed.Task;
+package speed.task;
 
 import java.util.Comparator;
 

@@ -1,13 +1,13 @@
 //@author A0097299E
-import java.util.*;
-import java.io.*;
-
-import org.json.JSONException;
-
-import speed.Task.Task;
-import speed.Task.TaskComparator;
+package speed.storage;
 
 import com.google.gson.Gson;
+import org.json.JSONException;
+import speed.task.Task;
+import speed.task.TaskComparator;
+
+import java.io.*;
+import java.util.*;
 
 /*
  * This class acts as the storage for the task manager software. It keeps track of lists of tasks

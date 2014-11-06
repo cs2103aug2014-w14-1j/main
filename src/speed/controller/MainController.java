@@ -1,25 +1,21 @@
 //@author A0112059N
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.File;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.LinkedList;
-import java.util.TreeMap;
+package speed.controller;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
+import speed.parser.Command;
+import speed.parser.Parser;
+import speed.storage.SearchHandler;
+import speed.storage.Storage;
+import speed.task.Task;
+import speed.view.UI;
+import speed.view.UIObserver;
 
-import org.json.JSONException;
-
-import speed.Task.Task;
-import speed.UI.UI;
-import speed.UI.UIObserver;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.TreeMap;
 
 public class MainController extends Application implements UIObserver {
 

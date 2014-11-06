@@ -1,11 +1,10 @@
-package speed.UI;
-
 //@author A0111660W
+package speed.view;
 import java.util.ArrayList;
 
 import javafx.collections.ListChangeListener;
 
-import speed.Task.Task;
+import speed.task.Task;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -25,6 +24,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.util.Callback;
+
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
