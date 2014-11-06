@@ -609,7 +609,7 @@ public class UI extends FlowPane {
 				+ taskNameta.getText() + " ";
 		doDefaultUserCommands();
 		userCommands.setText(textToDisplay);
-		
+		userCommands.positionCaret(textToDisplay.length());		
 	}
 
 	// END - Functions from taskTable
