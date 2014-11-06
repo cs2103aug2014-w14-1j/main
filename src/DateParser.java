@@ -197,10 +197,18 @@ public class DateParser extends DateTimeRegexHandler {
 	private Calendar matchAfterBeforeDatePeriod(String date) {
 		String[] parsedDate = dateMatch(date, AFTER_BEFORE_DATE_PERIOD);
 		Calendar now = Calendar.getInstance();
-		boolean add = parsedDate[1] == null || dateMatches(parsedDate[1], AFTER);
-		int periodLength = Integer.parseInt(parsedDate[2].trim());
-		periodLength = add ? periodLength : 0 - periodLength;
-		String period = parsedDate[3];
+		int periodLength;
+		String period;
+		if (parsedDate[1] == null) {
+			periodLength = Integer.parseInt(parsedDate[4].trim());
+			period = parsedDate[5];
+		} else {
+			boolean add = dateMatches(parsedDate[1], AFTER);
+			periodLength = Integer.parseInt(parsedDate[2].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			period = parsedDate[3];
+		}
+
 		parseDatePeriodAndSetDate(now, false, periodLength, period);
 		currentDate = currentDate.replaceFirst(parsedDate[0], "");
 		return now;

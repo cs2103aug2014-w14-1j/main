@@ -77,10 +77,17 @@ public class TimeParser extends DateTimeRegexHandler {
 
 	private Time parseAfterBeforeTimePeriod(String time) {
 		String[] parsedTime = dateMatch(time, AFTER_BEFORE_TIME_PERIOD);
-		boolean add = parsedTime[1] == null || dateMatches(parsedTime[1], AFTER);
-		int periodLength = Integer.parseInt(parsedTime[2].trim());
-		periodLength = add ? periodLength : 0 - periodLength;
-		String period = parsedTime[3];
+		int periodLength;
+		String period;
+		if (parsedTime[1] == null) {
+			periodLength = Integer.parseInt(parsedTime[4].trim());
+			period = parsedTime[5];
+		} else {
+			boolean add = dateMatches(parsedTime[1], AFTER);
+			periodLength = Integer.parseInt(parsedTime[2].trim());
+			periodLength = add ? periodLength : 0 - periodLength;
+			period = parsedTime[3];
+		}
 		return parseTimePeriodAndSetTime(period, periodLength);
 	}
 
