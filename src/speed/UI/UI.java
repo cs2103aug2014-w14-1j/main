@@ -22,7 +22,6 @@ import javafx.scene.control.TableColumn.CellDataFeatures;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
@@ -33,7 +32,7 @@ import javafx.util.Callback;
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
-
+	private UIKeyEventHandler uiKeyEventHandler = new UIKeyEventHandler(this);
 	// topmost Container
 	private VBox taskView;
 
@@ -42,30 +41,30 @@ public class UI extends FlowPane {
 
 	// view 1 of split
 	private VBox taskTableView;
-	private TableView<Task> taskTable;
+	protected TableView<Task> taskTable;
 	// End view 1 of split
 
 	// view 2 of split
 	private VBox taskDetailsView;
 
 	private ObservableList<Task> dataToDisplay;
-	private ArrayList<Task> displayTasks = new ArrayList<Task>();
+	protected ArrayList<Task> displayTasks = new ArrayList<Task>();
 
-	private final Label taskIDLbl = new Label("Task ID: ");
-	private final TextField taskIDtf = new TextField();
-	private final Label taskNameLbl = new Label("Task Name: ");
-	private final TextArea taskNameta = new TextArea();
-	private final Label taskStartDtesLbl = new Label("Task Dates: ");
-	private final TextArea taskStartDtesta = new TextArea();
-	private final Label taskTagsLbl = new Label("Task Tags: ");
-	private final TextArea taskTagsta = new TextArea();
-	private Task taskUserSelected = null;
+	protected final Label taskIDLbl = new Label("Task ID: ");
+	protected final TextField taskIDtf = new TextField();
+	protected final Label taskNameLbl = new Label("Task Name: ");
+	protected final TextArea taskNameta = new TextArea();
+	protected final Label taskStartDtesLbl = new Label("Task Dates: ");
+	protected final TextArea taskStartDtesta = new TextArea();
+	protected final Label taskTagsLbl = new Label("Task Tags: ");
+	protected final TextArea taskTagsta = new TextArea();
+	protected Task taskUserSelected = null;
 	// End view 2 of split
 
 	// rest of components of taskView
-	private TextField userCommands;
-	private ArrayList<String> userCommandsHistory;
-	private int userCommandsHistoryCounter;
+	protected TextField userCommands;
+	protected ArrayList<String> userCommandsHistory;
+	protected int userCommandsHistoryCounter;
 	private NotificationPane notificationPane;
 
 	// Dimensions
@@ -95,9 +94,6 @@ public class UI extends FlowPane {
 	private static final int TIMEOUT = 4000;
 	private static final String PROGRAM_NAME = "SPEED";
 	private static final String EMPTY_STRING = "";
-	private static final String PREVIOUS_USER_COMMAND = "previous";
-	private static final String NEXT_USER_COMMAND = "next";
-	private static final String REGEX_NUMBERS_ONLY = "^[0-9]*$";
 	private static final String ADDBLANKNEXTLINE = "\n";
 
 	// CSS
@@ -108,16 +104,8 @@ public class UI extends FlowPane {
 	private static final String CSS_TEXTAREA = "textarea";
 	private static final String CSS_NOTIFICATIONPANE = "notificationpane";
 
-	// Errors
-	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
-	private static final String ERROR_USERCOMMAND_HOTKEY = "Unrecognized User Command Hot Key";
-	private static final String ERROR_RETRIEVECOMMANDHISTORY = "There should not be any other commands.";
-	private static final String ERROR_SIZEOUTOFBOUNDS = "Size should not be out of bounds";
 
-	enum HotKey {
-		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID,
-		TASKTABLE_DELETE, TASKTABLE_INVALID, TASKTABLE_EDIT, TASKTABLE_UNDO, TASKTABLE_REDO
-	};
+	
 
 	public UI() {
 		initTaskView(); // topmost Container(root)
@@ -204,27 +192,7 @@ public class UI extends FlowPane {
 		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent ke) {
-				HotKey hotKey = determineHotKeyTaskTable(ke);
-
-				switch (hotKey) {
-				case TASKTABLE_DELETE:
-					doTaskTableDelete();
-					break;
-				case TASKTABLE_EDIT:
-					doDisplayQuickEditToUserCommand();
-					break;
-				case TASKTABLE_UNDO :
-					doUndo();
-					break;
-				case TASKTABLE_REDO :
-					doRedo();
-					break;
-				case TASKTABLE_INVALID:
-					break;
-				default:
-					throw new Error(ERROR_TASKTABLE_HOTKEY);
-
-				}
+				uiKeyEventHandler.doRequestedTaskTableKeyEvent(ke);
 			}
 		});
 	}
@@ -402,29 +370,7 @@ public class UI extends FlowPane {
 		userCommands.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent ke) {
-				HotKey hotKey = determineHotKeyUserCommands(ke);
-
-				switch (hotKey) {
-				case USERCOMMAND_ENTER:
-					doUserCommand();
-					break;
-				case USERCOMMAND_PREVIOUSCOMMAND:
-					doRetrieveCommandHistory(PREVIOUS_USER_COMMAND);
-					break;
-				case USERCOMMAND_NEXTCOMMAND:
-					doRetrieveCommandHistory(NEXT_USER_COMMAND);
-					break;
-				case USERCOMMAND_UNDO:
-					doUndo();
-					break;
-				case USERCOMMAND_REDO:
-					doRedo();
-					break;
-				case USERCOMMAND_INVALID:
-					break;
-				default:
-					throw new Error(ERROR_USERCOMMAND_HOTKEY);
-				}
+				uiKeyEventHandler.doRequestedUserCommandsKeyEvent(ke);				
 			}
 		});
 	}
@@ -433,7 +379,7 @@ public class UI extends FlowPane {
 		taskView.getChildren().addAll(split, userCommands);
 	}
 
-	private void doDefaultUserCommands() {
+	protected void doDefaultUserCommands() {
 		userCommands.setText(EMPTY_STRING);
 		userCommands.requestFocus();
 	}
@@ -448,7 +394,7 @@ public class UI extends FlowPane {
 		uiObserver.add(observer);
 	}
 
-	private void notifyObservers() {
+	protected void notifyObservers() {
 		for (UIObserver observer : uiObserver) {
 			observer.update();
 		}
@@ -456,166 +402,6 @@ public class UI extends FlowPane {
 
 	// ******************************************************************
 
-	// Functions from userCommandsKeyListener
-	private HotKey determineHotKeyUserCommands(KeyEvent keyEvent) {
-		assert (keyEvent != null);
-		KeyCode keyCode = keyEvent.getCode();
-
-		if (keyCode.equals(KeyCode.ENTER)) {
-			return HotKey.USERCOMMAND_ENTER;
-		} else if (keyCode.equals(KeyCode.UP) && !userCommandsHistory.isEmpty()) {
-			return HotKey.USERCOMMAND_PREVIOUSCOMMAND;
-		} else if (keyCode.equals(KeyCode.DOWN)
-				&& !userCommandsHistory.isEmpty()) {
-			return HotKey.USERCOMMAND_NEXTCOMMAND;
-		} else if (keyEvent.isControlDown()) {
-			if (keyCode.equals(KeyCode.Z)) {
-				return HotKey.USERCOMMAND_UNDO;
-			} else if (keyCode.equals(KeyCode.Y)) {
-				return HotKey.USERCOMMAND_REDO;
-			} else {
-				return HotKey.USERCOMMAND_INVALID;
-			}
-		} else {
-			return HotKey.USERCOMMAND_INVALID;
-		}
-	}
-
-	private void doUserCommand() {
-		String userCommand = userCommands.getText();
-
-		if (userCommand.equals(EMPTY_STRING)) {// ignore as it is an invalid
-												// command
-			return;
-		}
-
-		userCommandsHistory.add(userCommand);
-		userCommandsHistoryCounter = sizeToIndex(userCommandsHistory.size());
-
-		if (userCommand.matches(REGEX_NUMBERS_ONLY)) {
-			int taskNo = Integer.parseInt(userCommand);
-			int index = taskNoToIndex(taskNo);
-
-			if (isValidIndex(index)) {
-				taskTable.requestFocus();
-				taskTable.getSelectionModel().select(index);
-				taskTable.getFocusModel().focus(index);
-			}
-			userCommands.setText(EMPTY_STRING);
-		} else {
-			notifyObservers();
-			doDefaultUserCommands();
-		}
-
-	}
-
-	private void doRetrieveCommandHistory(String command) {// updates the
-															// userCommands
-															// TextField for
-															// previously
-															// entered commands.
-		if (command.equals(PREVIOUS_USER_COMMAND)) {
-			if (isInvalidPreviousCommandExisted()) {
-				// Ignore
-			} else {
-				userCommands.setText(userCommandsHistory
-						.get(userCommandsHistoryCounter));
-				userCommandsHistoryCounter--;
-			}
-		} else if (command.equals(NEXT_USER_COMMAND)) {
-			if (isInvalidNextCommandExisted()) {
-				userCommands.setText(EMPTY_STRING);
-			} else {
-				userCommandsHistoryCounter++;
-				userCommands.setText(userCommandsHistory
-						.get(userCommandsHistoryCounter));
-			}
-
-		} else {
-			throw new Error(ERROR_RETRIEVECOMMANDHISTORY);
-		}
-	}
-
-	private void doUndo() {
-		userCommands.setText("undo");
-		notifyObservers();
-	}
-
-	private void doRedo() {
-		userCommands.setText("redo");
-		notifyObservers();
-	}
-
-	private int sizeToIndex(int size) {
-		if (size <= 0) {
-			throw new Error(ERROR_SIZEOUTOFBOUNDS);
-		}
-		return size - 1;
-	}
-
-	private int taskNoToIndex(int taskNo) {
-		return taskNo - 1;
-	}
-
-	private boolean isValidIndex(int index) {
-		return index >= 0 && displayTasks != null && !displayTasks.isEmpty()
-				&& index < displayTasks.size();
-	}
-
-	private boolean isInvalidPreviousCommandExisted() {
-		return userCommandsHistoryCounter < 0;
-	}
-
-	private boolean isInvalidNextCommandExisted() {
-		return userCommandsHistoryCounter >= userCommandsHistory.size() - 1;
-	}
-
-	// END - Functions from
-	// userCommandsKeyListener*********************************
-
-	// Functions from taskTable KeyListener
-	private HotKey determineHotKeyTaskTable(KeyEvent keyEvent) {
-		assert (keyEvent != null);
-		KeyCode keyCode = keyEvent.getCode();
-
-		if (keyCode.equals(KeyCode.DELETE)) {
-			return HotKey.TASKTABLE_DELETE;
-		} else if (keyEvent.isControlDown()) {
-			if (keyCode.equals(KeyCode.E)) {
-				return HotKey.TASKTABLE_EDIT;
-			} 
-			else if(keyCode.equals(KeyCode.Z)) {
-				return HotKey.TASKTABLE_UNDO;
-			}
-			else if(keyCode.equals(KeyCode.Y)){
-				return HotKey.TASKTABLE_REDO;
-			}
-			else {
-				return HotKey.TASKTABLE_INVALID;
-			}
-		} else {
-			return HotKey.TASKTABLE_INVALID;
-		}
-	}
-
-	private void doTaskTableDelete() {
-		if(taskUserSelected == null){
-			return;
-		}
-		userCommands.setText("delete " + taskUserSelected.getDisplayId());
-		notifyObservers();
-	}
-
-	private void doDisplayQuickEditToUserCommand() {
-		String textToDisplay = "edit " + taskIDtf.getText() + " "
-				+ taskNameta.getText() + " ";
-		doDefaultUserCommands();
-		userCommands.setText(textToDisplay);
-		userCommands.positionCaret(textToDisplay.length());		
-	}
-
-	// END - Functions from taskTable
-	// KeyListener***************************************
 
 	// Functions that deal with displaying notifications to user and retrieving
 	// user notifications
