@@ -2,8 +2,6 @@
 import java.util.ArrayList;
 import java.util.Calendar;
 
-import Speed.Task.Task;
-
 
 public class SearchHandler {
 	private Storage storage_;
