@@ -1,10 +1,13 @@
 //@author A0111660W
+package Speed.UI;
+
 import java.util.ArrayList;
 
 import javafx.collections.ListChangeListener;
 
 import org.controlsfx.control.NotificationPane;
 
+import Speed.Task.Task;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;

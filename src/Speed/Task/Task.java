@@ -1,3 +1,4 @@
+package Speed.Task;
 //@author A0097299E
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -510,7 +511,7 @@ public class Task {
 	}
 }
 
-class TaskComparator implements Comparator<Task> {
+public class TaskComparator implements Comparator<Task> {
 	public int compare(Task a, Task b) {
 		if (a.isOverdue() && !b.isOverdue()) {
 			return -1;
