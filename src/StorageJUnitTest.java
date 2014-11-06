@@ -7,6 +7,8 @@ import java.util.Calendar;
 
 import org.junit.Test;
 
+import speed.Task.Task;
+
 public class StorageJUnitTest {
 
 	@Test

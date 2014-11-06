@@ -17,6 +17,10 @@ import javafx.stage.Stage;
 
 import org.json.JSONException;
 
+import speed.Task.Task;
+import speed.UI.UI;
+import speed.UI.UIObserver;
+
 public class MainController extends Application implements UIObserver {
 
 	private static final String TASK_FILENAME = "Task.txt";

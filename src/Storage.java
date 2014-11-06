@@ -4,6 +4,9 @@ import java.io.*;
 
 import org.json.JSONException;
 
+import speed.Task.Task;
+import speed.Task.TaskComparator;
+
 import com.google.gson.Gson;
 
 /*

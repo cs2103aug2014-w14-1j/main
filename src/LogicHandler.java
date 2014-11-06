@@ -8,6 +8,8 @@ import java.util.Calendar;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import speed.Task.Task;
+
 
 public class LogicHandler {	
 	
