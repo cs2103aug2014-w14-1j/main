@@ -8,17 +8,21 @@ public class DateParser extends DateTimeRegexHandler {
 	private TimeParser timeParser = new TimeParser();
 
 	private String currentDate;
+	private boolean isStartDate = false;
 
-	public Calendar parse(String datetime, int default_hour, int default_min, int default_second) {
+	public Calendar parse(String datetime) {
 		currentDate = datetime;
+		return parseDate(datetime);
+	}
+
+	public Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
+		currentDate = datetime;
+		this.isStartDate = isStartDate;
 		Calendar dateCal = parseDate(datetime);
 		return timeParser.parse(currentDate, dateCal, default_hour, default_min, default_second);
 	}
 
-	public Calendar parseDate(String date) {
-		if (currentDate == null) {
-			currentDate = date;
-		}
+	private Calendar parseDate(String date) {
 		Calendar cal = matchNaturalLanguage(date);
 		cal = cal == null ? matchDayMonthYear(date) : cal;
 		cal = cal == null ? matchDayMonth(date) : cal;
@@ -225,7 +229,7 @@ public class DateParser extends DateTimeRegexHandler {
 		} else if (dateMatches(whichPeriod, PREVIOUS)) {
 			addition = -1;
 		}
-		parseDatePeriodAndSetDate(cal, true, addition, period);
+		parseDatePeriodAndSetDate(cal, !isStartDate, addition, period);
 		return cal;
 	}
 
@@ -234,20 +238,30 @@ public class DateParser extends DateTimeRegexHandler {
 			cal.add(Calendar.DAY_OF_YEAR, periodLength);
 		} else if (dateMatches(period, WEEK)) {
 			cal.add(Calendar.WEEK_OF_YEAR, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_WEEK);
 		} else if (dateMatches(period, MONTH)) {
 			cal.add(Calendar.MONTH, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_MONTH);
 		} else if (dateMatches(period, YEAR)) {
 			cal.add(Calendar.YEAR, periodLength);
-			setEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
+			setStartOrEndOfPeriod(isEndOfPeriod, cal, Calendar.DAY_OF_YEAR);
 		}
 	}
 
-	private void setEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
+	private void setStartOrEndOfPeriod(boolean isEndOfPeriod, Calendar cal, int period) {
 		if (isEndOfPeriod) {
-			cal.set(period, cal.getActualMaximum(period));
+			setEndOfPeriod(cal, period);
+		} else if (isStartDate) {
+			setStartOfPeriod(cal, period);
 		}
+	}
+
+	public void setStartOfPeriod(Calendar cal, int period) {
+		cal.set(period, cal.getActualMinimum(period));
+	}
+
+	public void setEndOfPeriod(Calendar cal, int period) {
+		cal.set(period, cal.getActualMaximum(period));
 	}
 
 	private Calendar matchWhichDay(String date) {

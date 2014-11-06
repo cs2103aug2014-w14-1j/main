@@ -6,17 +6,20 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	/**
 	 * Regex for parsing datetime in command
 	 */
-	private final String SIMPLE_FROM_TO = "(?:(?:from\\s+)?"+
+	private final String DATE_TIME_TO_TIME = "(?:(?:from\\s+)?"+
 		DATE_FORMATS+"(?:,?\\s+)("+TIME_RANGE_12+"|"+TIME_RANGE_24+")"+"|"+
 		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+")(?:,?\\s+)"+DATE_FORMATS+"|"+
 		"("+TIME_RANGE_12+"|"+TIME_RANGE_24+"))";
 	private final String FROM_DATETIME = "(?:from\\s+)?("+DATETIME_FORMATS+")";
 	private final String TO_DATETIME = "to\\s+("+DATETIME_FORMATS+")";
 	private final String FROM_TO = FROM_DATETIME + "\\s+" + TO_DATETIME;
-	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in) (?:the )?("+DATETIME_FORMATS+")";
-	private final String RECUR = "(?:recurs?\\s+)?(?:every\\s*?)(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
+	private final String DUE = "(?:due(?:\\s+(?:on|in))?|by|in|on)\\s+(?:the\\s+)?("+DATETIME_FORMATS+")";
+	private final String RECUR = "(?:recurs?\\s+)?(?:every)(?:\\s*)?(\\d\\s)?("+DAY+"|"+WEEK+"|"+MONTH+"|"+YEAR+"|"+DAY_NAMES+")";
 	private final String SIMPLE_RECUR = "(?:recurs?\\s)?("+DAILY+"|"+WEEKLY+"|"+MONTHLY+"|"+YEARLY+")";
 	private final String RECUR_DAY = "(?:recurs?\\s+)?(?:every\\s*?)"+DAY_NAMES+"\\s+((?:"+TIME_RANGE_12+"|"+TIME_RANGE_24+")|(?:"+TIME_12+"|"+TIME_24+"))";
+
+	private final boolean isStartDate = true;
+	private final boolean isEndDate = false;
 
 	private DateParser dateParser = new DateParser();
 	private String input;
@@ -24,91 +27,166 @@ public class DateTimeParser extends DateTimeRegexHandler{
 
 	public String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
 		output = command;
+		// Do not evaluate strings within quotation marks
 		input = command.replaceAll("\"[^\"]+\"", "");
-		if (dateMatches(input, SIMPLE_FROM_TO)) {
-			String match = dateMatch(input, SIMPLE_FROM_TO)[0];
-			Calendar startDate = dateParser.parseDate(match);
-			startDate = startDate == null ? Calendar.getInstance() : startDate;
-			Calendar endDate = (Calendar) startDate.clone();
-			parseSimpleFromToDateRange(match, startDate, endDate);
-			switch (type) {
-				case ADD:
-				case EDIT:
-				case DEFAULT:
-					commandObj.setTaskStartDate(startDate);
-					commandObj.setTaskEndDate(endDate);
-					break;
-				case LIST:
-				case SEARCH:
-					commandObj.setSearchStartDate(startDate);
-					commandObj.setSearchEndDate(endDate);
-					break;
-			}
+		if (dateMatches(input, DATE_TIME_TO_TIME)) {
+			matchDateTimeToTime(type, commandObj);
+		} else if (dateMatches(input, FROM_TO)) {
+			matchFromDateTimeToDateTime(type, commandObj);
+		} else if (dateMatches(input, DUE)) {
+			matchDueDateTime(commandObj);
+		} else if (dateMatches(input, DATETIME_FORMATS)) {
+			matchAnyDateTime(type, commandObj);
+		} else {
+			matchOnlyRecurrances(type, commandObj);
+		}
+		return output;
+	}
+
+	private void matchDateTimeToTime(Command.COMMAND_TYPE type, Command commandObj) {
+		String match = dateMatch(input, DATE_TIME_TO_TIME)[0];
+		Calendar startDate = dateParser.parse(match);
+		// defaults to today if there is no start date
+		startDate = startDate == null ? Calendar.getInstance() : startDate;
+		Calendar endDate = (Calendar) startDate.clone();
+		parseDateTimeToTime(match, startDate, endDate);
+		setCommandObjStartAndEndDate(type, commandObj, startDate, endDate);
+		if (dateMatches(input, RECUR_DAY)) {
+			String[] recurMatch = dateMatch(input, RECUR_DAY);
+			// Removes time range from output
+			output = output.replaceFirst(recurMatch[2], "");
+		}
+		parseRecur(commandObj);
+		output = output.replaceFirst(match, "");
+	}
+
+	private void matchFromDateTimeToDateTime(Command.COMMAND_TYPE type, Command commandObj) {
+		String match = dateMatch(input, FROM_TO)[0];
+		String[] fromDate = dateMatch(match, FROM_DATETIME);
+		Calendar startDate = dateParser.parse(fromDate[1], isStartDate, 0, 0, 0);
+		String[] toDate = dateMatch(match, TO_DATETIME);
+		Calendar endDate = dateParser.parse(toDate[1], isEndDate, 23, 59, 59);
+		if (startDate != null && endDate != null) {
+			setCommandObjStartAndEndDate(type, commandObj, startDate, endDate);
+			output = output.replaceFirst(match, "");
+			parseRecur(commandObj);
+		}
+	}
+
+	private void matchDueDateTime(Command commandObj) {
+		String[] dates = dateMatch(input, DUE);
+		// parses first instance of any datetime format found
+		Calendar dueDate = dateParser.parse(dates[1], isEndDate, 23, 59, 59);
+		if (dueDate != null) {
+			commandObj.setTaskEndDate(dueDate);
+			output = output.replaceFirst(dates[0], "");
+			parseRecur(commandObj);
+		}
+	}
+
+	private void matchAnyDateTime(Command.COMMAND_TYPE type, Command commandObj) {
+		String[] dates = dateMatch(input, DATETIME_FORMATS);
+		Calendar date = dateParser.parse(dates[0], isEndDate, 23, 59, 59);
+		if (date != null) {
+			setCommandObjEndDate(type, commandObj, date);
 			if (dateMatches(input, RECUR_DAY)) {
 				String[] recurMatch = dateMatch(input, RECUR_DAY);
+				// Removes time range from output
 				output = output.replaceFirst(recurMatch[2], "");
 			}
 			parseRecur(commandObj);
-			output = output.replaceFirst(match, "");
-		} else if (dateMatches(input, FROM_TO)) {
-			String match = dateMatch(input, FROM_TO)[0];
-			String[] fromDate = dateMatch(match, FROM_DATETIME);
-			Calendar startDate = dateParser.parse(fromDate[1], 0, 0, 0);
-			String[] toDate = dateMatch(match, TO_DATETIME);
-			Calendar endDate = dateParser.parse(toDate[1], 23, 59, 59);
-			if (startDate != null && endDate != null) {
-				switch (type) {
-					case ADD:
-					case EDIT:
-					case DEFAULT:
-						commandObj.setTaskStartDate(startDate);
-						commandObj.setTaskEndDate(endDate);
-						break;
-					case LIST:
-					case SEARCH:
-						commandObj.setSearchStartDate(startDate);
-						commandObj.setSearchEndDate(endDate);
-						break;
-				}
-				output = output.replaceFirst(match, "");
-				parseRecur(commandObj);
-			}
-		} else if (dateMatches(input, DUE)) {
-			String[] dates = dateMatch(input, DUE);
-			Calendar dueDate = dateParser.parse(dates[1], 23, 59, 59);
-			if (dueDate != null) {
-				commandObj.setTaskEndDate(dueDate);
-				output = output.replaceFirst(dates[0], "");
-				parseRecur(commandObj);
-			}
-		} else if (dateMatches(input, DATETIME_FORMATS)) {
-			String[] dates = dateMatch(input, DATETIME_FORMATS);
-			Calendar date = dateParser.parse(dates[0], 23, 59, 59);
-			if (date != null) {
-				switch (type) {
-					case ADD:
-					case EDIT:
-					case DEFAULT:
-						commandObj.setTaskEndDate(date);
-						break;
-					case LIST:
-					case SEARCH:
-						commandObj.setSearchStartDate(startOfDay(date));
-						commandObj.setSearchEndDate(endOfDay((Calendar) date.clone()));
-						break;
-				}
-				if (dateMatches(input, RECUR_DAY)) {
-					String[] recurMatch = dateMatch(input, RECUR_DAY);
-					output = output.replaceFirst(recurMatch[2], "");
-				}
-				parseRecur(commandObj);
-				output = output.replaceFirst(dates[0], "");
-			}
+			output = output.replaceFirst(dates[0], "");
 		}
-		return output.replaceAll("\"", "");
 	}
 
-	private void parseSimpleFromToDateRange(String match, Calendar startDate, Calendar endDate) {
+	private void matchOnlyRecurrances(Command.COMMAND_TYPE type, Command commandObj) {
+		parseRecur(commandObj);
+		if (hasRecurPattern(commandObj)) {
+			Calendar startDate = startOfDay(Calendar.getInstance());
+			Calendar endDate = endOfDay(Calendar.getInstance());
+			setCommandObjStartAndEndDate(type, commandObj, startDate, endDate);
+		}
+	}
+
+	private boolean hasRecurPattern(Command commandObj) {
+		return commandObj.getRecurPattern() != -1;
+	}
+
+	private void setCommandObjEndDate(Command.COMMAND_TYPE type, Command commandObj, Calendar date) {
+		switch (type) {
+			case ADD:
+			case EDIT:
+			case DEFAULT:
+				commandObj.setTaskEndDate(date);
+				break;
+			case LIST:
+			case SEARCH:
+				Calendar startDate = date;
+				Calendar endDate = (Calendar) date.clone();
+				setPeriodStartOrEndDate(startDate, isStartDate);
+				setPeriodStartOrEndDate(endDate, isEndDate);
+				commandObj.setSearchStartDate(startOfDay(startDate));
+				commandObj.setSearchEndDate(endOfDay(endDate));
+				break;
+		}
+	}
+
+	private void setCommandObjStartAndEndDate(Command.COMMAND_TYPE type, Command commandObj, Calendar startDate, Calendar endDate) {
+		switch (type) {
+			case ADD:
+			case EDIT:
+			case DEFAULT:
+				commandObj.setTaskStartDate(startDate);
+				commandObj.setTaskEndDate(endDate);
+				break;
+			case LIST:
+			case SEARCH:
+				commandObj.setSearchStartDate(startDate);
+				commandObj.setSearchEndDate(endDate);
+				break;
+		}
+	}
+
+	private void setPeriodStartOrEndDate(Calendar date, boolean isStartDate) {
+		if (dateMatches(input, PERIOD_AFTER_DATE)) {
+			// extract period from input
+			String period = dateMatch(input, PERIOD_AFTER_DATE)[2];
+			if (isStartDate) {
+				setStartOfPeriod(date, period);
+			} else {
+				setEndOfPeriod(date, period);
+			}
+		} else if (dateMatches(input, WHICH_PERIOD)) {
+			String period = input;
+			if (isStartDate) {
+				setStartOfPeriod(date, period);
+			} else {
+				setEndOfPeriod(date, period);
+			}
+		}
+	}
+
+	private void setStartOfPeriod(Calendar date, String period) {
+		if (dateMatches(period, WEEK)) {
+			dateParser.setStartOfPeriod(date, Calendar.DAY_OF_WEEK);
+		} else if (dateMatches(period, MONTH)) {
+			dateParser.setStartOfPeriod(date, Calendar.DAY_OF_MONTH);
+		} else if (dateMatches(period, YEAR)) {
+			dateParser.setStartOfPeriod(date, Calendar.DAY_OF_YEAR);
+		}
+	}
+
+	private void setEndOfPeriod(Calendar date, String period) {
+		if (dateMatches(period, WEEK)) {
+			dateParser.setEndOfPeriod(date, Calendar.DAY_OF_WEEK);
+		} else if (dateMatches(period, MONTH)) {
+			dateParser.setEndOfPeriod(date, Calendar.DAY_OF_MONTH);
+		} else if (dateMatches(period, YEAR)) {
+			dateParser.setEndOfPeriod(date, Calendar.DAY_OF_YEAR);
+		}
+	}
+
+	private void parseDateTimeToTime(String match, Calendar startDate, Calendar endDate) {
 		if (dateMatches(match, TIME_RANGE_12)) {
 			parseDateRangeTime12Format(match, startDate, endDate);
 		} else if (dateMatches(match, TIME_RANGE_24)) {
@@ -118,63 +196,77 @@ public class DateTimeParser extends DateTimeRegexHandler{
 
 	private void parseDateRangeTime12Format(String match, Calendar startDate, Calendar endDate) {
 		String[] parsedTime = dateMatch(match, TIME_RANGE_12);
-		int startHour = Integer.parseInt(parsedTime[1].trim());
-		int startMinute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2].trim());
-		int startSecond = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3].trim());
-		if (parsedTime[4] == null) {
-			parsedTime[4] = parsedTime[8];
-		}
-		if (parsedTime[4].trim().equalsIgnoreCase(PM) && startHour < 12) {
-			startHour += 12;
-		} else if (parsedTime[4].trim().equalsIgnoreCase(AM) && startHour == 12) {
-			startHour -= 12;
-		}
-		int endHour = Integer.parseInt(parsedTime[5].trim());
-		int endMinute = parsedTime[6] == null ? 0 : Integer.parseInt(parsedTime[6].trim());
-		int endSecond = parsedTime[7] == null ? 0 : Integer.parseInt(parsedTime[7].trim());
-		if (parsedTime[8].trim().equalsIgnoreCase(PM) && endHour < 12) {
-			endHour += 12;
-		} else if (parsedTime[8].trim().equalsIgnoreCase(AM) && endHour == 12) {
-			endHour -= 12;
-		}
-		setTimeOfDate(startDate, startHour, startMinute, startSecond);
-		setTimeOfDate(endDate, endHour, endMinute, endSecond);
+		setStartOfDateRangeTime12Format(startDate, parsedTime);
+		setEndOfDateRangeTime12Format(endDate, parsedTime);
 		if (startDate.after(endDate)) {
+			// Set end date to the next day if start time is after end time
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
 		}
 	}
 
-	private void parseDateRangeTime24Format(String match, Calendar startDate, Calendar endDate) {
-		String[] parsedTime = dateMatch(match, TIME_RANGE_24);
-		int startHour;
-		int startMinute;
-		int startSecond;
-		int endHour;
-		int endMinute;
-		int endSecond;
-		if (parsedTime[1] == null) {
-			startHour = Integer.parseInt(parsedTime[4]);
-			startMinute = Integer.parseInt(parsedTime[5]);
-			startSecond = 0;
-		} else {
-			startHour = Integer.parseInt(parsedTime[1]);
-			startMinute = Integer.parseInt(parsedTime[2]);
-			startSecond = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
+	private void setStartOfDateRangeTime12Format(Calendar startDate, String[] parsedTime) {
+		int startHour = Integer.parseInt(parsedTime[1]);
+		int startMinute = parsedTime[2] == null ? 0 : Integer.parseInt(parsedTime[2]);
+		int startSecond = parsedTime[3] == null ? 0 : Integer.parseInt(parsedTime[3]);
+		if (parsedTime[4] == null) {
+			// Sets am/pm of start time to that of end time
+			parsedTime[4] = parsedTime[8];
 		}
-		if (parsedTime[6] == null) {
-			endHour = Integer.parseInt(parsedTime[9]);
-			endMinute = Integer.parseInt(parsedTime[10]);
-			endSecond = 0;
-		} else {
-			endHour = Integer.parseInt(parsedTime[6]);
-			endMinute = Integer.parseInt(parsedTime[7]);
-			endSecond = parsedTime[8] == null ? 0 : Integer.parseInt(parsedTime[8]);
+		if (parsedTime[4].equalsIgnoreCase(PM) && startHour < 12) {
+			startHour += 12;
+		} else if (parsedTime[4].equalsIgnoreCase(AM) && startHour == 12) {
+			startHour -= 12;
 		}
 		setTimeOfDate(startDate, startHour, startMinute, startSecond);
+	}
+
+	private void setEndOfDateRangeTime12Format(Calendar endDate, String[] parsedTime) {
+		int endHour = Integer.parseInt(parsedTime[5]);
+		int endMinute = parsedTime[6] == null ? 0 : Integer.parseInt(parsedTime[6]);
+		int endSecond = parsedTime[7] == null ? 0 : Integer.parseInt(parsedTime[7]);
+		if (parsedTime[8].equalsIgnoreCase(PM) && endHour < 12) {
+			endHour += 12;
+		} else if (parsedTime[8].equalsIgnoreCase(AM) && endHour == 12) {
+			endHour -= 12;
+		}
 		setTimeOfDate(endDate, endHour, endMinute, endSecond);
+	}
+
+	private void parseDateRangeTime24Format(String match, Calendar startDate, Calendar endDate) {
+		String[] parsedTime = dateMatch(match, TIME_RANGE_24);
+		setStartOfDateRangeTime24Format(startDate, parsedTime);
+		setEndOfDateRangeTime24Format(endDate, parsedTime);
 		if (startDate.after(endDate)) {
+			// Set end date to the next day if start time is after end time
 			endDate.add(Calendar.DAY_OF_YEAR, 1);
 		}
+	}
+
+	private void setStartOfDateRangeTime24Format(Calendar startDate, String[] parsedTime) {
+		if (isArmyTimeFormat(parsedTime[1])) {
+			setDateRangeTime24Format(startDate, parsedTime[4], parsedTime[5], parsedTime[3]);
+		} else {
+			setDateRangeTime24Format(startDate, parsedTime[1], parsedTime[2], parsedTime[3]);
+		}
+	}
+
+	private void setEndOfDateRangeTime24Format(Calendar endDate, String[] parsedTime) {
+		if (isArmyTimeFormat(parsedTime[6])) {
+			setDateRangeTime24Format(endDate, parsedTime[9], parsedTime[10], parsedTime[8]);
+		} else {
+			setDateRangeTime24Format(endDate, parsedTime[6], parsedTime[7], parsedTime[8]);
+		}
+	}
+
+	private boolean isArmyTimeFormat(String firstMatchOfTime24Regex) {
+		return firstMatchOfTime24Regex == null;
+	}
+
+	private void setDateRangeTime24Format(Calendar date, String hour, String minute, String second) {
+		int endHour = Integer.parseInt(hour);
+		int endMinute = Integer.parseInt(minute);
+		int endSecond = second == null ? 0 : Integer.parseInt(second);
+		setTimeOfDate(date, endHour, endMinute, endSecond);
 	}
 
 	private void parseRecur(Command commandObj) {

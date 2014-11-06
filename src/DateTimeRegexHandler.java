@@ -61,16 +61,20 @@ public class DateTimeRegexHandler {
 	 */
 	protected final String AFTER = "after";
 	protected final String BEFORE = "before";
-	protected final String AFTER_BEFORE_DATE_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time)?";
-	protected final String AFTER_BEFORE_TIME_PERIOD = "(?:("+AFTER+"|"+BEFORE+")\\s+)?(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time)?";
+	protected final String AFTER_BEFORE_DATE_PERIOD = "(?:(?:"+
+		"("+AFTER+"|"+BEFORE+")\\s+)(\\d+)\\s+"+DATE_PERIOD+")|(?:"+
+		"(\\d+)\\s+"+DATE_PERIOD+"(?:\\s+time))";
+	protected final String AFTER_BEFORE_TIME_PERIOD = "(?:(?:"+
+		"("+AFTER+"|"+BEFORE+")\\s+)(\\d+)\\s+"+TIME_PERIOD+")|(?:"+
+		"(\\d+)\\s+"+TIME_PERIOD+"(?:\\s+time))";
 
 	/**
 	 * Regex for natural language such as
 	 * 5 minutes later
 	 * 3 years ago
 	 */
-	protected final String LATER = "later";
-	protected final String EARLIER = "earlier|ago";
+	protected final String LATER = "later|"+AFTER;
+	protected final String EARLIER = "earlier|ago|"+BEFORE;
 	protected final String DATE_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+DATE_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 	protected final String TIME_PERIOD_LATER_EARLIER = "(\\d+)\\s+"+TIME_PERIOD+"\\s+("+LATER+"|"+EARLIER+")";
 
