@@ -1,7 +1,8 @@
 //@author A0112059N
-package speed.storage;
+package speed.controller;
 
 import speed.parser.Command;
+import speed.storage.Storage;
 import speed.task.Task;
 
 import java.util.ArrayList;
