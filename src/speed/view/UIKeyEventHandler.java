@@ -1,6 +1,10 @@
 //@author A0111660W
 package speed.view;
 
+import java.util.ArrayList;
+
+import speed.task.Task;
+import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
@@ -88,25 +92,26 @@ class UIKeyEventHandler {
 	}
 
 	private void doUserCommand() {
-		String userCommand = ui.userCommands.getText();
+		String userInput = ui.userCommands.getText();
 
-		if (userCommand.equals(EMPTY_STRING)) {// ignore as it is an invalid
+		if (userInput.equals(EMPTY_STRING)) {// ignore as it is an invalid
 												// command
 			return;
 		}
 
-		ui.userCommandsHistory.add(userCommand);
+		ui.userCommandsHistory.add(userInput);
 		ui.userCommandsHistoryCounter = sizeToIndex(ui.userCommandsHistory
 				.size());
 
-		if (userCommand.matches(REGEX_NUMBERS_ONLY)) {
-			int taskNo = Integer.parseInt(userCommand);
+		if (userInput.matches(REGEX_NUMBERS_ONLY)) {
+			int taskNo = Integer.parseInt(userInput);
 			int index = taskNoToIndex(taskNo);
 
 			if (isValidIndex(index)) {
-				ui.taskTable.requestFocus();
-				ui.taskTable.getSelectionModel().select(index);
-				ui.taskTable.getFocusModel().focus(index);
+				TableView<Task> uiTaskTable = this.ui.getUITaskTableView().getTaskTable();
+				uiTaskTable.requestFocus();
+				uiTaskTable.getSelectionModel().select(index);
+				uiTaskTable.getFocusModel().focus(index);
 			}
 			ui.userCommands.setText(EMPTY_STRING);
 		} else {
@@ -155,8 +160,9 @@ class UIKeyEventHandler {
 	}
 
 	private boolean isValidIndex(int index) {
-		return index >= 0 && ui.displayTasks != null
-				&& !ui.displayTasks.isEmpty() && index < ui.displayTasks.size();
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		return index >= 0 && tasksList != null
+				&& !tasksList.isEmpty() && index < tasksList.size();
 	}
 
 	private boolean isInvalidPreviousCommandExisted() {
@@ -218,19 +224,25 @@ class UIKeyEventHandler {
 	}
 
 	private void doTaskTableDelete() {
-		if (ui.taskUserSelected == null) {
-			return;
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+		if (taskUserSelected != null) {
+			this.ui.setUserCommands("delete "
+					+ taskUserSelected.getDisplayId());
+			ui.notifyObservers();
 		}
-		ui.userCommands.setText("delete " + ui.taskUserSelected.getDisplayId());
-		ui.notifyObservers();
 	}
 
 	private void doDisplayQuickEditToUserCommand() {
-		String textToDisplay = "edit " + ui.taskDetailsView.taskIDtf.getText()
-				+ " " + ui.taskDetailsView.taskNameta.getText() + " ";
-		ui.doDefaultUserCommands();
-		ui.userCommands.setText(textToDisplay);
-		ui.userCommands.positionCaret(textToDisplay.length());
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+				
+		if (!tasksList.isEmpty() || tasksList != null) {
+			String textToDisplay = "edit " + taskUserSelected.getDisplayId()
+					+ " " + taskUserSelected.getTaskName() + " ";
+			ui.doDefaultUserCommands();
+			this.ui.setUserCommands(textToDisplay);
+			ui.userCommands.positionCaret(textToDisplay.length());
+		}
 	}
 
 	// END - Functions from taskTable
