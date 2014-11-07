@@ -51,7 +51,7 @@ public class Storage {
 		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
 		id_counter = updateIndex();
-		//updateRecurringTasks();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -138,6 +138,22 @@ public class Storage {
 		return limit;
 	}
 	
+	public void insertNoRecur(Task task) throws IOException {
+		checkForOverdueTasks();
+		assert task.hasNoID() == false;
+		
+		insert(task, retrieveTaskList(task));
+		
+		if (task.isRecur()) {
+			ArrayList<Task> task_recur_chain = generateRecurringTasks(task);
+			for (Task recur_task : task_recur_chain) {
+				insert(recur_task, retrieveTaskList(recur_task));
+			}
+		}
+		
+		save();
+	}
+	
 	//Delete methods***************************************************
 	
 	/*
@@ -200,6 +216,13 @@ public class Storage {
 			}
 		}
 		return searchResults;
+	}
+	
+	public Task getParentTask(Task task) {
+		if (task == null) {
+			return null;
+		}
+		return searchTaskByID(task.getId()).get(0);
 	}
 	
 	//External search methods. Can be called by other classes and tests

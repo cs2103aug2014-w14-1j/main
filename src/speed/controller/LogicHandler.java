@@ -135,7 +135,10 @@ public class LogicHandler {
 		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
 			if ((task!=null)&&(!tasks.contains(task))) {
-				tasks.add(task);
+				Task parent_task = storage_.getParentTask(task);
+				if (!tasks.contains(parent_task)) {
+					tasks.add(parent_task);
+				}
 			}
 		}
 		
@@ -223,6 +226,7 @@ public class LogicHandler {
 		String[] ids = command.getTaskIDsToComplete();
 		
 		ArrayList<Task> oldTasks = new ArrayList<Task>();
+		ArrayList<Task> newTasks = new ArrayList<Task> ();
 		
 		ArrayList<String> allIDs = new ArrayList<String>();
 		
@@ -236,20 +240,27 @@ public class LogicHandler {
 		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
 			if ((task!=null)&&(!oldTasks.contains(task))) {
-				oldTasks.add(task);
+				Task parent_task = storage_.getParentTask(task);
+				if (!oldTasks.contains(parent_task)) {
+					oldTasks.add(parent_task);
+				}
+				Task completedTask = task.clone();
+				completedTask.setCompleted();
+				
+				for (int i = 0; i < newTasks.size(); i++) {
+					if (newTasks.get(i).getId() == completedTask.getId()) {
+						newTasks.remove(i);
+						i--;
+					}
+				}
+				
+				newTasks.add(completedTask);
 			}
 		}
 
 		if (oldTasks.isEmpty()) {
 			return ERROR_INVALID_IDS;
 		} else {
-			ArrayList<Task> newTasks = new ArrayList<Task> ();
-			
-			for (Task task: oldTasks) {
-				Task completedTask = task.clone();
-				completedTask.setCompleted();
-				newTasks.add(completedTask);
-				}
 		
 			SimpleCommand completeCommand = new SimpleCommand(oldTasks,newTasks);
 			SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
