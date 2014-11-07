@@ -2,5 +2,5 @@
 package speed.view;
 
 public interface UIObserver {
-public void update();
+	public void update();
 }

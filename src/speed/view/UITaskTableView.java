@@ -1,7 +1,7 @@
+//@author A0111660W
 package speed.view;
 
 import java.util.ArrayList;
-
 import speed.task.Task;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ChangeListener;
@@ -94,8 +94,8 @@ class UITaskTableView extends VBox {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
-						return new SimpleStringProperty((p.getValue()
+							CellDataFeatures<Task, String> row) {
+						return new SimpleStringProperty((row.getValue()
 								.getDisplayId()));
 					}
 				});
@@ -104,7 +104,7 @@ class UITaskTableView extends VBox {
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 					@Override
 					public TableCell<Task, String> call(
-							TableColumn<Task, String> arg0) {
+							TableColumn<Task, String> row) {
 						return new TaskLblColTableCell();
 					}
 				});
@@ -117,10 +117,10 @@ class UITaskTableView extends VBox {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
-						String taskName = p.getValue().getTaskName();
+							CellDataFeatures<Task, String> row) {
+						String taskName = row.getValue().getTaskName();
 						String taskTags = ADDBLANKNEXTLINE + ADDBLANKNEXTLINE
-								+ p.getValue().getTagsAsString();
+								+ row.getValue().getTagsAsString();
 
 						return new SimpleStringProperty((taskName + taskTags));
 					}
@@ -134,9 +134,9 @@ class UITaskTableView extends VBox {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
+							CellDataFeatures<Task, String> row) {
 
-						return new SimpleStringProperty((p.getValue()
+						return new SimpleStringProperty((row.getValue()
 								.getDateAsString()));
 					}
 				});
@@ -172,6 +172,7 @@ class UITaskTableView extends VBox {
 		this.ui.getUIKeyEventHandler().doRequestedTaskTableKeyEvent(ke);
 	}
 
+	//******************** ACCESSORS FOR UI PACKAGE ***************************************
 	protected void displayTasks(ArrayList<Task> taskAL) {
 		this.tasksListForDisplay.removeAll(tasksListForDisplay);
 		this.tasksListForDisplay.addAll(taskAL);
@@ -194,9 +195,11 @@ class UITaskTableView extends VBox {
 	protected TableView<Task> getTaskTable(){
 		return this.taskTable;
 	}
-
+	//******************** END - ACCESSORS FOR UI PACKAGE ***************************************
+	
 	// @author A0111660W
 	class TaskLblColTableCell extends TableCell<Task, String> {
+		
 		// CSS
 		private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
 		private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
