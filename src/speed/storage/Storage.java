@@ -39,6 +39,7 @@ public class Storage {
 	private PriorityQueue<Task> al_task_floating;
 	private PriorityQueue<Task> al_task_overdue;
 	private PriorityQueue<Task> al_task_completed;
+	private ArrayList<LinkedList<Task>> id_lists;
 	private int id_counter;
 	
 	//Constructor***************************************************************************
@@ -50,8 +51,9 @@ public class Storage {
 		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
 		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
-		id_counter = updateIndex();
-		//updateRecurringTasks();
+		buildIDTable();
+		compactIndex();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -90,6 +92,10 @@ public class Storage {
 
 	private void insert(Task task, PriorityQueue<Task> list) {
 		list.add(task);
+		if (task.getId() >= id_lists.size()) {
+			id_lists.add(new LinkedList<Task>());
+		}
+		id_lists.get(task.getId()).add(task);
 	}
 	
 	/*
@@ -138,6 +144,22 @@ public class Storage {
 		return limit;
 	}
 	
+	public void insertNoRecur(Task task) throws IOException {
+		checkForOverdueTasks();
+		assert task.hasNoID() == false;
+		
+		insert(task, retrieveTaskList(task));
+		
+		if (task.isRecur()) {
+			ArrayList<Task> task_recur_chain = generateRecurringTasks(task);
+			for (Task recur_task : task_recur_chain) {
+				insert(recur_task, retrieveTaskList(recur_task));
+			}
+		}
+		
+		save();
+	}
+	
 	//Delete methods***************************************************
 	
 	/*
@@ -152,24 +174,18 @@ public class Storage {
 	 */
 	public void delete(Task task) throws IOException {
 		checkForOverdueTasks();
-		delete(task, retrieveTaskList(task));
-		if (task.isRecur()) {
-			deleteRecurChain(task);
+		LinkedList<Task> recur_chain = searchTaskByID(task.getId());
+		for (Task other_task : recur_chain) {
+			delete(other_task, retrieveTaskList(other_task));
 		}
+		recur_chain.clear();
 		save();
 	}
 
 	private void delete(Task task, PriorityQueue<Task> list) {
 		list.remove(task);
 	}
-	
-	private void deleteRecurChain(Task task) {
-		ArrayList<Task> recur_chain = searchTaskByID(task.getId());
-		for (Task other_task : recur_chain) {
-			delete(other_task, retrieveTaskList(other_task));
-		}
-	}
-	
+
 	//Retrieval/search methods*************************************************************
 	
 	//Internal search methods. To be used by Storage only
@@ -179,27 +195,20 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	private ArrayList<Task> searchTaskByID(Integer id){
+	private LinkedList<Task> searchTaskByID(Integer id){
 		
-		ArrayList<Task> search_results = new ArrayList<Task>();
 		if (id == null || id < 0) {
-			return search_results;								//every task in storage should have a nonnegative ID
+			return new LinkedList<Task>();								//every task in storage should have a nonnegative ID
 		}
 		
-		searchTaskByID(id, al_task, search_results);
-		searchTaskByID(id, al_task_floating, search_results);
-		searchTaskByID(id, al_task_overdue, search_results);
-		
-		return search_results;
+		return id_lists.get(id);
 	}
-	
-	private ArrayList<Task> searchTaskByID(Integer id,PriorityQueue<Task> list, ArrayList<Task> searchResults){
-		for(Task task: list){
-			if(task.getId() == id){
-				searchResults.add(task);
-			}
+		
+	public Task getParentTask(Task task) {
+		if (task == null) {
+			return null;
 		}
-		return searchResults;
+		return searchTaskByID(task.getId()).get(0);
 	}
 	
 	//External search methods. Can be called by other classes and tests
@@ -354,7 +363,7 @@ public class Storage {
 	 */
 	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
-			ArrayList<Task> searchlist = searchTaskByID(i);
+			LinkedList<Task> searchlist = searchTaskByID(i);
 			if (!searchlist.isEmpty()) {
 				Task lasttask = searchlist.get(searchlist.size()-1);
 				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
@@ -363,6 +372,43 @@ public class Storage {
 			}
 		}
 	}
+	
+	private void buildIDTable() {
+		id_lists = new ArrayList<LinkedList<Task>>();
+		id_counter = getLatestID();
+		for (int i = 0; i <= id_counter; i++) {
+			id_lists.add(new LinkedList<Task>());
+		}
+		for (Task task : al_task_overdue) {
+			id_lists.get(task.getId()).add(task);
+		}
+		for (Task task : al_task_floating) {
+			id_lists.get(task.getId()).add(task);
+		}
+		for (Task task : al_task) {
+			id_lists.get(task.getId()).add(task);
+		}
+	}
+
+	private void compactIndex() {
+		int holes = 0;
+		int i = 1;
+		while (i < id_lists.size()) {
+			LinkedList<Task> task_family = searchTaskByID(i);
+			if (task_family.isEmpty()) {
+				holes++;
+				id_lists.remove(i);
+			}
+			else {
+				for (Task task : task_family) {
+					task.setId(task.getId() - holes);
+				}
+				i++;
+			}
+		}
+		id_counter = getLatestID();
+	}
+	
 	
 	/*
 	 * Updates the ids of the existing tasks in the Storage. Returns the new id_count as a result, which
@@ -376,30 +422,6 @@ public class Storage {
 	 * 
 	 * Note: Expensive operation
 	 */
-	private int updateIndex() {
-		int latest_id = 0;
-		int old_latest_id = getLatestID();
-		LinkedList<Integer> holes = new LinkedList<Integer>();
-		for (int i = 0; i < old_latest_id + 1; i++) {
-			ArrayList<Task> tasks = searchTaskByID(i);
-			if (tasks.isEmpty()) {
-				holes.offer(i);
-			}
-			else {
-				if (!holes.isEmpty()) {
-					int newest_id = holes.poll();
-					for (Task task : tasks) {
-						task.setId(newest_id);
-					}
-					latest_id = newest_id;
-				}
-				else {
-					latest_id = i;
-				}
-			}
-		}
-		return latest_id;
-	}
 	
 	private int getLatestID() {
 		int latest_id = getLatestID(al_task);

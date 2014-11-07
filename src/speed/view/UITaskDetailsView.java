@@ -1,7 +1,7 @@
+//@author A0111660W
 package speed.view;
 
 import org.controlsfx.control.NotificationPane;
-
 import speed.task.Task;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -10,25 +10,22 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 class UITaskDetailsView extends VBox {
-	private UI ui;
-	// private VBox taskDetailsView;
+	private Label taskIDLbl;
+	private TextField taskIDtf;
+	private Label taskNameLbl;
+	private TextArea taskNameta;
+	private Label taskStartDtesLbl;
+	private TextArea taskStartDtesta;
+	private Label taskTagsLbl;
+	private TextArea taskTagsta;
 	private NotificationPane notificationPane;
 
-	protected Label taskIDLbl;
-	protected TextField taskIDtf;
-	protected Label taskNameLbl;
-	protected TextArea taskNameta;
-	protected Label taskStartDtesLbl;
-	protected TextArea taskStartDtesta;
-	protected Label taskTagsLbl;
-	protected TextArea taskTagsta;
-
 	// Dimensions
-	private static final double HEIGHT_OF_TEXTAREAS = 60;
-	private static final double HEIGHT_OF_TASKNAMETA = 110;
-	private static final double WIDTH_OF_TASKDETAILSVIEW = 310;
-	private static final double WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING = 10;
-	private static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
+	protected static final double HEIGHT_OF_TEXTAREAS = 60;
+	protected static final double HEIGHT_OF_TASKNAMETA = 110;
+	protected static final double WIDTH_OF_TASKDETAILSVIEW = 310;
+	protected static final double WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING = 10;
+	protected static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
 
 	// CSS
 	private static final String CSS_VIEW2COMPONENTS = "view2Split";
@@ -39,20 +36,15 @@ class UITaskDetailsView extends VBox {
 	private static final int TIMEOUT = 4000;
 	private static final String EMPTY_STRING = "";
 
-	// End view 2 of split
-
-	public UITaskDetailsView(UI ui) {
-		this.ui = ui;
+	protected UITaskDetailsView() {
 		initTaskDetailsView();
-		
 	}
-
-	// Displays view 2 of split.
+	
 	private void initTaskDetailsView() {
 		this.setPrefWidth(WIDTH_OF_TASKDETAILSVIEW);
 		this.setSpacing(WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING);
 		initNotificationPane();
-		
+
 		taskIDLbl = new Label("Task ID: ");
 
 		taskIDtf = new TextField();
@@ -60,6 +52,7 @@ class UITaskDetailsView extends VBox {
 		taskIDtf.setDisable(true);
 
 		taskNameLbl = new Label("Task Name: ");
+		
 		taskNameta = new TextArea();
 		taskNameta.getStyleClass().add(CSS_TEXTAREA);
 		taskNameta.getStyleClass().add(CSS_VIEW2COMPONENTS);
@@ -68,6 +61,7 @@ class UITaskDetailsView extends VBox {
 		taskNameta.setDisable(true);
 
 		taskStartDtesLbl = new Label("Task Dates: ");
+		
 		taskStartDtesta = new TextArea();
 		taskStartDtesta.getStyleClass().add(CSS_TEXTAREA);
 		taskStartDtesta.getStyleClass().add(CSS_VIEW2COMPONENTS);
@@ -76,6 +70,7 @@ class UITaskDetailsView extends VBox {
 		taskStartDtesta.setDisable(true);
 
 		taskTagsLbl = new Label("Task Tags: ");
+		
 		taskTagsta = new TextArea();
 		taskTagsta.getStyleClass().add(CSS_TEXTAREA);
 		taskTagsta.getStyleClass().add(CSS_VIEW2COMPONENTS);
@@ -88,7 +83,19 @@ class UITaskDetailsView extends VBox {
 				notificationPane);
 
 	}
-
+	
+	private void initNotificationPane() {
+		notificationPane = new NotificationPane(new FlowPane());
+		notificationPane.getStyleClass().removeAll(
+				notificationPane.getStyleClass());
+		notificationPane.getStyleClass().add(CSS_NOTIFICATIONPANE);
+		notificationPane.setShowFromTop(false);
+		notificationPane.setDisable(true);
+		notificationPane.setMinSize(WIDTH_OF_TASKDETAILSVIEW,
+				HEIGHT_OF_NOTIFICATIONPANE);
+	}
+	
+	//***************************ACCESSORS for UI PACKAGE *********************************************
 	protected void blankTaskDetails() {
 		taskIDtf.setDisable(false);
 		taskIDtf.setText(EMPTY_STRING);
@@ -108,34 +115,24 @@ class UITaskDetailsView extends VBox {
 	}
 
 	protected void bindTaskDetails(Task task) {
-		taskIDtf.setDisable(false);
-		taskIDtf.setText(ui.taskUserSelected.getDisplayId());
-		taskIDtf.setDisable(true);
+		if (task != null) {
+			taskIDtf.setDisable(false);
+			taskIDtf.setText(task.getDisplayId());
+			taskIDtf.setDisable(true);
 
-		taskNameta.setDisable(false);
-		taskNameta.setText(ui.taskUserSelected.getTaskName());
-		taskNameta.setDisable(true);
+			taskNameta.setDisable(false);
+			taskNameta.setText(task.getTaskName());
+			taskNameta.setDisable(true);
 
-		taskStartDtesta.setDisable(false);
-		taskStartDtesta.setText(ui.taskUserSelected.getDateAsString() + " "
-				+ ui.taskUserSelected.getRecurAsString());
-		taskStartDtesta.setDisable(true);
+			taskStartDtesta.setDisable(false);
+			taskStartDtesta.setText(task.getDateAsString() + " "
+					+task.getRecurAsString());
+			taskStartDtesta.setDisable(true);
 
-		taskTagsta.setDisable(false);
-		taskTagsta.setText(ui.taskUserSelected.getTagsAsString());
-		taskTagsta.setDisable(true);
-
-	}
-
-	private void initNotificationPane() {
-		notificationPane = new NotificationPane(new FlowPane());
-		notificationPane.getStyleClass().removeAll(
-				notificationPane.getStyleClass());
-		notificationPane.getStyleClass().add(CSS_NOTIFICATIONPANE);
-		notificationPane.setShowFromTop(false);
-		notificationPane.setDisable(true);
-		notificationPane.setMinSize(WIDTH_OF_TASKDETAILSVIEW,
-				HEIGHT_OF_NOTIFICATIONPANE);
+			taskTagsta.setDisable(false);
+			taskTagsta.setText(task.getTagsAsString());
+			taskTagsta.setDisable(true);
+		}
 	}
 
 	protected void setNotificationToUser(String msg) {
@@ -145,6 +142,8 @@ class UITaskDetailsView extends VBox {
 		notificationPane.setDisable(true);
 
 	}
+	
+	//***************************END - ACCESSORS for UI PACKAGE *********************************************
 
 	private void hideNotificationAfter(int ms) {
 		new java.util.Timer().schedule(new java.util.TimerTask() {

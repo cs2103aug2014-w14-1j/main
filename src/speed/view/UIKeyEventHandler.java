@@ -1,12 +1,15 @@
 //@author A0111660W
 package speed.view;
 
+import java.util.ArrayList;
+import speed.task.Task;
+import javafx.scene.control.TableView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 /* Description : 
  * This class mainly reacts to the key events on two components of the 
- * UI: userCommands TextField and taskTable Table and reacts accordingly.
+ * UI: userCommands:TextField and taskTable:Table and reacts accordingly.
  * It is responsible for Creation and reaction of all Hot Keys of the UI.
  */
 
@@ -21,21 +24,22 @@ class UIKeyEventHandler {
 
 	// Errors
 	private static final String ERROR_USERCOMMAND_HOTKEY = "Unrecognized User Command Hot Key";
+	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
 	private static final String ERROR_RETRIEVECOMMANDHISTORY = "There should not be any other commands.";
 	private static final String ERROR_SIZEOUTOFBOUNDS = "Size should not be out of bounds";
-	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
-
+	
 	enum HotKeys {
-		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID, TASKTABLE_DELETE, TASKTABLE_INVALID, TASKTABLE_EDIT, TASKTABLE_UNDO, TASKTABLE_REDO
+		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, 
+		USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID, TASKTABLE_DELETE, 
+		TASKTABLE_INVALID, TASKTABLE_EDIT, TASKTABLE_UNDO, TASKTABLE_REDO
 	};
 
-	public UIKeyEventHandler(UI ui) {
+	protected UIKeyEventHandler(UI ui) {
 		this.ui = ui;
-
 	}
-
-	// Functions from userCommandsKeyListener
-	public void doRequestedUserCommandsKeyEvent(KeyEvent ke) {
+	
+	//****************************** Methods Accessible to UI PACKAGE***************************
+	protected void doRequestedUserCommandsKeyEvent(KeyEvent ke) {
 		HotKeys hotKey = determineHotKeyUserCommands(ke);
 
 		switch (hotKey) {
@@ -60,7 +64,32 @@ class UIKeyEventHandler {
 			throw new Error(ERROR_USERCOMMAND_HOTKEY);
 		}
 	}
+	
+	protected void doRequestedTaskTableKeyEvent(KeyEvent ke) {
+		HotKeys hotKey = determineHotKeyTaskTable(ke);
 
+		switch (hotKey) {
+		case TASKTABLE_DELETE:
+			doTaskTableDelete();
+			break;
+		case TASKTABLE_EDIT:
+			doDisplayQuickEditToUserCommand();
+			break;
+		case TASKTABLE_UNDO:
+			doUndo();
+			break;
+		case TASKTABLE_REDO:
+			doRedo();
+			break;
+		case TASKTABLE_INVALID:
+			break;
+		default:
+			throw new Error(ERROR_TASKTABLE_HOTKEY);
+
+		}
+	}
+	//****************************** END - Methods Accessible to UI PACKAGE***************************
+	
 	private HotKeys determineHotKeyUserCommands(KeyEvent keyEvent) {
 
 		assert (keyEvent != null);
@@ -86,114 +115,7 @@ class UIKeyEventHandler {
 			return HotKeys.USERCOMMAND_INVALID;
 		}
 	}
-
-	private void doUserCommand() {
-		String userCommand = ui.userCommands.getText();
-
-		if (userCommand.equals(EMPTY_STRING)) {// ignore as it is an invalid
-												// command
-			return;
-		}
-
-		ui.userCommandsHistory.add(userCommand);
-		ui.userCommandsHistoryCounter = sizeToIndex(ui.userCommandsHistory
-				.size());
-
-		if (userCommand.matches(REGEX_NUMBERS_ONLY)) {
-			int taskNo = Integer.parseInt(userCommand);
-			int index = taskNoToIndex(taskNo);
-
-			if (isValidIndex(index)) {
-				ui.taskTable.requestFocus();
-				ui.taskTable.getSelectionModel().select(index);
-				ui.taskTable.getFocusModel().focus(index);
-			}
-			ui.userCommands.setText(EMPTY_STRING);
-		} else {
-			ui.notifyObservers();
-			ui.doDefaultUserCommands();
-		}
-
-	}
-
-	private void doRetrieveCommandHistory(String command) {// updates the
-															// userCommands
-															// TextField for
-															// previously
-															// entered commands.
-		if (command.equals(PREVIOUS_USER_COMMAND)) {
-			if (isInvalidPreviousCommandExisted()) {
-				// Ignore
-			} else {
-				ui.userCommands.setText(ui.userCommandsHistory
-						.get(ui.userCommandsHistoryCounter));
-				ui.userCommandsHistoryCounter--;
-			}
-		} else if (command.equals(NEXT_USER_COMMAND)) {
-			if (isInvalidNextCommandExisted()) {
-				ui.userCommands.setText(EMPTY_STRING);
-			} else {
-				ui.userCommandsHistoryCounter++;
-				ui.userCommands.setText(ui.userCommandsHistory
-						.get(ui.userCommandsHistoryCounter));
-			}
-
-		} else {
-			throw new Error(ERROR_RETRIEVECOMMANDHISTORY);
-		}
-	}
-
-	private int sizeToIndex(int size) {
-		if (size <= 0) {
-			throw new Error(ERROR_SIZEOUTOFBOUNDS);
-		}
-		return size - 1;
-	}
-
-	private int taskNoToIndex(int taskNo) {
-		return taskNo - 1;
-	}
-
-	private boolean isValidIndex(int index) {
-		return index >= 0 && ui.displayTasks != null
-				&& !ui.displayTasks.isEmpty() && index < ui.displayTasks.size();
-	}
-
-	private boolean isInvalidPreviousCommandExisted() {
-		return ui.userCommandsHistoryCounter < 0;
-	}
-
-	private boolean isInvalidNextCommandExisted() {
-		return ui.userCommandsHistoryCounter >= ui.userCommandsHistory.size() - 1;
-	}
-
-	// END - Functions from
-	// userCommandsKeyListener*********************************
-
-	// Functions from ui.taskTable KeyListener
-	public void doRequestedTaskTableKeyEvent(KeyEvent ke) {
-		HotKeys hotKey = determineHotKeyTaskTable(ke);
-
-		switch (hotKey) {
-		case TASKTABLE_DELETE:
-			doTaskTableDelete();
-			break;
-		case TASKTABLE_EDIT:
-			doDisplayQuickEditToUserCommand();
-			break;
-		case TASKTABLE_UNDO:
-			doUndo();
-			break;
-		case TASKTABLE_REDO:
-			doRedo();
-			break;
-		case TASKTABLE_INVALID:
-			break;
-		default:
-			throw new Error(ERROR_TASKTABLE_HOTKEY);
-
-		}
-	}
+	
 
 	private HotKeys determineHotKeyTaskTable(KeyEvent keyEvent) {
 
@@ -217,33 +139,117 @@ class UIKeyEventHandler {
 		}
 	}
 
-	private void doTaskTableDelete() {
-		if (ui.taskUserSelected == null) {
+	private void doUserCommand() {
+		String userInput = ui.getUserCommands();
+
+		if (userInput.equals(EMPTY_STRING)) {// ignore invalid command
 			return;
 		}
-		ui.userCommands.setText("delete " + ui.taskUserSelected.getDisplayId());
-		ui.notifyObservers();
+
+		ui.userCommandsHistory.add(userInput);
+		ui.userCommandsHistoryCounter = sizeToIndex(ui.userCommandsHistory
+				.size());
+
+		if (userInput.matches(REGEX_NUMBERS_ONLY)) {
+			int taskNo = Integer.parseInt(userInput);
+			int index = taskNoToIndex(taskNo);
+
+			if (isValidIndex(index)) {
+				TableView<Task> uiTaskTable = this.ui.getUITaskTableView().getTaskTable();
+				uiTaskTable.requestFocus();
+				uiTaskTable.getSelectionModel().select(index);
+				uiTaskTable.getFocusModel().focus(index);
+			}
+			ui.setUserCommands(EMPTY_STRING);
+		} else {
+			ui.notifyObservers();
+			ui.doDefaultUserCommands();
+		}
+
 	}
 
-	private void doDisplayQuickEditToUserCommand() {
-		String textToDisplay = "edit " + ui.taskDetailsView.taskIDtf.getText()
-				+ " " + ui.taskDetailsView.taskNameta.getText() + " ";
-		ui.doDefaultUserCommands();
-		ui.userCommands.setText(textToDisplay);
-		ui.userCommands.positionCaret(textToDisplay.length());
+	private void doRetrieveCommandHistory(String command) {// updates the
+															// userCommands
+															// TextField for
+															// previously
+															// entered commands.
+		if (command.equals(PREVIOUS_USER_COMMAND)) {
+			if (isInvalidPreviousCommandExisted()) {
+				// Ignore
+			} else {
+				ui.userCommands.setText(ui.userCommandsHistory
+						.get(ui.userCommandsHistoryCounter));
+				ui.userCommandsHistoryCounter--;
+			}
+		} else if (command.equals(NEXT_USER_COMMAND)) {
+			if (isInvalidNextCommandExisted()) {
+				ui.setUserCommands(EMPTY_STRING);
+			} else {
+				ui.userCommandsHistoryCounter++;
+				ui.setUserCommands(ui.userCommandsHistory
+						.get(ui.userCommandsHistoryCounter));
+			}
+
+		} else {
+			throw new Error(ERROR_RETRIEVECOMMANDHISTORY);
+		}
 	}
-
-	// END - Functions from taskTable
-	// KeyListener***************************************
-
+	
 	private void doUndo() {
-		ui.userCommands.setText("undo");
+		ui.setUserCommands("undo");
 		ui.notifyObservers();
 	}
 
 	private void doRedo() {
-		ui.userCommands.setText("redo");
+		ui.setUserCommands("redo");
 		ui.notifyObservers();
 	}
+	
+	private void doTaskTableDelete() {
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+		if (taskUserSelected != null) {
+			this.ui.setUserCommands("delete "
+					+ taskUserSelected.getDisplayId());
+			ui.notifyObservers();
+		}
+	}
 
+	private void doDisplayQuickEditToUserCommand() {
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+				
+		if (!tasksList.isEmpty() || tasksList != null) {
+			String textToDisplay = "edit " + taskUserSelected.getDisplayId()
+					+ " " + taskUserSelected.getTaskName() + " ";
+			ui.doDefaultUserCommands();
+			this.ui.setUserCommands(textToDisplay);
+			ui.userCommands.positionCaret(textToDisplay.length());
+		}
+	}
+
+	
+	private int sizeToIndex(int size) {
+		if (size <= 0) {
+			throw new Error(ERROR_SIZEOUTOFBOUNDS);
+		}
+		return size - 1;
+	}
+
+	private int taskNoToIndex(int taskNo) {
+		return taskNo - 1;
+	}
+
+	private boolean isValidIndex(int index) {
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		return index >= 0 && tasksList != null
+				&& !tasksList.isEmpty() && index < tasksList.size();
+	}
+
+	private boolean isInvalidPreviousCommandExisted() {
+		return ui.userCommandsHistoryCounter < 0;
+	}
+
+	private boolean isInvalidNextCommandExisted() {
+		return ui.userCommandsHistoryCounter >= ui.userCommandsHistory.size() - 1;
+	}
 }
