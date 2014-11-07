@@ -5,7 +5,6 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import speed.parser.Command;
 import speed.parser.Parser;
-import speed.storage.SearchHandler;
 import speed.storage.Storage;
 import speed.task.Task;
 import speed.view.UI;
