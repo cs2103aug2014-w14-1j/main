@@ -52,8 +52,6 @@ public class Storage {
 		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
 		maintainListIntegrity();
-		buildIDTable();
-		compactIndex();
 		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
@@ -497,8 +495,10 @@ public class Storage {
 		list_completed.removeAll(wrong_tasks);
 		
 		for (Task task : wrong_tasks) {
-			insert(task, retrieveTaskList(task));
+			retrieveTaskList(task).add(task);
 		}
+		buildIDTable();
+		compactIndex();
 	}
 	
 	//@author A0111660W
