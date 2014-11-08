@@ -25,12 +25,12 @@ public class Task {
 	private Integer id;
 	private String taskName;
 	private String displayId;
-	private Calendar start_date;
-	private Calendar end_date;
+	private Calendar startDate;
+	private Calendar endDate;
 	private Calendar dateCompleted;
-	private Integer recur_pattern;
-	private Integer recur_period;
-	private Calendar recur_limit;								//NOT USED as of V0.4. Always null
+	private Integer recurPattern;
+	private Integer recurPeriod;
+	private Calendar recurLimit;								//NOT USED as of V0.4. Always null
 	private ArrayList<String> tags;
 
 	//Constructors******************************************************************************
@@ -51,12 +51,12 @@ public class Task {
 		this.id = taskId;
 		this.displayId = displayId;
 		this.taskName = taskName;
-		this.start_date = taskStartDate;
-		this.end_date = taskEndDate;
+		this.startDate = taskStartDate;
+		this.endDate = taskEndDate;
 		this.dateCompleted = taskDateCompleted;
-		this.recur_pattern = recur;
-		this.recur_period = recurPeriod;
-		this.recur_limit = recurLimit;
+		this.recurPattern = recur;
+		this.recurPeriod = recurPeriod;
+		this.recurLimit = recurLimit;
 		this.tags = taskTag;
 	}
 
@@ -166,11 +166,11 @@ public class Task {
 			startdate = (Calendar) enddate.clone();
 		}
 		
-		this.start_date = startdate;
-		this.end_date = enddate;
-		this.recur_pattern = recurpattern;
-		this.recur_period = recurperiod;
-		this.recur_limit = recurlimit;
+		this.startDate = startdate;
+		this.endDate = enddate;
+		this.recurPattern = recurpattern;
+		this.recurPeriod = recurperiod;
+		this.recurLimit = recurlimit;
 	}
 
 	/*
@@ -208,20 +208,20 @@ public class Task {
 	 * WARNING: Can lead to potential abuse. Use with caution.
 	 */
 	private void setStartDate(Calendar startdate) {
-		this.start_date = startdate;
+		this.startDate = startdate;
 	}
 
 	private void setEndDate(Calendar enddate) {
-		this.end_date = enddate;
+		this.endDate = enddate;
 	}
 	
 	public void setRecur(Integer pattern, Integer period) {
-		this.recur_pattern = pattern;
-		this.recur_period = period;
+		this.recurPattern = pattern;
+		this.recurPeriod = period;
 	}
 
 	public void setRecurLimit(Calendar limit) {
-		this.recur_limit = limit;
+		this.recurLimit = limit;
 	}
 
 	/*
@@ -229,11 +229,11 @@ public class Task {
 	 */
 	
 	public Calendar getStartDate() {
-		return this.start_date;
+		return this.startDate;
 	}
 
 	public Calendar getEndDate() {
-		return this.end_date;
+		return this.endDate;
 	}
 	
 	/*
@@ -241,19 +241,19 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public Calendar getDate() {
-		return this.end_date;
+		return this.endDate;
 	}
 	
 	public Integer getRecurPattern() {
-		return this.recur_pattern;
+		return this.recurPattern;
 	}
 	
 	public Integer getRecurPeriod() {
-		return this.recur_period;
+		return this.recurPeriod;
 	}
 
 	public Calendar getRecurLimit() {
-		return this.recur_limit;
+		return this.recurLimit;
 	}
 	
 	/*
@@ -263,9 +263,9 @@ public class Task {
 	 * Non-null start and end dates (not floating)
 	 */
 	public boolean isRecur() {
-		return this.recur_pattern != RECUR_PATTERN_INVALID &&
-				this.recur_period >= RECUR_PERIOD_VALID_MINIMUM &&
-				this.start_date != null && this.end_date != null;
+		return this.recurPattern != RECUR_PATTERN_INVALID &&
+				this.recurPeriod >= RECUR_PERIOD_VALID_MINIMUM &&
+				this.startDate != null && this.endDate != null;
 	}
 
 	/*
@@ -275,42 +275,42 @@ public class Task {
 	 */
 
 	public String getStartDateAsString() {
-		if (this.start_date == null) {
+		if (this.startDate == null) {
 			return "";
 		}
-		return sdf.format(start_date.getTime());
+		return sdf.format(startDate.getTime());
 	}
 
 	public String getEndDateAsString() {
-		if (this.end_date == null) {
+		if (this.endDate == null) {
 			return "";
 		}
-		return sdf.format(end_date.getTime());
+		return sdf.format(endDate.getTime());
 	}
 
 	public String getDateAsString() {
 		if (isFloating()) {
 			return "";
 		}
-		if (this.start_date == null) {
-			return sdf.format(end_date.getTime());
+		if (this.startDate == null) {
+			return sdf.format(endDate.getTime());
 		}
-		if (this.end_date == null) {
-			return sdf.format(start_date.getTime());
+		if (this.endDate == null) {
+			return sdf.format(startDate.getTime());
 		}
-		if (this.start_date.equals(this.end_date)) {
-			return sdf.format(end_date.getTime());
+		if (this.startDate.equals(this.endDate)) {
+			return sdf.format(endDate.getTime());
 		}
-		return sdf.format(start_date.getTime()) + " -\n"
-				+ sdf.format(end_date.getTime());
+		return sdf.format(startDate.getTime()) + " -\n"
+				+ sdf.format(endDate.getTime());
 	}
 	
 	public String getRecurAsString() {
 		String result = "every ";
-		if (recur_period > 1) {
-			result += recur_period + " ";
+		if (recurPeriod > 1) {
+			result += recurPeriod + " ";
 		}
-		switch (this.recur_pattern) {
+		switch (this.recurPattern) {
 			case Calendar.YEAR:
 				result += "year";
 				break;
@@ -326,7 +326,7 @@ public class Task {
 			default:
 				return "";
 		}
-		if (recur_period > 1) {
+		if (recurPeriod > 1) {
 			result += "s";
 		}
 		return result;
@@ -350,8 +350,8 @@ public class Task {
 	 */
 	public void setCompleted() {
 		Calendar dateCompleted = Calendar.getInstance();
-		if (this.end_date != null) {
-			dateCompleted = (Calendar) this.end_date.clone();
+		if (this.endDate != null) {
+			dateCompleted = (Calendar) this.endDate.clone();
 			dateCompleted.add(Calendar.SECOND, 1);
 		}
 		setDateCompleted(dateCompleted);
@@ -369,10 +369,10 @@ public class Task {
 		if (this.dateCompleted == null) {
 			return false;
 		}
-		if (this.end_date == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
+		if (this.endDate == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
 			return true;
 		}
-		return this.dateCompleted.after(this.end_date);					//assumption that start_date.equals(end_date)
+		return this.dateCompleted.after(this.endDate);					//assumption that start_date.equals(end_date)
 	}
 
 	/*
@@ -394,7 +394,7 @@ public class Task {
 	 * ASSUMPTION: start_date == null iff end_date == null.
 	 */
 	public boolean isFloating() {
-		return this.start_date == null && this.end_date == null
+		return this.startDate == null && this.endDate == null
 				&& this.dateCompleted == null;
 	}
 
@@ -412,10 +412,10 @@ public class Task {
 			return false;
 		}
 
-		assert end_date != null;
+		assert endDate != null;
 		Calendar now = Calendar.getInstance();
 		
-		if (this.end_date.before(now)) {
+		if (this.endDate.before(now)) {
 			return true;
 		}
 
@@ -433,10 +433,10 @@ public class Task {
 		if (isOverdue()) {
 			return true;
 		}
-		if (start_date == null || start_date.before(this.end_date)
-				|| start_date.equals(this.end_date)) {
-			if (end_date == null || end_date.after(this.start_date)
-					|| end_date.equals(this.start_date)) {
+		if (start_date == null || start_date.before(this.endDate)
+				|| start_date.equals(this.endDate)) {
+			if (end_date == null || end_date.after(this.startDate)
+					|| end_date.equals(this.startDate)) {
 				return true;
 			}
 		}
@@ -495,18 +495,18 @@ public class Task {
 		Task task = new Task();
 		task.setId(this.id);
 		task.setTaskName(this.taskName);
-		if (this.start_date != null) {
-			task.setStartDate((Calendar) this.start_date.clone());
+		if (this.startDate != null) {
+			task.setStartDate((Calendar) this.startDate.clone());
 		}
-		if (this.end_date != null) {
-			task.setEndDate((Calendar) this.end_date.clone());
+		if (this.endDate != null) {
+			task.setEndDate((Calendar) this.endDate.clone());
 		}
 		if (this.dateCompleted != null) {
 			task.setDateCompleted((Calendar) this.dateCompleted.clone());
 		}
-		task.setRecur(this.recur_pattern, this.recur_period);
-		if (this.recur_limit != null) {
-			task.setRecurLimit((Calendar) this.recur_limit.clone());
+		task.setRecur(this.recurPattern, this.recurPeriod);
+		if (this.recurLimit != null) {
+			task.setRecurLimit((Calendar) this.recurLimit.clone());
 		}
 		for (String tag : tags) {
 			task.addTag(tag);
