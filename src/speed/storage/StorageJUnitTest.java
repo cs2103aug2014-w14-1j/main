@@ -53,9 +53,9 @@ public class StorageJUnitTest {
 
 			test(task1.getTaskName(), "Submit Developer Guide");
 			test(task1.getTags().size(), 3);
-			test(task1.getTags().get(0), "school");
-			test(task1.getTags().get(1), "CS2101");
-			test(task1.getTags().get(2), "CS2103T");
+			test(task1.getTags().get(0), "CS2101");
+			test(task1.getTags().get(1), "CS2103T");
+			test(task1.getTags().get(2), "school");
 			test(task1.getStartDate(), task1_date);
 			test(task1.getEndDate(), task1_date);
 			test(task1.getDate(), task1_date);
