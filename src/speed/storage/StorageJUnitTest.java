@@ -2,11 +2,14 @@
 package speed.storage;
 
 import org.junit.Test;
+
 import speed.task.Task;
+import speed.task.TaskComparator;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,10 +29,14 @@ public class StorageJUnitTest {
 			 * In addition, these tasks will be reused for later tests
 			 * 
 			 * WARNING: Due to time sensitivity of overdue tasks, it is assumed
-			 * these tests are not used by 2015. Also all recurring tasks will
+			 * these tests are not used by 26 Nov 2015. Also all recurring tasks will
 			 * only contribute to the normal tasks file (no overdue). However
 			 * since retrieveTaskFile() is independent of recurrence generation,
 			 * it is assumed that the result is the same for overdue tasks.
+			 * 
+			 * NOTE: The software on a whole recognises tags by special signs. In this
+			 * unit test, however, arbitrary tags are added without needing those
+			 * signs
 			*/
 			
 			System.out.println("Task tests");
@@ -41,7 +48,7 @@ public class StorageJUnitTest {
 			task1.setTaskName("Submit Developer Guide");
 			Calendar task1_date = Calendar.getInstance();
 			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			task1.setDate(task1_date);
+			task1.setDates(task1_date, task1_date, -1, -1, null);			//start date same as end date
 			task1.addTag("school");
 			task1.addTag("CS2101");
 			task1.addTag("CS2103T");
@@ -51,20 +58,31 @@ public class StorageJUnitTest {
 			Calendar task1_test_end_date = Calendar.getInstance();
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 
+			//Task name check
 			test(task1.getTaskName(), "Submit Developer Guide");
+			//Tags check
 			test(task1.getTags().size(), 3);
-			test(task1.getTags().get(0), "school");
-			test(task1.getTags().get(1), "CS2101");
-			test(task1.getTags().get(2), "CS2103T");
+			test(task1.getTags().get(0), "CS2101");
+			test(task1.getTags().get(1), "CS2103T");
+			test(task1.getTags().get(2), "school");
+			test(task1.getTagsAsString(), "CS2101, CS2103T, school");
+			//dates check
 			test(task1.getStartDate(), task1_date);
 			test(task1.getEndDate(), task1_date);
 			test(task1.getDate(), task1_date);
+			test(task1.getDateAsString(), "Wed 26-Nov-14 13:00 PM");
+			test(task1.getDateCompleted(), null);
+			//boolean checks
+			test(task1.isFloating(), false);
+			test(task1.isOverdue(), false);
+			test(task1.isCompleted(), false);
+			test(task1.isRecur(), false);
 			test(task1.withinDateRange(task1_test_start_date,
 					task1_test_end_date), true);
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			test(task1.withinDateRange(task1_test_start_date,
+			test(task1.withinDateRange(task1_test_start_date,					//Observation: This returns false at times. Waiting a while and testing it again returns true. May be a time sensitive issue
 					task1_test_end_date), true);
-			test(task1.withinDateRange(null, null), true);
+			test(task1.withinDateRange(null, null), true);						//Empty search date
 
 			// Task 2: Task with interval
 			Task task2 = new Task();
@@ -73,7 +91,7 @@ public class StorageJUnitTest {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order
+			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order. Task should automatically right it
 			task2.addTag("school");
 			task2.addTag("MA3110");
 			task2.addTag("exams");
@@ -94,7 +112,6 @@ public class StorageJUnitTest {
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);
-			test(task2.isFloating(), false);
 
 			// Task 3: Overdue Task
 			// Note: Overdue check generates an instance of the current date. Test
@@ -125,7 +142,7 @@ public class StorageJUnitTest {
 			test(task4.isFloating(), true);
 			
 			/*
-			 * No tests here. All recurring is only activated during Storage insertion
+			 * All recurring is only activated during Storage insertion
 			 * Due to sensitivity of Calendar fields, tests will check all
 			 * fields that can be recurred (YEAR, MONTH, WEEK, DAY)
 			 */
@@ -140,9 +157,10 @@ public class StorageJUnitTest {
 			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
 			Calendar task5_end_date = Calendar.getInstance();
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
-			task5.setDates(task5_start_date, task5_end_date);
-			task5.setRecur(Calendar.YEAR, 1);
+			task5.setDates(task5_start_date, task5_end_date, Calendar.YEAR, 1, null);
 			task5.setCompleted();
+			test(task5.isRecur(), true);
+			test(task5.isCompleted(), true);
 
 			// Task 6: Recurring Task (MONTH)
 			//contains a limit
@@ -152,9 +170,7 @@ public class StorageJUnitTest {
 			task6_date.set(2016, Calendar.JANUARY, 1, 00, 00, 00);
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2017, Calendar.DECEMBER, 30, 00, 00, 00);
-			task6.setDate(task6_date);
-			task6.setRecur(Calendar.MONTH, 1);
-			task6.setRecurLimit(task6_limit);
+			task6.setDates(task6_date, task6_date, Calendar.MONTH, 1, task6_limit);
 
 			// Task 7: Recurring Task (WEEK)
 
@@ -180,22 +196,13 @@ public class StorageJUnitTest {
 			task8.setRecur(Calendar.DAY_OF_YEAR, 1);
 			task8.setRecurLimit(task8_limit);
 
-			// Visual check to see if dates are sorted correctly
-
-			/*
-			LinkedList<String> task1_sorted_dates = task1.getTaskDatesSorted();
-			for (String date : task1_sorted_dates) {
-				System.out.println(date);
-			}
-			*/
-
 			// completed tasks
 			
 			task3.setDateCompleted(Calendar.getInstance());
 			test(task3.isCompleted(), true);
 			test(task3.isOverdue(), false);
 			test(task3.isFloating(), false);
-			task3.setDateCompleted(null);
+			task3.setIncomplete();
 			test(task3.isCompleted(), false);
 			test(task3.isOverdue(), true);
 			
@@ -203,11 +210,37 @@ public class StorageJUnitTest {
 			test(task4.isFloating(), false);
 			test(task4.isCompleted(), true);
 			task4.setDateCompleted(null);
+			test(task4.isFloating(), true);
+			test(task4.isCompleted(), false);
 			
 			
 			// TaskComparator test
 			
+			/*
+			 * NOTE: In the Storage and the overall software, floating, overdue,
+			 * completed and normal tasks are supposed to be separate from each other.
+			 */
 			
+			ArrayList<Task> sorted_list = new ArrayList<Task>();
+			sorted_list.add(task1);
+			sorted_list.add(task2);
+			sorted_list.add(task3);
+			sorted_list.add(task4);
+			sorted_list.add(task5);
+			sorted_list.add(task6);
+			sorted_list.add(task7);
+			sorted_list.add(task8);
+			
+			Collections.sort(sorted_list, new TaskComparator());
+			
+			test(sorted_list.get(0).getTaskName(), task3.getTaskName());
+			test(sorted_list.get(1).getTaskName(), task4.getTaskName());
+			test(sorted_list.get(2).getTaskName(), task1.getTaskName());
+			test(sorted_list.get(3).getTaskName(), task2.getTaskName());
+			test(sorted_list.get(4).getTaskName(), task7.getTaskName());
+			test(sorted_list.get(5).getTaskName(), task8.getTaskName());
+			test(sorted_list.get(6).getTaskName(), task6.getTaskName());
+			test(sorted_list.get(7).getTaskName(), task5.getTaskName());
 
 			// Storage
 			// tests*********************************************************************
