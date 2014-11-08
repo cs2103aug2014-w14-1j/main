@@ -39,7 +39,7 @@ public class Storage {
 	private PriorityQueue<Task> list_floating;
 	private PriorityQueue<Task> list_overdue;
 	private PriorityQueue<Task> list_completed;
-	private ArrayList<LinkedList<Task>> id_lists;
+	private ArrayList<LinkedList<Task>> id_table;
 	private int id_counter;
 	
 	//Constructor***************************************************************************
@@ -51,8 +51,7 @@ public class Storage {
 		list_completed = new PriorityQueue<Task>(new TaskComparator());
 		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
-		buildIDTable();
-		compactIndex();
+		maintainListIntegrity();
 		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
@@ -92,10 +91,10 @@ public class Storage {
 
 	private void insert(Task task, PriorityQueue<Task> list) {
 		list.add(task);
-		if (task.getId() >= id_lists.size()) {
-			id_lists.add(new LinkedList<Task>());
+		if (task.getId() >= id_table.size()) {
+			id_table.add(new LinkedList<Task>());
 		}
-		id_lists.get(task.getId()).add(task);
+		id_table.get(task.getId()).add(task);
 	}
 	
 	/*
@@ -201,7 +200,7 @@ public class Storage {
 			return new LinkedList<Task>();								//every task in storage should have a nonnegative ID
 		}
 		
-		return id_lists.get(id);
+		return id_table.get(id);
 	}
 		
 	public Task getParentTask(Task task) {
@@ -374,46 +373,24 @@ public class Storage {
 	}
 	
 	private void buildIDTable() {
-		id_lists = new ArrayList<LinkedList<Task>>();
+		id_table = new ArrayList<LinkedList<Task>>();
 		id_counter = getLatestID();
 		for (int i = 0; i <= id_counter; i++) {
-			id_lists.add(new LinkedList<Task>());
+			id_table.add(new LinkedList<Task>());
 		}
 		for (Task task : list_overdue) {
-			id_lists.get(task.getId()).add(task);
+			id_table.get(task.getId()).add(task);
 		}
 		for (Task task : list_floating) {
-			id_lists.get(task.getId()).add(task);
+			id_table.get(task.getId()).add(task);
 		}
 		for (Task task : list_task) {
-			id_lists.get(task.getId()).add(task);
+			id_table.get(task.getId()).add(task);
 		}
 	}
 
-	private void compactIndex() {
-		int holes = 0;
-		for (int i = 1; i < id_lists.size(); i++) {
-			LinkedList<Task> task_family = searchTaskByID(i);
-			if (task_family.isEmpty()) {
-				holes++;
-			}
-			else {
-				for (Task task : task_family) {
-					task.setId(task.getId() - holes);
-				}
-			}
-		}
-		for (int i = 1; i < id_lists.size(); i++) {
-			if (id_lists.get(i).isEmpty()) {
-				id_lists.remove(i);
-			}
-		}
-		id_counter = getLatestID();
-	}
-	
-	
 	/*
-	 * Updates the ids of the existing tasks in the Storage. Returns the new id_count as a result, which
+	 * Updates the ids of the existing tasks in the Storage. Updates id_count as a result, which
 	 * should be equal to the number of used ids in Storage.
 	 * This is to prevent the ids from growing too much.
 	 * 
@@ -424,6 +401,26 @@ public class Storage {
 	 * 
 	 * Note: Expensive operation
 	 */
+	private void compactIndex() {
+		int holes = 0;
+		for (int i = 1; i < id_table.size(); i++) {
+			LinkedList<Task> task_family = searchTaskByID(i);
+			if (task_family.isEmpty()) {
+				holes++;
+			}
+			else {
+				for (Task task : task_family) {
+					task.setId(task.getId() - holes);
+				}
+			}
+		}
+		for (int i = 1; i < id_table.size(); i++) {
+			if (id_table.get(i).isEmpty()) {
+				id_table.remove(i);
+			}
+		}
+		id_counter = getLatestID();
+	}
 	
 	private int getLatestID() {
 		int latest_id = getLatestID(list_task);
@@ -440,6 +437,68 @@ public class Storage {
 			}
 		}
 		return latest_id;
+	}
+	
+	//Fix methods***************************************************************************
+	
+	/*
+	 * Through the course of developing this software, there have been often bugs where the
+	 * dates on a task suddenly disappeared and appear in wrong folders. Until all bugs are
+	 * fixed, providing methods to attempt a fix.
+	 * 
+	 * Tasks with no ids are always destroyed as they cannot fit in the ID table.
+	 * Tasks in the wrong lists are resorted
+	 */
+	public void maintainListIntegrity() {
+		LinkedList<Task> no_id_tasks = new LinkedList<Task>();
+		LinkedList<Task> wrong_tasks = new LinkedList<Task>();
+		
+		for (Task task : list_task) {
+			if (task.hasNoID()) {
+				no_id_tasks.add(task);
+			}
+			else if (task.isCompleted() || task.isFloating() || task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_floating) {
+			if (task.hasNoID()) {
+				no_id_tasks.add(task);
+			}
+			else if (!task.isFloating()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_overdue) {
+			if (!task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		no_id_tasks.clear();
+		for (Task task : list_completed) {
+			if (!task.isCompleted()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		list_floating.removeAll(no_id_tasks);
+		list_overdue.removeAll(no_id_tasks);
+		list_task.removeAll(no_id_tasks);
+		list_completed.removeAll(no_id_tasks);
+		
+		list_floating.removeAll(wrong_tasks);
+		list_overdue.removeAll(wrong_tasks);
+		list_task.removeAll(wrong_tasks);
+		list_completed.removeAll(wrong_tasks);
+		
+		for (Task task : wrong_tasks) {
+			retrieveTaskList(task).add(task);
+		}
+		buildIDTable();
+		compactIndex();
 	}
 	
 	//@author A0111660W
