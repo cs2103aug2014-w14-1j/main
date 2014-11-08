@@ -67,6 +67,11 @@ public class ControllerTest {
 			tasks_.remove(task);
 		}
 		
+		@Override
+		public Task getParentTask(Task task) {
+			return task;
+		}
+		
 		public ArrayList<Task> getTasks() {
 			return tasks_;
 		}
@@ -118,8 +123,8 @@ public class ControllerTest {
 		
 		return null;
 	}
-
-	@Test 
+	
+	@Test
 	public void testAdd() throws Exception {
 		init();
 		
@@ -492,7 +497,7 @@ public class ControllerTest {
 		assertEquals("Complete - check task 3", true, search("Dummy task4", alTasks).isCompleted());
 	
 	}
-
+	
 	@Test
 	public void testUndoRedo() throws Exception, Exception {
 		init();
