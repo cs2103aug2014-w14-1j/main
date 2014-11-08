@@ -356,6 +356,10 @@ public class Task {
 		}
 		setDateCompleted(dateCompleted);
 	}
+	
+	public void setIncomplete() {
+		setDateCompleted(null);
+	}
 
 	public Calendar getDateCompleted() {
 		return this.dateCompleted;
