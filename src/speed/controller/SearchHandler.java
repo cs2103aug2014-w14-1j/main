@@ -44,14 +44,55 @@ public class SearchHandler {
 	}
 	
 	public ArrayList<Task> list(Command command) throws Exception {
-		lastSearchCommand_ = command;
 		
-		ArrayList<String> keywords = new ArrayList<String>();
-		ArrayList<String> tags = new ArrayList<String>();
-		Calendar start_date = command.getSearchStartDate();
-		Calendar end_date = command.getSearchEndDate();
+		if (command.getSearchType() == null) { 
+		
+			lastSearchCommand_ = command;
+		 
+			ArrayList<String> keywords = new ArrayList<String>();
+			ArrayList<String> tags = new ArrayList<String>();
+			Calendar start_date = command.getSearchStartDate();
+			Calendar end_date = command.getSearchEndDate();
 
-		return storage_.search(keywords, tags, start_date, end_date);
+			return storage_.search(keywords, tags, start_date, end_date);
+		
+		} else {
+			
+			boolean overdue = false;
+			boolean reminder = false;
+			boolean complete = false;
+			
+			ArrayList<String> types = command.getSearchType();
+			
+			for (String type: types) {
+				if (type.equalsIgnoreCase("overdue")) {
+					overdue = true;
+				} else if (type.equalsIgnoreCase("floating")) {
+					reminder = true;
+				} else if (type.equalsIgnoreCase("complete")) {
+					complete = true;
+				}
+				
+				System.out.println(type);
+			}
+			
+			ArrayList<Task> result = new ArrayList<Task> ();
+			
+			if (complete) {
+				result.addAll(storage_.getCompletedTasksList());
+			}
+			
+			if (reminder) {
+				result.addAll(storage_.getFloatingTasksList());
+			}
+			
+			if (overdue) {
+				result.addAll(storage_.getOverdueTasksList());
+			}
+			
+			return result;
+			
+		}
 	}		
 	
 	public ArrayList<Task> repeatLastSearch() throws Exception {
