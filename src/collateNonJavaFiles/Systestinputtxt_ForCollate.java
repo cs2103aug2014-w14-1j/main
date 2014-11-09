@@ -21,17 +21,16 @@ RECURMONTH 1 oct 2015 monthly
 RECURYEAR 1 oct 2015 every year
 FLOATTAG @tag
 NORMALTAG @tag 1 dec 2015
-delete F3
+delete R3
 undo
 delete O1
-undo
 redo
 destroy t7
 del t7
-del F4
+del R4
 del O2
 remove T7
-edit f2 FLOATEDIT @tag
+edit R2 FLOATEDIT @tag
 und
 red
 update o1
@@ -42,7 +41,7 @@ complete T1
 find normal
 done 3
 search @tag
-completed f1
+completed R1
 search from 1 Nov 2014 to 1 Oct 2015
 del T2 T3
 search normal @tag from 1 Nov 2014 to 1 Jan 2016
