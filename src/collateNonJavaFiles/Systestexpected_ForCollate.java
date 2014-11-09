@@ -1,3 +1,12 @@
+//@author A0111660W
+package collateNonJavaFiles;
+
+/*Description: This is the systestexpected.txt used for Integration testings
+ * 
+ * Limitations: This file must be changed weekly or testing will be affected due to time sensitivity.
+ */
+
+/*
 FLOAT   
 FLOAT   
 NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
@@ -725,3 +734,4 @@ NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
 NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
 RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
 RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+*/

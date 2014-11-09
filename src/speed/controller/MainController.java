@@ -159,8 +159,8 @@ public class MainController extends Application implements UIObserver {
 	 * file(systextexpected.txt). A message stating success or failure (where it
 	 * failed) is returned.
 	 * 
-	 * WARNING: Due to time sensitivity, the test file must be changed
-	 * regularly. E.g. some months have 5 weeks
+	 * WARNING: Due to time sensitivity, the test expected file must be changed
+	 * on a weekly basis. E.g. adding of test from Wed - Fri as the dates will change with time.
 	 */
 
 	private String runSystemTest() {
@@ -208,7 +208,6 @@ public class MainController extends Application implements UIObserver {
 							+ EMPTY_SPACE + t_searchResults.get(i).getEndDateAsString();
 					String tags = t_searchResults.get(i).getTagsAsString();
 					String testInputLine = taskName + EMPTY_SPACE + tags + EMPTY_SPACE + date;
-					
 					testOneLine(testInputLine, e_reader.readLine(), line);
 				}
 			}
