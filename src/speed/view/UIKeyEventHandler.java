@@ -26,7 +26,6 @@ class UIKeyEventHandler {
 	private static final String ERROR_USERCOMMAND_HOTKEY = "Unrecognized User Command Hot Key";
 	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
 	private static final String ERROR_RETRIEVECOMMANDHISTORY = "There should not be any other commands.";
-	private static final String ERROR_SIZEOUTOFBOUNDS = "Size should not be out of bounds";
 	
 	enum HotKeys {
 		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, 
@@ -230,7 +229,7 @@ class UIKeyEventHandler {
 	
 	private int sizeToIndex(int size) {
 		if (size <= 0) {
-			throw new Error(ERROR_SIZEOUTOFBOUNDS);
+			//ignore
 		}
 		return size - 1;
 	}
