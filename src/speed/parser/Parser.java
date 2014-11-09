@@ -29,6 +29,7 @@ public class Parser {
 	private String[] exitCommands = {"quit", "exit"};
 	private String[] testCommands = {"runtest", "systest"};
 
+	private String taskIDIdentifier = "[TROtro]";
 	private String completed = "completed?(?:\\s+tasks?)?";
 	private String floating = "floating(?:\\s+tasks?)?|reminders?";
 	private String overdue = "overdue(?:\\s+tasks?)?";
@@ -231,13 +232,13 @@ public class Parser {
 	}
 
 	private String[] parseTaskID(String commandDetails) {
-		return match(commandDetails, "/([TFOtfo]\\d+)/g");
+		return match(commandDetails, "/("+taskIDIdentifier+"\\d+)/g");
 	}
 
 	private String[] parseMultipleTaskID(String commandDetails) {
 		ArrayList<String> IDs = parseRangeIDs(commandDetails);
-		commandDetails = commandDetails.replaceAll("([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))", "");
-		String[] singleIDs = match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		commandDetails = commandDetails.replaceAll("("+taskIDIdentifier+"?(\\d+))[\\s+]?(?:-|to)[\\s+]?("+taskIDIdentifier+"?(\\d+))", "");
+		String[] singleIDs = match(commandDetails, "/\\b("+taskIDIdentifier+"?\\d+)\\b/g");
 		if (singleIDs != null) {
 			IDs.addAll(Arrays.asList(singleIDs));
 		}
@@ -265,7 +266,7 @@ public class Parser {
 
 	private ArrayList<String> parseRangeIDs(String commandDetails) {
 		ArrayList<String> IDs = new ArrayList<String>();
-		String[] rangeIDs = match(commandDetails, "/([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))/g");
+		String[] rangeIDs = match(commandDetails, "/("+taskIDIdentifier+"?(\\d+))[\\s+]?(?:-|to)[\\s+]?("+taskIDIdentifier+"?(\\d+))/g");
 		if (rangeIDs != null) {
 			for (int i = 0; i < rangeIDs.length; i += 4) {
 				int start = Integer.parseInt(rangeIDs[i + 1]);
@@ -289,7 +290,7 @@ public class Parser {
 	}
 
 	private String removeTaskID(String commandDetails) {
-		return commandDetails.replaceFirst("[TFOtfo]\\d+", "");
+		return commandDetails.replaceFirst(""+taskIDIdentifier+"\\d+", "");
 	}
 
 	private String[] parseTaskTagsAddition(String commandDetails) {
