@@ -1,6 +1,7 @@
 //@author A0111660W
 package collateNonJavaFiles;
 
+public class UICssForCollate{}
 /*
 	@CHARSET "ISO-8859-1";
 @font-face {

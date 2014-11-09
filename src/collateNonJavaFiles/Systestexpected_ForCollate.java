@@ -1,6 +1,10 @@
 //@author A0111660W
+
 package collateNonJavaFiles;
 
+public class Systestexpected_ForCollate{
+	
+}
 /*Description: This is the systestexpected.txt used for Integration testings
  * 
  * Limitations: This file must be changed weekly or testing will be affected due to time sensitivity.

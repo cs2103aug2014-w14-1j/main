@@ -1,6 +1,9 @@
 //@author A0111660W
 package collateNonJavaFiles;
 
+public class Systestinputtxt_ForCollate{
+	
+}
 /*Description: This is the systestinput.txt for Integration testing.
  * 
  */
