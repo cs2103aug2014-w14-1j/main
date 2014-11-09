@@ -58,6 +58,8 @@ public class SearchHandler {
 		
 		} else {
 			
+			lastSearchCommand_ = command;
+			
 			boolean overdue = false;
 			boolean reminder = false;
 			boolean complete = false;
