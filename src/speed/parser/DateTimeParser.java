@@ -24,7 +24,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private final boolean isStartDate = true;
 	private final boolean isEndDate = false;
 
-	private DateParser dateParser = new DateParser();
+	private final DateParser dateParser = new DateParser();
 	private String input;
 	private String output;
 

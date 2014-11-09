@@ -11,28 +11,28 @@ import static org.mentaregex.Regex.matches;
 
 public class Parser {
 
-	DateTimeParser dateTimeParser = new DateTimeParser();
+	private final DateTimeParser dateTimeParser = new DateTimeParser();
 
 	private String command;
 	private Command commandObj;
 	private Command.COMMAND_TYPE commandType;
 	private final int TYPO_DISTANCE = 1;
 
-	private String[] addCommands = {"add", "insert"};
-	private String[] editCommands = {"edit", "update", "change", "modify", "make"};
-	private String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
-	private String[] listCommands = {"list", "ls", "speed/view"};
-	private String[] searchCommands = {"search", "find"};
-	private String[] completeCommands = {"complete", "done", "finish", "fin"};
-	private String[] undoCommands = {"undo"};
-	private String[] redoCommands = {"redo"};
-	private String[] exitCommands = {"quit", "exit"};
-	private String[] testCommands = {"runtest", "systest"};
+	private final String[] addCommands = {"add", "insert"};
+	private final String[] editCommands = {"edit", "update", "change", "modify", "make"};
+	private final String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
+	private final String[] listCommands = {"list", "ls", "speed/view"};
+	private final String[] searchCommands = {"search", "find"};
+	private final String[] completeCommands = {"complete", "done", "finish", "fin"};
+	private final String[] undoCommands = {"undo"};
+	private final String[] redoCommands = {"redo"};
+	private final String[] exitCommands = {"quit", "exit"};
+	private final String[] testCommands = {"runtest", "systest"};
 
-	private String taskIDIdentifier = "[TROtro]";
-	private String completed = "completed?(?:\\s+tasks?)?";
-	private String floating = "floating(?:\\s+tasks?)?|reminders?";
-	private String overdue = "overdue(?:\\s+tasks?)?";
+	private final String taskIDIdentifier = "[TROtro]";
+	private final String completed = "completed?(?:\\s+tasks?)?";
+	private final String floating = "floating(?:\\s+tasks?)?|reminders?";
+	private final String overdue = "overdue(?:\\s+tasks?)?";
 
 	public Command parseCommand(String userCommand) {
 		command = userCommand;

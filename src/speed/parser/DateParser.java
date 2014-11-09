@@ -6,7 +6,7 @@ import java.util.GregorianCalendar;
 public class DateParser extends DateTimeRegexHandler {
 
 	private final String CURRENT_CENTURY = "20";
-	private TimeParser timeParser = new TimeParser();
+	private final TimeParser timeParser = new TimeParser();
 
 	private String currentDate;
 	private boolean isStartDate = false;
