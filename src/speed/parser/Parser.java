@@ -29,6 +29,10 @@ public class Parser {
 	private String[] exitCommands = {"quit", "exit"};
 	private String[] testCommands = {"runtest", "systest"};
 
+	private String completed = "completed?(?:\\s+tasks?)?";
+	private String floating = "floating(?:\\s+tasks?)?|reminders?";
+	private String overdue = "overdue(?:\\s+tasks?)?";
+
 	public Command parseCommand(String userCommand) {
 		command = userCommand;
 		String commandTypeString = getFirstWord(command).trim().toLowerCase();
@@ -200,6 +204,7 @@ public class Parser {
 
 	private void generateListCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandDetails = parseTaskTypesToList(commandDetails);
 		dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 	}
 
@@ -238,6 +243,24 @@ public class Parser {
 		}
 		String[] allIDs = IDs.size() == 0 ? null : IDs.toArray(new String[IDs.size()]);
 		return allIDs;
+	}
+
+	private String parseTaskTypesToList(String commandDetails) {
+		ArrayList<String> type = new ArrayList<String>();
+		if (matches(commandDetails, "/("+completed+")/ig")) {
+			type.add("complete");
+			commandDetails = commandDetails.replaceAll(completed, "");
+		}
+		if (matches(commandDetails, "/("+floating+")/ig")) {
+			type.add("floating");
+			commandDetails = commandDetails.replaceAll(floating, "");
+		}
+		if (matches(commandDetails, "/("+overdue+")/ig")) {
+			type.add("overdue");
+			commandDetails = commandDetails.replaceAll(overdue, "");
+		}
+		commandObj.setSearchType(type);
+		return commandDetails;
 	}
 
 	private ArrayList<String> parseRangeIDs(String commandDetails) {
