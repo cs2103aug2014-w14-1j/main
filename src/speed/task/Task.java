@@ -289,7 +289,7 @@ public class Task {
 	}
 
 	public String getDateAsString() {
-		if (isFloating()) {
+		if (this.startDate == null && this.endDate == null) {
 			return "";
 		}
 		if (this.startDate == null) {
