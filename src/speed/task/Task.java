@@ -78,7 +78,7 @@ public class Task {
 		return this.id;
 	}
 
-	public boolean hasNoID() {
+	public boolean hasNoId() {
 		return id == null || id < 0;
 	}
 

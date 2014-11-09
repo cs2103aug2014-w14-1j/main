@@ -68,7 +68,7 @@ public class Storage {
 	
 	public void insert(Task task) throws IOException {
 		checkForOverdueTasks();
-		if (task.hasNoID()) {								//for new tasks with no ID
+		if (task.hasNoId()) {								//for new tasks with no ID
 			assignID(task);
 		}
 		
@@ -90,6 +90,9 @@ public class Storage {
 	}
 
 	private void insert(Task task, PriorityQueue<Task> list) {
+		
+		assert !task.hasNoId();
+		
 		list.add(task);
 		if (task.getId() >= id_table.size()) {
 			id_table.add(new LinkedList<Task>());
@@ -143,22 +146,6 @@ public class Storage {
 		return limit;
 	}
 	
-	public void insertNoRecur(Task task) throws IOException {
-		checkForOverdueTasks();
-		assert task.hasNoID() == false;
-		
-		insert(task, retrieveTaskList(task));
-		
-		if (task.isRecur()) {
-			ArrayList<Task> task_recur_chain = generateRecurringTasks(task);
-			for (Task recur_task : task_recur_chain) {
-				insert(recur_task, retrieveTaskList(recur_task));
-			}
-		}
-		
-		save();
-	}
-	
 	//Delete methods***************************************************
 	
 	/*
@@ -173,6 +160,9 @@ public class Storage {
 	 */
 	public void delete(Task task) throws IOException {
 		checkForOverdueTasks();
+		
+		assert !task.hasNoId();
+		
 		LinkedList<Task> recur_chain = searchTaskByID(task.getId());
 		for (Task other_task : recur_chain) {
 			delete(other_task, retrieveTaskList(other_task));
@@ -204,9 +194,13 @@ public class Storage {
 	}
 		
 	public Task getParentTask(Task task) {
+		
 		if (task == null) {
 			return null;
 		}
+		
+		assert !task.hasNoId();
+		
 		return searchTaskByID(task.getId()).get(0);
 	}
 	
@@ -267,7 +261,6 @@ public class Storage {
 	
 	/*
 	 * Searches within a specified list and adds it to an input result list.
-	 * Search parameters can be null
 	 */
 	private void searchList(ArrayList<Task> search_result, PriorityQueue<Task> list,
 			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
@@ -358,7 +351,7 @@ public class Storage {
 	 * default limit as of when this method was called and generate new instances to that
 	 * limit.
 	 * 
-	 * NOT USED as of V0.4. Expensive operation that is of dubious value
+	 * Note: Expensive operation that is of dubious value
 	 */
 	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
@@ -372,6 +365,10 @@ public class Storage {
 		}
 	}
 	
+	/*
+	 * Builds the ID table to link families of tasks together and identify them quickly.
+	 * Does not include completed tasks.
+	 */
 	private void buildIDTable() {
 		id_table = new ArrayList<LinkedList<Task>>();
 		id_counter = getLatestID();
@@ -454,7 +451,7 @@ public class Storage {
 		LinkedList<Task> wrong_tasks = new LinkedList<Task>();
 		
 		for (Task task : list_task) {
-			if (task.hasNoID()) {
+			if (task.hasNoId()) {
 				no_id_tasks.add(task);
 			}
 			else if (task.isCompleted() || task.isFloating() || task.isOverdue()) {
@@ -463,7 +460,7 @@ public class Storage {
 		}
 		
 		for (Task task : list_floating) {
-			if (task.hasNoID()) {
+			if (task.hasNoId()) {
 				no_id_tasks.add(task);
 			}
 			else if (!task.isFloating()) {
