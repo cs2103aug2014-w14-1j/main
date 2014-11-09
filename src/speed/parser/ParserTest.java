@@ -94,10 +94,10 @@ public class ParserTest {
 
 	@Test
 	public void testMultipleDeleteCommand() throws Exception {
-		String input = "delete t1 o2 f3";
+		String input = "delete t1 o2 r3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.DELETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"t1", "o2", "r3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToDelete());
 	}
 
@@ -182,10 +182,10 @@ public class ParserTest {
 
 	@Test
 	public void testMultipleCompleteCommand() throws Exception {
-		String input = "complete t1 o2 f3";
+		String input = "complete t1 o2 r3";
 		Command addCommand = parser.parseCommand(input);
 		assertEquals(Command.COMMAND_TYPE.COMPLETE, addCommand.getCommandType());
-		String[] expectedArray = {"t1", "o2", "f3"};
+		String[] expectedArray = {"t1", "o2", "r3"};
 		assertArrayEquals(expectedArray, addCommand.getTaskIDsToComplete());
 	}
 
