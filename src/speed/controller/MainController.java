@@ -88,10 +88,12 @@ public class MainController extends Application implements UIObserver {
 	}
 
 	private String getChar(Task task) {
-		if (task.isOverdue()) {
+		if (task.isCompleted()) {
+			return "C";
+		} else if(task.isOverdue()) {
 			return "O";
 		} else if (task.isFloating()) {
-			return "F";
+			return "R";
 		} else {
 			return "T";
 		}

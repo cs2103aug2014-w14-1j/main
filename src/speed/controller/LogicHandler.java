@@ -135,7 +135,7 @@ public class LogicHandler {
 		
 		for (String id: ids) {
 			allIDs.add("T" + id);
-			allIDs.add("F" + id);
+			allIDs.add("R" + id);
 			allIDs.add("O" + id);
 			allIDs.add(id.toUpperCase());
 		}
@@ -242,7 +242,7 @@ public class LogicHandler {
 		
 		for (String id: ids) {
 			allIDs.add("T" + id);
-			allIDs.add("F" + id);
+			allIDs.add("R" + id);
 			allIDs.add("O" + id);
 			allIDs.add(id.toUpperCase());
 		}

@@ -201,26 +201,25 @@ class UITaskTableView extends VBox {
 	class TaskLblColTableCell extends TableCell<Task, String> {
 		
 		// CSS
-		private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
+		private static final String CSS_REMINDERTASKROW = "reminderTaskRow";
 		private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
 		private static final String CSS_NORMALTASKROW = "normalTaskRow";
-
-		// Errors
-		private static final String ERROR_NO_OTHER_TASKTYPE = "There are no other task types!";
-
+		private static final String CSS_COMPLETEDTASKROW = "completedTaskRow";
+				
 		// Program Variables
 		private static final String EMPTY_STRING = "";
 		private final String INVALID = null;
-		private static final String FLOATING_TASK = "F";
+		private static final String FLOATING_TASK = "R";
 		private static final String OVERDUE_TASK = "O";
 		private static final String NORMAL_TASK = "T";
+		private static final String COMPLETED_TASK = "C";
 
 		@Override
 		protected void updateItem(final String item, final boolean empty) {
 			super.updateItem(item, empty);
 
 			setText(empty ? EMPTY_STRING : item);
-			getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,
+			getStyleClass().removeAll(CSS_REMINDERTASKROW, CSS_OVERDUETASKROW,
 					CSS_NORMALTASKROW);
 			updateStyles(empty ? INVALID : item);
 		}
@@ -231,13 +230,16 @@ class UITaskTableView extends VBox {
 			}
 
 			if (isFloating(item)) {
-				getStyleClass().addAll(CSS_FLOATINGTASKROW);
+				getStyleClass().addAll(CSS_REMINDERTASKROW);
 			} else if (isOverdue(item)) {
 				getStyleClass().add(CSS_OVERDUETASKROW);
 			} else if (isNormalTask(item)) {
 				getStyleClass().add(CSS_NORMALTASKROW);
-			} else {
-				throw new Error(ERROR_NO_OTHER_TASKTYPE);
+			} else if (isCompletedTask(item)){
+				getStyleClass().add(CSS_COMPLETEDTASKROW);
+			}
+			else {
+				//ignore
 			}
 		}
 
@@ -251,6 +253,10 @@ class UITaskTableView extends VBox {
 
 		private boolean isNormalTask(String itemValue) {
 			return itemValue.contains(NORMAL_TASK);
+		}
+		
+		private boolean isCompletedTask(String itemValue){
+			return itemValue.contains(COMPLETED_TASK);
 		}
 	}
 }
