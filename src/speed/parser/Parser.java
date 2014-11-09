@@ -11,23 +11,28 @@ import static org.mentaregex.Regex.matches;
 
 public class Parser {
 
-	DateTimeParser dateTimeParser = new DateTimeParser();
+	private final DateTimeParser dateTimeParser = new DateTimeParser();
 
 	private String command;
 	private Command commandObj;
 	private Command.COMMAND_TYPE commandType;
 	private final int TYPO_DISTANCE = 1;
 
-	private String[] addCommands = {"add", "insert"};
-	private String[] editCommands = {"edit", "update", "change", "modify", "make"};
-	private String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
-	private String[] listCommands = {"list", "ls", "speed/view"};
-	private String[] searchCommands = {"search", "find"};
-	private String[] completeCommands = {"complete", "done", "finish", "fin"};
-	private String[] undoCommands = {"undo"};
-	private String[] redoCommands = {"redo"};
-	private String[] exitCommands = {"quit", "exit"};
-	private String[] testCommands = {"runtest", "systest"};
+	private final String[] addCommands = {"add", "insert"};
+	private final String[] editCommands = {"edit", "update", "change", "modify", "make"};
+	private final String[] deleteCommands = {"delete", "remove", "destroy", "del", "rm"};
+	private final String[] listCommands = {"list", "ls", "speed/view"};
+	private final String[] searchCommands = {"search", "find"};
+	private final String[] completeCommands = {"complete", "done", "finish", "fin"};
+	private final String[] undoCommands = {"undo"};
+	private final String[] redoCommands = {"redo"};
+	private final String[] exitCommands = {"quit", "exit"};
+	private final String[] testCommands = {"runtest", "systest"};
+
+	private final String taskIDIdentifier = "[TROtro]";
+	private final String completed = "completed?(?:\\s+tasks?)?";
+	private final String floating = "floating(?:\\s+tasks?)?|reminders?";
+	private final String overdue = "overdue(?:\\s+tasks?)?";
 
 	public Command parseCommand(String userCommand) {
 		command = userCommand;
@@ -200,6 +205,7 @@ public class Parser {
 
 	private void generateListCommandObj(String commandDetails) {
 		assert (!commandDetails.trim().equals("")) : "commandDetails is empty!";
+		commandDetails = parseTaskTypesToList(commandDetails);
 		dateTimeParser.parseCommand(commandDetails, commandType, commandObj);
 	}
 
@@ -226,13 +232,13 @@ public class Parser {
 	}
 
 	private String[] parseTaskID(String commandDetails) {
-		return match(commandDetails, "/([TFOtfo]\\d+)/g");
+		return match(commandDetails, "/("+taskIDIdentifier+"\\d+)/g");
 	}
 
 	private String[] parseMultipleTaskID(String commandDetails) {
 		ArrayList<String> IDs = parseRangeIDs(commandDetails);
-		commandDetails = commandDetails.replaceAll("([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))", "");
-		String[] singleIDs = match(commandDetails, "/\\b([TFOtfo]?\\d+)\\b/g");
+		commandDetails = commandDetails.replaceAll("("+taskIDIdentifier+"?(\\d+))[\\s+]?(?:-|to)[\\s+]?("+taskIDIdentifier+"?(\\d+))", "");
+		String[] singleIDs = match(commandDetails, "/\\b("+taskIDIdentifier+"?\\d+)\\b/g");
 		if (singleIDs != null) {
 			IDs.addAll(Arrays.asList(singleIDs));
 		}
@@ -240,9 +246,29 @@ public class Parser {
 		return allIDs;
 	}
 
+	private String parseTaskTypesToList(String commandDetails) {
+		ArrayList<String> type = new ArrayList<String>();
+		if (matches(commandDetails, "/("+completed+")/ig")) {
+			type.add("complete");
+			commandDetails = commandDetails.replaceAll(completed, "");
+		}
+		if (matches(commandDetails, "/("+floating+")/ig")) {
+			type.add("floating");
+			commandDetails = commandDetails.replaceAll(floating, "");
+		}
+		if (matches(commandDetails, "/("+overdue+")/ig")) {
+			type.add("overdue");
+			commandDetails = commandDetails.replaceAll(overdue, "");
+		}
+		if (type.size() > 0) {
+			commandObj.setSearchType(type);
+		}
+		return commandDetails;
+	}
+
 	private ArrayList<String> parseRangeIDs(String commandDetails) {
 		ArrayList<String> IDs = new ArrayList<String>();
-		String[] rangeIDs = match(commandDetails, "/([TFOtfo]?(\\d+))[\\s+]?(?:-|to)[\\s+]?([TFOtfo]?(\\d+))/g");
+		String[] rangeIDs = match(commandDetails, "/("+taskIDIdentifier+"?(\\d+))[\\s+]?(?:-|to)[\\s+]?("+taskIDIdentifier+"?(\\d+))/g");
 		if (rangeIDs != null) {
 			for (int i = 0; i < rangeIDs.length; i += 4) {
 				int start = Integer.parseInt(rangeIDs[i + 1]);
@@ -266,7 +292,7 @@ public class Parser {
 	}
 
 	private String removeTaskID(String commandDetails) {
-		return commandDetails.replaceFirst("[TFOtfo]\\d+", "");
+		return commandDetails.replaceFirst(""+taskIDIdentifier+"\\d+", "");
 	}
 
 	private String[] parseTaskTagsAddition(String commandDetails) {
