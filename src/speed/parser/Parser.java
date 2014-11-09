@@ -260,7 +260,9 @@ public class Parser {
 			type.add("overdue");
 			commandDetails = commandDetails.replaceAll(overdue, "");
 		}
-		commandObj.setSearchType(type);
+		if (type.size() > 0) {
+			commandObj.setSearchType(type);
+		}
 		return commandDetails;
 	}
 
