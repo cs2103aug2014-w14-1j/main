@@ -220,7 +220,7 @@ class UITaskTableView extends VBox {
 
 			setText(empty ? EMPTY_STRING : item);
 			getStyleClass().removeAll(CSS_REMINDERTASKROW, CSS_OVERDUETASKROW,
-					CSS_NORMALTASKROW);
+					CSS_NORMALTASKROW,CSS_COMPLETEDTASKROW);
 			updateStyles(empty ? INVALID : item);
 		}
 
