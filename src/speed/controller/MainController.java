@@ -157,7 +157,7 @@ public class MainController extends Application implements UIObserver {
 	/*
 	 * Runs a system test by initialising test variables and running a series of
 	 * commands from an input file(sytestinput.txt). After that checks the
-	 * displayed tasks' tasknames against an expected output
+	 * displayed tasks' tasknames, dates and tags against an expected output
 	 * file(systextexpected.txt). A message stating success or failure (where it
 	 * failed) is returned.
 	 * 
