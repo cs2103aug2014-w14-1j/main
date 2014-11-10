@@ -3,7 +3,7 @@
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\ControllerTest.java
+	 * origin: ./src\speed\controller\ControllerTest.java
 	 */
 
 
@@ -692,14 +692,14 @@ public class ControllerTest {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\ControllerTest.java
+	// End of segment: ./src\speed\controller\ControllerTest.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\LogicHandler.java
+	 * origin: ./src\speed\controller\LogicHandler.java
 	 */
 
 package speed.controller;
@@ -1035,14 +1035,14 @@ public class LogicHandler {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\LogicHandler.java
+	// End of segment: ./src\speed\controller\LogicHandler.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\MainController.java
+	 * origin: ./src\speed\controller\MainController.java
 	 */
 
 package speed.controller;
@@ -1175,14 +1175,14 @@ public class MainController extends Application implements UIObserver {
 		display("Welcome to SPEED!");
 	}
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\MainController.java
+	// End of segment: ./src\speed\controller\MainController.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\SearchHandler.java
+	 * origin: ./src\speed\controller\SearchHandler.java
 	 */
 
 package speed.controller;
@@ -1300,7 +1300,7 @@ public class SearchHandler {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\SearchHandler.java
+	// End of segment: ./src\speed\controller\SearchHandler.java
 
 
 

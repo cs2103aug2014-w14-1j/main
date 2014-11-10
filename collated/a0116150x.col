@@ -3,7 +3,7 @@
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\Command.java
+	 * origin: ./src\speed\parser\Command.java
 	 */
 
 package speed.parser;
@@ -165,14 +165,14 @@ public class Command {
 		return recurPeriod;
 	}
 }
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\Command.java
+	// End of segment: ./src\speed\parser\Command.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateParser.java
+	 * origin: ./src\speed\parser\DateParser.java
 	 */
 
 package speed.parser;
@@ -187,12 +187,12 @@ public class DateParser extends DateTimeRegexHandler {
 	private String currentDate;
 	private boolean isStartDate = false;
 
-	public Calendar parse(String datetime) {
+	protected Calendar parse(String datetime) {
 		currentDate = datetime;
 		return parseDate(datetime);
 	}
 
-	public Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
+	protected Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
 		currentDate = datetime;
 		this.isStartDate = isStartDate;
 		Calendar dateCal = parseDate(datetime);
@@ -440,11 +440,11 @@ public class DateParser extends DateTimeRegexHandler {
 		}
 	}
 
-	public void setStartOfPeriod(Calendar cal, int period) {
+	protected void setStartOfPeriod(Calendar cal, int period) {
 		cal.set(period, cal.getActualMinimum(period));
 	}
 
-	public void setEndOfPeriod(Calendar cal, int period) {
+	protected void setEndOfPeriod(Calendar cal, int period) {
 		cal.set(period, cal.getActualMaximum(period));
 	}
 
@@ -518,14 +518,14 @@ public class DateParser extends DateTimeRegexHandler {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateParser.java
+	// End of segment: ./src\speed\parser\DateParser.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateTimeParser.java
+	 * origin: ./src\speed\parser\DateTimeParser.java
 	 */
 
 package speed.parser;
@@ -557,7 +557,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private String input;
 	private String output;
 
-	public String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
+	protected String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
 		output = command;
 		// Do not evaluate strings within quotation marks
 		input = command.replaceAll("\"[^\"]+\"", "");
@@ -864,14 +864,14 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateTimeParser.java
+	// End of segment: ./src\speed\parser\DateTimeParser.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateTimeRegexHandler.java
+	 * origin: ./src\speed\parser\DateTimeRegexHandler.java
 	 */
 
 package speed.parser;
@@ -1085,14 +1085,14 @@ public class DateTimeRegexHandler {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\DateTimeRegexHandler.java
+	// End of segment: ./src\speed\parser\DateTimeRegexHandler.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\Parser.java
+	 * origin: ./src\speed\parser\Parser.java
 	 */
 
 package speed.parser;
@@ -1424,14 +1424,14 @@ public class Parser {
 		return input.replaceFirst("^[^0-9a-zA-Z]+", "").replaceAll("[^0-9a-zA-Z]+$", "");
 	}
 }
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\Parser.java
+	// End of segment: ./src\speed\parser\Parser.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\ParserTest.java
+	 * origin: ./src\speed\parser\ParserTest.java
 	 */
 
 package speed.parser;
@@ -1638,14 +1638,14 @@ public class ParserTest {
 		assertEquals(Command.COMMAND_TYPE.EXIT, addCommand.getCommandType());
 	}
 }
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\ParserTest.java
+	// End of segment: ./src\speed\parser\ParserTest.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\TimeParser.java
+	 * origin: ./src\speed\parser\TimeParser.java
 	 */
 
 package speed.parser;
@@ -1654,7 +1654,7 @@ import java.util.Calendar;
 
 public class TimeParser extends DateTimeRegexHandler {
 
-	public Calendar parse(String datetime, Calendar cal, int default_hour, int default_min, int default_second){
+	protected Calendar parse(String datetime, Calendar cal, int default_hour, int default_min, int default_second){
 		Time time = parseTime(datetime);
 		if (cal != null && time != null) {
 			cal.set(Calendar.HOUR_OF_DAY, time.getHour());
@@ -1798,7 +1798,7 @@ public class TimeParser extends DateTimeRegexHandler {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\parser\TimeParser.java
+	// End of segment: ./src\speed\parser\TimeParser.java
 
 
 

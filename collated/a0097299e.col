@@ -3,7 +3,7 @@
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
+	 * origin: ./src\speed\storage\Storage.java
 	 */
 
 package speed.storage;
@@ -531,14 +531,14 @@ public class Storage {
 		save();
 	}
 	
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
+	// End of segment: ./src\speed\storage\Storage.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\StorageJUnitTest.java
+	 * origin: ./src\speed\storage\StorageJUnitTest.java
 	 */
 
 package speed.storage;
@@ -984,14 +984,14 @@ public class StorageJUnitTest {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\StorageJUnitTest.java
+	// End of segment: ./src\speed\storage\StorageJUnitTest.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\Task.java
+	 * origin: ./src\speed\task\Task.java
 	 */
 
 package speed.task;
@@ -1511,14 +1511,14 @@ public class Task {
 }
 
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\Task.java
+	// End of segment: ./src\speed\task\Task.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\TaskComparator.java
+	 * origin: ./src\speed\task\TaskComparator.java
 	 */
 
 package speed.task;
@@ -1557,7 +1557,7 @@ import java.util.Comparator;
 		return 1;
 	}
 }
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\TaskComparator.java
+	// End of segment: ./src\speed\task\TaskComparator.java
 
 
 
