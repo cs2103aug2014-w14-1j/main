@@ -1,3 +1,14 @@
+//@author A0111660W
+package collateNonJavaFiles;
+
+public class Systestinputtxt_ForCollate{
+	
+}
+/*Description: This is the systestinput.txt for Integration testing.
+ * 
+ */
+
+/*
 add FLOAT
 add NORMAL1 1 November 2015 1am
 insert NORMAL2 0200 1st nov 2015
@@ -40,3 +51,4 @@ search normal @tag from 1 Nov 2014 to 1 Jan 2016
 fin T1
 list
 del t2
+*/

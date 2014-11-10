@@ -1,3 +1,6 @@
+//@author A0116150X
+package speed.parser;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -13,6 +16,7 @@ public class Command {
 	private Calendar taskEndDate;
 	private Calendar searchStartDate;
 	private Calendar searchEndDate;
+	private ArrayList<String> searchType;
 	private ArrayList<String> searchKeywords;
 	private String[] searchTags;
 	private String[] taskIDsToDelete;
@@ -73,6 +77,7 @@ public class Command {
 	public String[] getTaskIDsToDelete() {
 		return taskIDsToDelete;
 	}
+
 	public void setTaskIDsToComplete(String[] IDs) {
 		taskIDsToComplete = IDs;
 	}
@@ -95,6 +100,14 @@ public class Command {
 
 	public void setSearchEndDate(Calendar searchEndDate) {
 		this.searchEndDate = searchEndDate;
+	}
+
+	public ArrayList<String> getSearchType() {
+		return searchType;
+	}
+
+	public void setSearchType(ArrayList<String> type) {
+		searchType = type;
 	}
 
 	public ArrayList<String> getSearchKeywords() {

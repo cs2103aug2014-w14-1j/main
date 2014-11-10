@@ -1,4 +1,9 @@
-@CHARSET "ISO-8859-1";
+//@author A0111660W
+package collateNonJavaFiles;
+
+public class UICssForCollate{}
+/*
+	@CHARSET "ISO-8859-1";
 @font-face {
 	font-family: Raleway;
 	src: url("Raleway-Regular.otf") format("opentype");
@@ -76,3 +81,5 @@
 	-fx-text-fill: White;
 	-fx-font-weight : bold;
 }
+
+*/

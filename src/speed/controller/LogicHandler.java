@@ -1,10 +1,11 @@
 //@author A0112059N
+package speed.controller;
 
-import java.io.IOException;
-import java.text.NumberFormat;
-import java.text.ParsePosition;
+import speed.parser.Command;
+import speed.storage.Storage;
+import speed.task.Task;
+
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Stack;
 import java.util.TreeMap;
 
@@ -32,11 +33,21 @@ public class LogicHandler {
 	private Storage storage_;
 	private Stack<SimpleCommand> histories_;
 	private Stack<SimpleCommand> future_;
+	
 	private final String ERROR_NO_NAME = "Cannot add a task with no description.";
 	private final String ERROR_NO_CHANGE = "No change was made.";
-	private final String ERROR_INVALID_ID = "Invalid id to update";
-	private final String ERROR_INVALID_IDS = "All ids are invalid";
+	private final String ERROR_INVALID_ID = "Invalid id to update.";
+	private final String ERROR_INVALID_IDS = "All ids are invalid.";
 	private final String ERROR_INVALID_UPDATE = "Invalid update command";
+	private final String MESSAGE_ADD = "Succesfully added a new task: ";
+	private final String MESSAGE_DELETE = " deleted from the calendar.";
+	private final String MESSAGE_UPDATE = "Updated successfully.";
+	private final String MESSAGE_COMPLETE = " tasks completed.";
+	private final String MESSAGE_UNDO = "Undo successfully.";
+	private final String MESSAGE_REDO = "Redo successfully.";
+	private final String UNAVAILABLE_UNDO = "Undo not available.";
+	private final String UNAVAILABLE_REDO = "Redo not available.";
+
 	
 	public LogicHandler(Storage storage) {
 		storage_ = storage;
@@ -112,7 +123,7 @@ public class LogicHandler {
 		addHistory(undoCommand);
 		executeSimpleCommand(addCommand);
 		
-		return ("Successfully added new task: " + task.getTaskName());
+		return (MESSAGE_ADD + task.getTaskName());
 		}
 	
 		
@@ -124,7 +135,7 @@ public class LogicHandler {
 		
 		for (String id: ids) {
 			allIDs.add("T" + id);
-			allIDs.add("F" + id);
+			allIDs.add("R" + id);
 			allIDs.add("O" + id);
 			allIDs.add(id.toUpperCase());
 		}
@@ -134,12 +145,15 @@ public class LogicHandler {
 		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
 			if ((task!=null)&&(!tasks.contains(task))) {
-				tasks.add(task);
+				Task parent_task = storage_.getParentTask(task);
+				if (!tasks.contains(parent_task)) {
+					tasks.add(parent_task);
+				}
 			}
 		}
 		
 		if (tasks.isEmpty()) {
-			return "All ids are invalid";
+			return ERROR_INVALID_IDS;
 		} else {
 			ArrayList<Task> newTasks = new ArrayList<Task>();
 			
@@ -149,7 +163,7 @@ public class LogicHandler {
 			
 			executeSimpleCommand(deleteCommand);
 			
-			return (tasks.size() + " tasks deleted from the Calendar");
+			return (tasks.size() + MESSAGE_DELETE);
 		}		
 	}
 	
@@ -214,7 +228,7 @@ public class LogicHandler {
 		
 		executeSimpleCommand(updateCommand);
 		
-		return "Updated successfully";
+		return MESSAGE_UPDATE;
 	}
 	
 	private String executeComplete(TreeMap<String,Task> taskIDmap, Command command) throws Exception {
@@ -222,12 +236,13 @@ public class LogicHandler {
 		String[] ids = command.getTaskIDsToComplete();
 		
 		ArrayList<Task> oldTasks = new ArrayList<Task>();
+		ArrayList<Task> newTasks = new ArrayList<Task> ();
 		
 		ArrayList<String> allIDs = new ArrayList<String>();
 		
 		for (String id: ids) {
 			allIDs.add("T" + id);
-			allIDs.add("F" + id);
+			allIDs.add("R" + id);
 			allIDs.add("O" + id);
 			allIDs.add(id.toUpperCase());
 		}
@@ -235,51 +250,58 @@ public class LogicHandler {
 		for (String id: allIDs ) {
 			Task task = taskIDmap.get(id);
 			if ((task!=null)&&(!oldTasks.contains(task))) {
-				oldTasks.add(task);
+				Task parent_task = storage_.getParentTask(task);
+				if (!oldTasks.contains(parent_task)) {
+					oldTasks.add(parent_task);
+				}
+				Task completedTask = task.clone();
+				completedTask.setCompleted();
+				
+				for (int i = 0; i < newTasks.size(); i++) {
+					if (newTasks.get(i).getId() == completedTask.getId()) {
+						newTasks.remove(i);
+						i--;
+					}
+				}
+				
+				newTasks.add(completedTask);
 			}
 		}
 
 		if (oldTasks.isEmpty()) {
 			return ERROR_INVALID_IDS;
 		} else {
-			ArrayList<Task> newTasks = new ArrayList<Task> ();
-			
-			for (Task task: oldTasks) {
-				Task completedTask = task.clone();
-				completedTask.setCompleted();
-				newTasks.add(completedTask);
-				}
 		
 			SimpleCommand completeCommand = new SimpleCommand(oldTasks,newTasks);
 			SimpleCommand undoCommand = new SimpleCommand(newTasks,oldTasks);
 			
 			addHistory(undoCommand);
 			executeSimpleCommand(completeCommand);
-			return (oldTasks.size() + " tasks completed.");
+			return (oldTasks.size() + MESSAGE_COMPLETE);
 		}		
 	}
 
 	
 	private String executeUndo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
 		if (histories_.empty()) {
-			return "Undo not available";
+			return UNAVAILABLE_UNDO;
 		} else {
 			SimpleCommand undoCommand = histories_.pop();
 			future_.add(undoCommand);
 			executeSimpleCommand(undoCommand);
-			return "Undo successfully";
+			return MESSAGE_UNDO;
 		}
 	}
 	
 	private String executeRedo(TreeMap<String, Task> taskIDmap, Command command) throws Exception {
 		if (future_.isEmpty()) {
-			return "Redo not available";
+			return UNAVAILABLE_REDO;
 		} else {
 			SimpleCommand undoCommand = future_.pop();
 			histories_.add(undoCommand);
 			reverse(undoCommand);
 		
-			return "Redo successfully";
+			return MESSAGE_REDO;
 		}
 	}
 	

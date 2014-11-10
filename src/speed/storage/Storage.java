@@ -1,10 +1,16 @@
 //@author A0097299E
-import java.util.*;
-import java.io.*;
-
-import org.json.JSONException;
+package speed.storage;
 
 import com.google.gson.Gson;
+
+import speed.task.Task;
+import speed.task.TaskComparator;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * This class acts as the storage for the task manager software. It keeps track of lists of tasks
@@ -23,32 +29,35 @@ import com.google.gson.Gson;
  * then insert it back. This is to ensure the Task is kept in the right list.
  * 
  * Exceptions thrown by the Storage: IOException
+ * All exceptions are always thrown out. Whoever is using the Storage needs to know and handle it
  */
 
 public class Storage {
 	
 	private static final int RECUR_YEAR_LIMIT = 3;				//the default limit for recurring tasks
 	private static final int ID_COUNTER_INCREASE = 1;
+	private static final String STORAGE_LOG = "storagelog.txt";
 	
-	private FileHandler filehandler;
-	
-	private PriorityQueue<Task> al_task;
-	private PriorityQueue<Task> al_task_floating;
-	private PriorityQueue<Task> al_task_overdue;
-	private PriorityQueue<Task> al_task_completed;
+	private Logger storage_logger;
+	private FileHandler log_writer;
+	private TaskFileReader taskFileReader;
+	private PriorityQueue<Task> list_task;
+	private PriorityQueue<Task> list_floating;
+	private PriorityQueue<Task> list_overdue;
+	private PriorityQueue<Task> list_completed;
+	private ArrayList<LinkedList<Task>> id_table;
 	private int id_counter;
 	
 	//Constructor***************************************************************************
 
-	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
-		al_task = new PriorityQueue<Task>(new TaskComparator());
-		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
-		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
-		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
-		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
+	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException {
+		storage_logger = Logger.getLogger(Storage.class.getName());
+		log_writer = new FileHandler(STORAGE_LOG);
+		storage_logger.addHandler(log_writer);
+		taskFileReader = new TaskFileReader(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
-		id_counter = updateIndex();
-		//updateRecurringTasks();
+		maintainListIntegrity();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -63,8 +72,9 @@ public class Storage {
 	 */
 	
 	public void insert(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Insert operation");
 		checkForOverdueTasks();
-		if (task.hasNoID()) {								//for new tasks with no ID
+		if (task.hasNoId()) {								//for new tasks with no ID
 			assignID(task);
 		}
 		
@@ -81,12 +91,20 @@ public class Storage {
 	}
 	
 	private void assignID(Task task) {
+		storage_logger.log(Level.FINE, "New task, no ID, assigning ID");
 		id_counter += ID_COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
 
 	private void insert(Task task, PriorityQueue<Task> list) {
+		assert !task.hasNoId();
 		list.add(task);
+		if (task.getId() >= id_table.size()) {
+			assert task.getId() == id_table.size() + 1;
+			storage_logger.log(Level.FINE, "New task index" + task.getId() + "Creating new index in table");
+			id_table.add(new LinkedList<Task>());
+		}
+		id_table.get(task.getId()).add(task);
 	}
 	
 	/*
@@ -99,6 +117,7 @@ public class Storage {
 	 */
 	private ArrayList<Task> generateRecurringTasks(Task task) {
 		assert task.isRecur();
+		storage_logger.log(Level.FINE, "Recurring task, generating recurring copies");
 		
 		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
 		
@@ -113,9 +132,9 @@ public class Storage {
 			
 			Calendar start = task.getStartDate();
 			start.add(task.getRecurPattern(), task.getRecurPeriod());
-			
 			Calendar end = task.getEndDate();
 			end.add(task.getRecurPattern(), task.getRecurPeriod());
+			
 			if (end.after(limit)) {
 				break;
 			}
@@ -123,6 +142,7 @@ public class Storage {
 			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
 			task_recur_chain.add(task);
 		}
+		storage_logger.log(Level.FINE, task_recur_chain.size() + " tasks generated");
 		return task_recur_chain;
 	}
 	
@@ -148,25 +168,24 @@ public class Storage {
 	 * same ID if the deleted task is recurring
 	 */
 	public void delete(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Delete operation");
 		checkForOverdueTasks();
-		delete(task, retrieveTaskList(task));
-		if (task.isRecur()) {
-			deleteRecurChain(task);
+		
+		assert !task.hasNoId();
+		
+		LinkedList<Task> recur_chain = searchTaskByID(task.getId());
+		for (Task other_task : recur_chain) {
+			delete(other_task, retrieveTaskList(other_task));
 		}
+		storage_logger.log(Level.FINE, "Removed " + recur_chain.size() + " tasks");
+		recur_chain.clear();
 		save();
 	}
 
 	private void delete(Task task, PriorityQueue<Task> list) {
 		list.remove(task);
 	}
-	
-	private void deleteRecurChain(Task task) {
-		ArrayList<Task> recur_chain = searchTaskByID(task.getId());
-		for (Task other_task : recur_chain) {
-			delete(other_task, retrieveTaskList(other_task));
-		}
-	}
-	
+
 	//Retrieval/search methods*************************************************************
 	
 	//Internal search methods. To be used by Storage only
@@ -176,45 +195,36 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	private ArrayList<Task> searchTaskByID(Integer id){
-		
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		if (id == null || id < 0) {
-			return search_results;								//every task in storage should have a nonnegative ID
-		}
-		
-		searchTaskByID(id, al_task, search_results);
-		searchTaskByID(id, al_task_floating, search_results);
-		searchTaskByID(id, al_task_overdue, search_results);
-		
-		return search_results;
+	private LinkedList<Task> searchTaskByID(int id){
+		assert id >= 0;
+		storage_logger.log(Level.FINE, "Retrieving tasks with id " + id);
+		return id_table.get(id);
 	}
-	
-	private ArrayList<Task> searchTaskByID(Integer id,PriorityQueue<Task> list, ArrayList<Task> searchResults){
-		for(Task task: list){
-			if(task.getId() == id){
-				searchResults.add(task);
-			}
+		
+	public Task getParentTask(Task task) {
+		if (task == null) {
+			return null;
 		}
-		return searchResults;
+		assert !task.hasNoId();
+		return searchTaskByID(task.getId()).get(0);
 	}
 	
 	//External search methods. Can be called by other classes and tests
 	
 	public ArrayList<Task> getTasksList() {
-		return translateQueueToList(al_task);
+		return translateQueueToList(list_task);
 	}
 
 	public ArrayList<Task> getFloatingTasksList() {
-		return translateQueueToList(al_task_floating);
+		return translateQueueToList(list_floating);
 	}
 
 	public ArrayList<Task> getCompletedTasksList() {
-		return translateQueueToList(al_task_completed);
+		return translateQueueToList(list_completed);
 	}
 
 	public ArrayList<Task> getOverdueTasksList() {
-		return translateQueueToList(al_task_overdue);
+		return translateQueueToList(list_overdue);
 	}
 	
 	private ArrayList<Task> translateQueueToList(PriorityQueue<Task> pq) {
@@ -236,8 +246,9 @@ public class Storage {
 	 */
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) 
 			throws IOException {
+		storage_logger.log(Level.FINE, "Search operation");
 		checkForOverdueTasks();
-		if (end_date!=null && start_date != null) {
+		if (end_date!=null && start_date != null) {					//make sure end date is later than start date
 			if (end_date.before(start_date)) {
 				Calendar temp = start_date;
 				start_date = end_date;
@@ -245,10 +256,9 @@ public class Storage {
 			}
 		}
 		ArrayList<Task> search_results = new ArrayList<Task>();
-				
-		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task, keywords, tags, start_date, end_date);
+		searchList(search_results, list_overdue, keywords, tags, start_date, end_date);
+		searchList(search_results, list_floating, keywords, tags, start_date, end_date);
+		searchList(search_results, list_task, keywords, tags, start_date, end_date);
 		
 		Collections.sort(search_results, new TaskComparator());
 		return search_results;
@@ -256,7 +266,6 @@ public class Storage {
 	
 	/*
 	 * Searches within a specified list and adds it to an input result list.
-	 * Search parameters can be null
 	 */
 	private void searchList(ArrayList<Task> search_result, PriorityQueue<Task> list,
 			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
@@ -273,12 +282,14 @@ public class Storage {
 	//Clear methods**************************************************************
 	
 	public void clearAll() throws IOException {
-		clear(al_task);
-		clear(al_task_floating);
-		clear(al_task_overdue);
-		clear(al_task_completed);
+		storage_logger.log(Level.WARNING, "Clearing everything in the storage");
+		clear(list_task);
+		clear(list_floating);
+		clear(list_overdue);
+		clear(list_completed);
+		buildIDTable();				//should result in empty table and id_counter == 0
+		assert id_counter == 0;
 		save();
-		id_counter = 0;			//after save, in case there is an IOException
 	}
 	
 	private void clear(PriorityQueue<Task> tasklist) {
@@ -288,10 +299,10 @@ public class Storage {
 	//Save methods***************************************************************
 	
 	private void save() throws IOException {
-		filehandler.writeFile(al_task);
-		filehandler.writeFile(al_task_floating);
-		filehandler.writeFile(al_task_overdue);
-		filehandler.writeFile(al_task_completed);
+		taskFileReader.writeFile(list_task);
+		taskFileReader.writeFile(list_floating);
+		taskFileReader.writeFile(list_overdue);
+		taskFileReader.writeFile(list_completed);
 	}
 	
 	//Miscellaneous methods******************************************************
@@ -301,10 +312,15 @@ public class Storage {
 	 * Initialises the task lists by reading from the text files.
 	 */
 	private void initFiles() throws IOException {
-		filehandler.readFile(al_task);
-		filehandler.readFile(al_task_floating);
-		filehandler.readFile(al_task_completed);
-		filehandler.readFile(al_task_overdue);
+		storage_logger.log(Level.FINE, "Initialising tasklists");
+		list_task = new PriorityQueue<Task>(new TaskComparator());
+		list_floating = new PriorityQueue<Task>(new TaskComparator());
+		list_overdue = new PriorityQueue<Task>(new TaskComparator());
+		list_completed = new PriorityQueue<Task>(new TaskComparator());
+		taskFileReader.readFile(list_task);
+		taskFileReader.readFile(list_floating);
+		taskFileReader.readFile(list_completed);
+		taskFileReader.readFile(list_overdue);
 	}
 
 	/*
@@ -313,15 +329,15 @@ public class Storage {
 	 */
 	private PriorityQueue<Task> retrieveTaskList(Task task) {
 		if (task.isFloating()) {
-			return al_task_floating;
+			return list_floating;
 		}
 		else if (task.isOverdue()) {
-			return al_task_overdue;
+			return list_overdue;
 		}
 		else if (task.isCompleted()) {
-			return al_task_completed;
+			return list_completed;
 		}
-		return al_task;
+		return list_task;
 	}
 	
 	/*
@@ -335,10 +351,10 @@ public class Storage {
 	 */
 	private void checkForOverdueTasks() throws IOException {
 		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
-		while (!al_task.isEmpty() && al_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
-			now_overdue_tasks.add(al_task.poll());
+		while (!list_task.isEmpty() && list_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
+			now_overdue_tasks.add(list_task.poll());
 		}
-		al_task_overdue.addAll(now_overdue_tasks);
+		list_overdue.addAll(now_overdue_tasks);
 		save();
 	}
 	
@@ -347,11 +363,11 @@ public class Storage {
 	 * default limit as of when this method was called and generate new instances to that
 	 * limit.
 	 * 
-	 * NOT USED as of V0.4. Expensive operation that is of dubious value
+	 * Note: Expensive operation that is of dubious value
 	 */
 	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
-			ArrayList<Task> searchlist = searchTaskByID(i);
+			LinkedList<Task> searchlist = searchTaskByID(i);
 			if (!searchlist.isEmpty()) {
 				Task lasttask = searchlist.get(searchlist.size()-1);
 				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
@@ -362,7 +378,29 @@ public class Storage {
 	}
 	
 	/*
-	 * Updates the ids of the existing tasks in the Storage. Returns the new id_count as a result, which
+	 * Builds the ID table to link families of tasks together and identify them quickly.
+	 * Does not include completed tasks.
+	 */
+	private void buildIDTable() {
+		storage_logger.log(Level.FINE, "Building ID Table");
+		id_table = new ArrayList<LinkedList<Task>>();
+		id_counter = getLatestID();
+		for (int i = 0; i <= id_counter; i++) {
+			id_table.add(new LinkedList<Task>());
+		}
+		for (Task task : list_overdue) {
+			id_table.get(task.getId()).add(task);
+		}
+		for (Task task : list_floating) {
+			id_table.get(task.getId()).add(task);
+		}
+		for (Task task : list_task) {
+			id_table.get(task.getId()).add(task);
+		}
+	}
+
+	/*
+	 * Updates the ids of the existing tasks in the Storage. Updates id_count as a result, which
 	 * should be equal to the number of used ids in Storage.
 	 * This is to prevent the ids from growing too much.
 	 * 
@@ -373,37 +411,35 @@ public class Storage {
 	 * 
 	 * Note: Expensive operation
 	 */
-	private int updateIndex() {
-		int latest_id = 0;
-		int old_latest_id = getLatestID();
-		LinkedList<Integer> holes = new LinkedList<Integer>();
-		for (int i = 0; i < old_latest_id + 1; i++) {
-			ArrayList<Task> tasks = searchTaskByID(i);
-			if (tasks.isEmpty()) {
-				holes.offer(i);
+	private void compactIndex() {
+		storage_logger.log(Level.FINE, "Compacting indexes");
+		int holes = 0;
+		for (int i = 1; i < id_table.size(); i++) {
+			LinkedList<Task> task_family = searchTaskByID(i);
+			if (task_family.isEmpty()) {
+				holes++;
 			}
 			else {
-				if (!holes.isEmpty()) {
-					int newest_id = holes.poll();
-					for (Task task : tasks) {
-						task.setId(newest_id);
-					}
-					latest_id = newest_id;
-				}
-				else {
-					latest_id = i;
+				for (Task task : task_family) {
+					task.setId(task.getId() - holes);
 				}
 			}
 		}
-		return latest_id;
+		for (int i = 1; i < id_table.size(); i++) {
+			if (id_table.get(i).isEmpty()) {
+				id_table.remove(i);
+			}
+		}
+		id_counter = getLatestID();
+		storage_logger.log(Level.FINE, "id_counter = " + id_counter + ", id_table.size() = "
+												+ id_table.size());
 	}
 	
 	private int getLatestID() {
-		int latest_id = getLatestID(al_task);
-		int latest_id_floating = getLatestID(al_task_floating);
-		int latest_id_overdue = getLatestID(al_task_overdue);
-		int latest_id_completed = getLatestID(al_task_completed);
-		return Math.max(Math.max(latest_id, latest_id_completed), Math.max(latest_id_overdue, latest_id_floating));
+		int latest_id = getLatestID(list_task);
+		int latest_id_floating = getLatestID(list_floating);
+		int latest_id_overdue = getLatestID(list_overdue);
+		return Math.max(latest_id, Math.max(latest_id_overdue, latest_id_floating));
 	}
 	
 	private int getLatestID(PriorityQueue<Task> list) {
@@ -416,6 +452,78 @@ public class Storage {
 		return latest_id;
 	}
 	
+	//Fix methods***************************************************************************
+	
+	/*
+	 * Through the course of developing this software, there have been often bugs where the
+	 * dates on a task suddenly disappeared and appear in wrong folders. Until all bugs are
+	 * fixed, providing methods to attempt a fix.
+	 * 
+	 * Tasks with no ids are always destroyed as they cannot fit in the ID table.
+	 * Tasks in the wrong lists are resorted
+	 */
+	public void maintainListIntegrity() throws IOException {
+		storage_logger.log(Level.FINE, "Checking list integrity");
+		LinkedList<Task> no_id_tasks = new LinkedList<Task>();
+		LinkedList<Task> wrong_tasks = new LinkedList<Task>();
+		
+		for (Task task : list_task) {
+			if (task.hasNoId()) {
+				no_id_tasks.add(task);
+			}
+			else if (task.isCompleted() || task.isFloating() || task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_floating) {
+			if (task.hasNoId()) {
+				no_id_tasks.add(task);
+			}
+			else if (!task.isFloating()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_overdue) {
+			if (!task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		no_id_tasks.clear();
+		for (Task task : list_completed) {
+			if (!task.isCompleted()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		if (no_id_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks with no IDs");
+		}
+		
+		if (wrong_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks in the wrong files");
+		}
+		
+		list_floating.removeAll(no_id_tasks);
+		list_overdue.removeAll(no_id_tasks);
+		list_task.removeAll(no_id_tasks);
+		list_completed.removeAll(no_id_tasks);
+		
+		list_floating.removeAll(wrong_tasks);
+		list_overdue.removeAll(wrong_tasks);
+		list_task.removeAll(wrong_tasks);
+		list_completed.removeAll(wrong_tasks);
+		
+		for (Task task : wrong_tasks) {
+			retrieveTaskList(task).add(task);
+		}
+		buildIDTable();
+		compactIndex();
+		save();
+	}
+	
 	//@author A0111660W
 	//File Operations********************************************************
 	
@@ -424,7 +532,7 @@ public class Storage {
 	 * priority queues to files given by the input filenames.
 	 */
 	
-	class FileHandler {
+	class TaskFileReader {
 		
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
@@ -435,7 +543,7 @@ public class Storage {
 		
 		// Constructor******************************************************
 		
-		public FileHandler(String t_fn, String f_fn, String o_fn, String c_fn) {
+		public TaskFileReader(String t_fn, String f_fn, String o_fn, String c_fn) {
 			this.task_filename = t_fn;
 			this.floating_task_filename = f_fn;
 			this.overdue_task_filename = o_fn;
@@ -481,13 +589,13 @@ public class Storage {
 		// Interfaces with the textFiles(databases)*************************
 		private String determineFileName(PriorityQueue<Task> fileToWrite) {
 			String filename = "";
-			if (fileToWrite == al_task) {
+			if (fileToWrite == list_task) {
 				filename = task_filename;
-			} else if (fileToWrite == al_task_floating) {
+			} else if (fileToWrite == list_floating) {
 				filename = floating_task_filename;
-			} else if (fileToWrite == al_task_completed) {
+			} else if (fileToWrite == list_completed) {
 				filename = completed_task_filename;
-			} else if (fileToWrite == al_task_overdue) {
+			} else if (fileToWrite == list_overdue) {
 				filename = overdue_task_filename;
 			} else {
 				throw new Error("Invalid file to write to");
