@@ -3,7 +3,7 @@ import java.util.Calendar;
 
 public class TimeParser extends DateTimeRegexHandler {
 
-	public Calendar parse(String datetime, Calendar cal, int default_hour, int default_min, int default_second){
+	protected Calendar parse(String datetime, Calendar cal, int default_hour, int default_min, int default_second){
 		Time time = parseTime(datetime);
 		if (cal != null && time != null) {
 			cal.set(Calendar.HOUR_OF_DAY, time.getHour());

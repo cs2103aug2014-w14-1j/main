@@ -26,7 +26,7 @@ public class DateTimeParser extends DateTimeRegexHandler{
 	private String input;
 	private String output;
 
-	public String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
+	protected String parseCommand(String command, Command.COMMAND_TYPE type, Command commandObj) {
 		output = command;
 		// Do not evaluate strings within quotation marks
 		input = command.replaceAll("\"[^\"]+\"", "");

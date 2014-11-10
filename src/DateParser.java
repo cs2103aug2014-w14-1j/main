@@ -10,12 +10,12 @@ public class DateParser extends DateTimeRegexHandler {
 	private String currentDate;
 	private boolean isStartDate = false;
 
-	public Calendar parse(String datetime) {
+	protected Calendar parse(String datetime) {
 		currentDate = datetime;
 		return parseDate(datetime);
 	}
 
-	public Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
+	protected Calendar parse(String datetime, boolean isStartDate, int default_hour, int default_min, int default_second) {
 		currentDate = datetime;
 		this.isStartDate = isStartDate;
 		Calendar dateCal = parseDate(datetime);
@@ -263,11 +263,11 @@ public class DateParser extends DateTimeRegexHandler {
 		}
 	}
 
-	public void setStartOfPeriod(Calendar cal, int period) {
+	protected void setStartOfPeriod(Calendar cal, int period) {
 		cal.set(period, cal.getActualMinimum(period));
 	}
 
-	public void setEndOfPeriod(Calendar cal, int period) {
+	protected void setEndOfPeriod(Calendar cal, int period) {
 		cal.set(period, cal.getActualMaximum(period));
 	}
 
