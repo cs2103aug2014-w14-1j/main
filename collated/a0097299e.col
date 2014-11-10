@@ -3,141 +3,21 @@
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
 	 */
 
-	//System Test****************************************************************************
-	
-	//Test variables********************************************************
-	//placed below for the ease of collating
-	
-	private static final String TEST_TASK_FILENAME = "systestt.txt";
-	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
-	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
-	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
-	
-	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
-	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
-	
-	private static final int TEST_SEARCH_LIMIT = 30;
-	
-	private ArrayList<Task> t_searchResults;
-	private Parser t_parser;
-	private TreeMap<String, Task> t_taskIDmap;
-	private Storage t_storage;
-	private LogicHandler t_logic;
-	private SearchHandler t_searcher;
-	
-	/*
-	 * Runs a system test by initialising test variables and running a series of commands
-	 * from an input file. After that checks the displayed tasks' tasknames against an
-	 * expected output file. A message stating success or failure (where it failed) is returned.
-	 * 
-	 * Limitations of the test: Only checks the task name. Does not check the display index
-	 * and date because of time sensitivity. Also does not check the UI
-	 * 
-	 * WARNING: Due to time sensitivity, the test file must be changed regularly. E.g. some
-	 * months have 5 weeks
-	 */
-	private String runSystemTest() {
-		try {
-			t_parser = new Parser();
-			t_storage = new Storage(TEST_TASK_FILENAME, TEST_FLOATING_TASK_FILENAME,
-					TEST_OVERDUE_TASK_FILENAME, TEST_COMPLETED_TASK_FILENAME);
-			t_storage.clearAll();
-			t_logic = new LogicHandler(t_storage);
-			t_searcher = new SearchHandler(t_storage);
-			
-			t_searchResults = t_searcher.viewDefault();
-			t_taskIDmap = new TreeMap<String, Task>();
-			createTestTaskIDmap();
-			
-			BufferedReader t_reader = new BufferedReader(new FileReader(new File(TEST_INPUT_FILENAME)));
-			BufferedReader e_reader = new BufferedReader(new FileReader(new File(TEST_EXPECTED_FILENAME)));
-			
-			String input = null;
-			int line = 0;
-			while ((input = t_reader.readLine()) != null) {
-				line++;
-				Command t_command = t_parser.parseCommand(input);
-				assert t_command.getCommandType() != Command.COMMAND_TYPE.TEST;
-				if (isLogic(t_command)) {
-					String msg = t_logic.executeCommand(t_taskIDmap, t_command);
-					//testOneLine(msg, e_reader.readLine());
-					t_searchResults = t_searcher.repeatLastSearch();
-					createTestTaskIDmap();
-				}
-				else {
-					t_searchResults = t_searcher.proceedCommand(t_command);
-					createTestTaskIDmap();
-				}
-				int search_limit;
-				if (t_searchResults.size() < TEST_SEARCH_LIMIT) {
-					search_limit = t_searchResults.size();
-				}
-				else {
-					search_limit = TEST_SEARCH_LIMIT;
-				}
-				for (int i = 0; i < search_limit; i++) {
-					testOneLine(t_searchResults.get(i).getTaskName(), e_reader.readLine(), line);
-				}
-			}
-					
-			//delete the created test files
-			t_storage.clearAll();
-			File t_file = new File(TEST_TASK_FILENAME);
-			t_file.delete();
-			t_file = new File(TEST_FLOATING_TASK_FILENAME);
-			t_file.delete();
-			t_file = new File(TEST_OVERDUE_TASK_FILENAME);
-			t_file.delete();
-			t_file = new File(TEST_COMPLETED_TASK_FILENAME);
-			t_file.delete();
-			t_reader.close();
-			e_reader.close();
-			return "Tests successful!";
-		}
-		catch (Exception e) {
-			return e.getMessage();
-		}
-	}
-	
-	private void testOneLine(String actual, String expected, int i) throws Exception {
-		if (!actual.equals(expected)) {
-			throw new Exception("MISMATCH: Line " + i + " " + actual + " " + expected);
-		}
-	}
-	
-	private void createTestTaskIDmap() {
-		t_taskIDmap = new TreeMap<String, Task>();
-		int index_number = 1;
-
-		for (int i = 0; i < t_searchResults.size(); i++) {
-			Task task = t_searchResults.get(i);
-			String key = getChar(task) + Integer.toString(index_number);
-			t_taskIDmap.put(key, task);
-			task.setDisplayId(key);
-			index_number++;
-		}
-	}
-
-}
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\MainController.java
-
-
-
-
-
-	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Storage.java
-	 */
-
-import java.util.*;
-import java.io.*;
-
-import org.json.JSONException;
+package speed.storage;
 
 import com.google.gson.Gson;
+
+import speed.task.Task;
+import speed.task.TaskComparator;
+
+import java.io.*;
+import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * This class acts as the storage for the task manager software. It keeps track of lists of tasks
@@ -156,32 +36,35 @@ import com.google.gson.Gson;
  * then insert it back. This is to ensure the Task is kept in the right list.
  * 
  * Exceptions thrown by the Storage: IOException
+ * All exceptions are always thrown out. Whoever is using the Storage needs to know and handle it
  */
 
 public class Storage {
 	
 	private static final int RECUR_YEAR_LIMIT = 3;				//the default limit for recurring tasks
 	private static final int ID_COUNTER_INCREASE = 1;
+	private static final String STORAGE_LOG = "storagelog.txt";
 	
-	private FileHandler filehandler;
-	
-	private PriorityQueue<Task> al_task;
-	private PriorityQueue<Task> al_task_floating;
-	private PriorityQueue<Task> al_task_overdue;
-	private PriorityQueue<Task> al_task_completed;
+	private Logger storage_logger;
+	private FileHandler log_writer;
+	private TaskFileReader taskFileReader;
+	private PriorityQueue<Task> list_task;
+	private PriorityQueue<Task> list_floating;
+	private PriorityQueue<Task> list_overdue;
+	private PriorityQueue<Task> list_completed;
+	private ArrayList<LinkedList<Task>> id_table;
 	private int id_counter;
 	
 	//Constructor***************************************************************************
 
-	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
-		al_task = new PriorityQueue<Task>(new TaskComparator());
-		al_task_floating = new PriorityQueue<Task>(new TaskComparator());
-		al_task_overdue = new PriorityQueue<Task>(new TaskComparator());
-		al_task_completed = new PriorityQueue<Task>(new TaskComparator());
-		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
+	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException {
+		storage_logger = Logger.getLogger(Storage.class.getName());
+		log_writer = new FileHandler(STORAGE_LOG);
+		storage_logger.addHandler(log_writer);
+		taskFileReader = new TaskFileReader(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
-		id_counter = updateIndex();
-		//updateRecurringTasks();
+		maintainListIntegrity();
+		updateRecurringTasks();
 		checkForOverdueTasks();
 	}
 
@@ -196,8 +79,9 @@ public class Storage {
 	 */
 	
 	public void insert(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Insert operation");
 		checkForOverdueTasks();
-		if (task.hasNoID()) {								//for new tasks with no ID
+		if (task.hasNoId()) {								//for new tasks with no ID
 			assignID(task);
 		}
 		
@@ -214,12 +98,20 @@ public class Storage {
 	}
 	
 	private void assignID(Task task) {
+		storage_logger.log(Level.FINE, "New task, no ID, assigning ID");
 		id_counter += ID_COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
 
 	private void insert(Task task, PriorityQueue<Task> list) {
+		assert !task.hasNoId();
 		list.add(task);
+		if (task.getId() >= id_table.size()) {
+			assert task.getId() == id_table.size() + 1;
+			storage_logger.log(Level.FINE, "New task index" + task.getId() + "Creating new index in table");
+			id_table.add(new LinkedList<Task>());
+		}
+		id_table.get(task.getId()).add(task);
 	}
 	
 	/*
@@ -232,6 +124,7 @@ public class Storage {
 	 */
 	private ArrayList<Task> generateRecurringTasks(Task task) {
 		assert task.isRecur();
+		storage_logger.log(Level.FINE, "Recurring task, generating recurring copies");
 		
 		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
 		
@@ -246,9 +139,9 @@ public class Storage {
 			
 			Calendar start = task.getStartDate();
 			start.add(task.getRecurPattern(), task.getRecurPeriod());
-			
 			Calendar end = task.getEndDate();
 			end.add(task.getRecurPattern(), task.getRecurPeriod());
+			
 			if (end.after(limit)) {
 				break;
 			}
@@ -256,6 +149,7 @@ public class Storage {
 			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
 			task_recur_chain.add(task);
 		}
+		storage_logger.log(Level.FINE, task_recur_chain.size() + " tasks generated");
 		return task_recur_chain;
 	}
 	
@@ -281,25 +175,24 @@ public class Storage {
 	 * same ID if the deleted task is recurring
 	 */
 	public void delete(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Delete operation");
 		checkForOverdueTasks();
-		delete(task, retrieveTaskList(task));
-		if (task.isRecur()) {
-			deleteRecurChain(task);
+		
+		assert !task.hasNoId();
+		
+		LinkedList<Task> recur_chain = searchTaskByID(task.getId());
+		for (Task other_task : recur_chain) {
+			delete(other_task, retrieveTaskList(other_task));
 		}
+		storage_logger.log(Level.FINE, "Removed " + recur_chain.size() + " tasks");
+		recur_chain.clear();
 		save();
 	}
 
 	private void delete(Task task, PriorityQueue<Task> list) {
 		list.remove(task);
 	}
-	
-	private void deleteRecurChain(Task task) {
-		ArrayList<Task> recur_chain = searchTaskByID(task.getId());
-		for (Task other_task : recur_chain) {
-			delete(other_task, retrieveTaskList(other_task));
-		}
-	}
-	
+
 	//Retrieval/search methods*************************************************************
 	
 	//Internal search methods. To be used by Storage only
@@ -309,45 +202,36 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	private ArrayList<Task> searchTaskByID(Integer id){
-		
-		ArrayList<Task> search_results = new ArrayList<Task>();
-		if (id == null || id < 0) {
-			return search_results;								//every task in storage should have a nonnegative ID
-		}
-		
-		searchTaskByID(id, al_task, search_results);
-		searchTaskByID(id, al_task_floating, search_results);
-		searchTaskByID(id, al_task_overdue, search_results);
-		
-		return search_results;
+	private LinkedList<Task> searchTaskByID(int id){
+		assert id >= 0;
+		storage_logger.log(Level.FINE, "Retrieving tasks with id " + id);
+		return id_table.get(id);
 	}
-	
-	private ArrayList<Task> searchTaskByID(Integer id,PriorityQueue<Task> list, ArrayList<Task> searchResults){
-		for(Task task: list){
-			if(task.getId() == id){
-				searchResults.add(task);
-			}
+		
+	public Task getParentTask(Task task) {
+		if (task == null) {
+			return null;
 		}
-		return searchResults;
+		assert !task.hasNoId();
+		return searchTaskByID(task.getId()).get(0);
 	}
 	
 	//External search methods. Can be called by other classes and tests
 	
 	public ArrayList<Task> getTasksList() {
-		return translateQueueToList(al_task);
+		return translateQueueToList(list_task);
 	}
 
 	public ArrayList<Task> getFloatingTasksList() {
-		return translateQueueToList(al_task_floating);
+		return translateQueueToList(list_floating);
 	}
 
 	public ArrayList<Task> getCompletedTasksList() {
-		return translateQueueToList(al_task_completed);
+		return translateQueueToList(list_completed);
 	}
 
 	public ArrayList<Task> getOverdueTasksList() {
-		return translateQueueToList(al_task_overdue);
+		return translateQueueToList(list_overdue);
 	}
 	
 	private ArrayList<Task> translateQueueToList(PriorityQueue<Task> pq) {
@@ -369,8 +253,9 @@ public class Storage {
 	 */
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) 
 			throws IOException {
+		storage_logger.log(Level.FINE, "Search operation");
 		checkForOverdueTasks();
-		if (end_date!=null && start_date != null) {
+		if (end_date!=null && start_date != null) {					//make sure end date is later than start date
 			if (end_date.before(start_date)) {
 				Calendar temp = start_date;
 				start_date = end_date;
@@ -378,10 +263,9 @@ public class Storage {
 			}
 		}
 		ArrayList<Task> search_results = new ArrayList<Task>();
-				
-		searchList(search_results, al_task_overdue, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task_floating, keywords, tags, start_date, end_date);
-		searchList(search_results, al_task, keywords, tags, start_date, end_date);
+		searchList(search_results, list_overdue, keywords, tags, start_date, end_date);
+		searchList(search_results, list_floating, keywords, tags, start_date, end_date);
+		searchList(search_results, list_task, keywords, tags, start_date, end_date);
 		
 		Collections.sort(search_results, new TaskComparator());
 		return search_results;
@@ -389,7 +273,6 @@ public class Storage {
 	
 	/*
 	 * Searches within a specified list and adds it to an input result list.
-	 * Search parameters can be null
 	 */
 	private void searchList(ArrayList<Task> search_result, PriorityQueue<Task> list,
 			ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) {
@@ -406,12 +289,14 @@ public class Storage {
 	//Clear methods**************************************************************
 	
 	public void clearAll() throws IOException {
-		clear(al_task);
-		clear(al_task_floating);
-		clear(al_task_overdue);
-		clear(al_task_completed);
+		storage_logger.log(Level.WARNING, "Clearing everything in the storage");
+		clear(list_task);
+		clear(list_floating);
+		clear(list_overdue);
+		clear(list_completed);
+		buildIDTable();				//should result in empty table and id_counter == 0
+		assert id_counter == 0;
 		save();
-		id_counter = 0;			//after save, in case there is an IOException
 	}
 	
 	private void clear(PriorityQueue<Task> tasklist) {
@@ -421,10 +306,10 @@ public class Storage {
 	//Save methods***************************************************************
 	
 	private void save() throws IOException {
-		filehandler.writeFile(al_task);
-		filehandler.writeFile(al_task_floating);
-		filehandler.writeFile(al_task_overdue);
-		filehandler.writeFile(al_task_completed);
+		taskFileReader.writeFile(list_task);
+		taskFileReader.writeFile(list_floating);
+		taskFileReader.writeFile(list_overdue);
+		taskFileReader.writeFile(list_completed);
 	}
 	
 	//Miscellaneous methods******************************************************
@@ -434,10 +319,15 @@ public class Storage {
 	 * Initialises the task lists by reading from the text files.
 	 */
 	private void initFiles() throws IOException {
-		filehandler.readFile(al_task);
-		filehandler.readFile(al_task_floating);
-		filehandler.readFile(al_task_completed);
-		filehandler.readFile(al_task_overdue);
+		storage_logger.log(Level.FINE, "Initialising tasklists");
+		list_task = new PriorityQueue<Task>(new TaskComparator());
+		list_floating = new PriorityQueue<Task>(new TaskComparator());
+		list_overdue = new PriorityQueue<Task>(new TaskComparator());
+		list_completed = new PriorityQueue<Task>(new TaskComparator());
+		taskFileReader.readFile(list_task);
+		taskFileReader.readFile(list_floating);
+		taskFileReader.readFile(list_completed);
+		taskFileReader.readFile(list_overdue);
 	}
 
 	/*
@@ -446,15 +336,15 @@ public class Storage {
 	 */
 	private PriorityQueue<Task> retrieveTaskList(Task task) {
 		if (task.isFloating()) {
-			return al_task_floating;
+			return list_floating;
 		}
 		else if (task.isOverdue()) {
-			return al_task_overdue;
+			return list_overdue;
 		}
 		else if (task.isCompleted()) {
-			return al_task_completed;
+			return list_completed;
 		}
-		return al_task;
+		return list_task;
 	}
 	
 	/*
@@ -468,10 +358,10 @@ public class Storage {
 	 */
 	private void checkForOverdueTasks() throws IOException {
 		ArrayList<Task> now_overdue_tasks = new ArrayList<Task>();
-		while (!al_task.isEmpty() && al_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
-			now_overdue_tasks.add(al_task.poll());
+		while (!list_task.isEmpty() && list_task.peek().isOverdue()) {			//assumes priority queue is always sorted correctly
+			now_overdue_tasks.add(list_task.poll());
 		}
-		al_task_overdue.addAll(now_overdue_tasks);
+		list_overdue.addAll(now_overdue_tasks);
 		save();
 	}
 	
@@ -480,11 +370,11 @@ public class Storage {
 	 * default limit as of when this method was called and generate new instances to that
 	 * limit.
 	 * 
-	 * NOT USED as of V0.4. Expensive operation that is of dubious value
+	 * Note: Expensive operation that is of dubious value
 	 */
 	private void updateRecurringTasks() {
 		for (int i = 0; i < id_counter; i++) {
-			ArrayList<Task> searchlist = searchTaskByID(i);
+			LinkedList<Task> searchlist = searchTaskByID(i);
 			if (!searchlist.isEmpty()) {
 				Task lasttask = searchlist.get(searchlist.size()-1);
 				if (lasttask.isRecur() && lasttask.getRecurLimit()==null) {
@@ -495,7 +385,29 @@ public class Storage {
 	}
 	
 	/*
-	 * Updates the ids of the existing tasks in the Storage. Returns the new id_count as a result, which
+	 * Builds the ID table to link families of tasks together and identify them quickly.
+	 * Does not include completed tasks.
+	 */
+	private void buildIDTable() {
+		storage_logger.log(Level.FINE, "Building ID Table");
+		id_table = new ArrayList<LinkedList<Task>>();
+		id_counter = getLatestID();
+		for (int i = 0; i <= id_counter; i++) {
+			id_table.add(new LinkedList<Task>());
+		}
+		for (Task task : list_overdue) {
+			id_table.get(task.getId()).add(task);
+		}
+		for (Task task : list_floating) {
+			id_table.get(task.getId()).add(task);
+		}
+		for (Task task : list_task) {
+			id_table.get(task.getId()).add(task);
+		}
+	}
+
+	/*
+	 * Updates the ids of the existing tasks in the Storage. Updates id_count as a result, which
 	 * should be equal to the number of used ids in Storage.
 	 * This is to prevent the ids from growing too much.
 	 * 
@@ -506,37 +418,35 @@ public class Storage {
 	 * 
 	 * Note: Expensive operation
 	 */
-	private int updateIndex() {
-		int latest_id = 0;
-		int old_latest_id = getLatestID();
-		LinkedList<Integer> holes = new LinkedList<Integer>();
-		for (int i = 0; i < old_latest_id + 1; i++) {
-			ArrayList<Task> tasks = searchTaskByID(i);
-			if (tasks.isEmpty()) {
-				holes.offer(i);
+	private void compactIndex() {
+		storage_logger.log(Level.FINE, "Compacting indexes");
+		int holes = 0;
+		for (int i = 1; i < id_table.size(); i++) {
+			LinkedList<Task> task_family = searchTaskByID(i);
+			if (task_family.isEmpty()) {
+				holes++;
 			}
 			else {
-				if (!holes.isEmpty()) {
-					int newest_id = holes.poll();
-					for (Task task : tasks) {
-						task.setId(newest_id);
-					}
-					latest_id = newest_id;
-				}
-				else {
-					latest_id = i;
+				for (Task task : task_family) {
+					task.setId(task.getId() - holes);
 				}
 			}
 		}
-		return latest_id;
+		for (int i = 1; i < id_table.size(); i++) {
+			if (id_table.get(i).isEmpty()) {
+				id_table.remove(i);
+			}
+		}
+		id_counter = getLatestID();
+		storage_logger.log(Level.FINE, "id_counter = " + id_counter + ", id_table.size() = "
+												+ id_table.size());
 	}
 	
 	private int getLatestID() {
-		int latest_id = getLatestID(al_task);
-		int latest_id_floating = getLatestID(al_task_floating);
-		int latest_id_overdue = getLatestID(al_task_overdue);
-		int latest_id_completed = getLatestID(al_task_completed);
-		return Math.max(Math.max(latest_id, latest_id_completed), Math.max(latest_id_overdue, latest_id_floating));
+		int latest_id = getLatestID(list_task);
+		int latest_id_floating = getLatestID(list_floating);
+		int latest_id_overdue = getLatestID(list_overdue);
+		return Math.max(latest_id, Math.max(latest_id_overdue, latest_id_floating));
 	}
 	
 	private int getLatestID(PriorityQueue<Task> list) {
@@ -549,23 +459,101 @@ public class Storage {
 		return latest_id;
 	}
 	
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Storage.java
+	//Fix methods***************************************************************************
+	
+	/*
+	 * Through the course of developing this software, there have been often bugs where the
+	 * dates on a task suddenly disappeared and appear in wrong folders. Until all bugs are
+	 * fixed, providing methods to attempt a fix.
+	 * 
+	 * Tasks with no ids are always destroyed as they cannot fit in the ID table.
+	 * Tasks in the wrong lists are resorted
+	 */
+	public void maintainListIntegrity() throws IOException {
+		storage_logger.log(Level.FINE, "Checking list integrity");
+		LinkedList<Task> no_id_tasks = new LinkedList<Task>();
+		LinkedList<Task> wrong_tasks = new LinkedList<Task>();
+		
+		for (Task task : list_task) {
+			if (task.hasNoId()) {
+				no_id_tasks.add(task);
+			}
+			else if (task.isCompleted() || task.isFloating() || task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_floating) {
+			if (task.hasNoId()) {
+				no_id_tasks.add(task);
+			}
+			else if (!task.isFloating()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		for (Task task : list_overdue) {
+			if (!task.isOverdue()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		no_id_tasks.clear();
+		for (Task task : list_completed) {
+			if (!task.isCompleted()) {
+				wrong_tasks.add(task);
+			}
+		}
+		
+		if (no_id_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks with no IDs");
+		}
+		
+		if (wrong_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks in the wrong files");
+		}
+		
+		list_floating.removeAll(no_id_tasks);
+		list_overdue.removeAll(no_id_tasks);
+		list_task.removeAll(no_id_tasks);
+		list_completed.removeAll(no_id_tasks);
+		
+		list_floating.removeAll(wrong_tasks);
+		list_overdue.removeAll(wrong_tasks);
+		list_task.removeAll(wrong_tasks);
+		list_completed.removeAll(wrong_tasks);
+		
+		for (Task task : wrong_tasks) {
+			retrieveTaskList(task).add(task);
+		}
+		buildIDTable();
+		compactIndex();
+		save();
+	}
+	
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\StorageJUnitTest.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\StorageJUnitTest.java
 	 */
 
-import static org.junit.Assert.*;
+package speed.storage;
+
+import org.junit.Test;
+
+import speed.task.Task;
+import speed.task.TaskComparator;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class StorageJUnitTest {
 
@@ -583,10 +571,14 @@ public class StorageJUnitTest {
 			 * In addition, these tasks will be reused for later tests
 			 * 
 			 * WARNING: Due to time sensitivity of overdue tasks, it is assumed
-			 * these tests are not used by 2015. Also all recurring tasks will
+			 * these tests are not used by 26 Nov 2015. Also all recurring tasks will
 			 * only contribute to the normal tasks file (no overdue). However
 			 * since retrieveTaskFile() is independent of recurrence generation,
 			 * it is assumed that the result is the same for overdue tasks.
+			 * 
+			 * NOTE: The software on a whole recognises tags by special signs. In this
+			 * unit test, however, arbitrary tags are added without needing those
+			 * signs
 			*/
 			
 			System.out.println("Task tests");
@@ -598,7 +590,7 @@ public class StorageJUnitTest {
 			task1.setTaskName("Submit Developer Guide");
 			Calendar task1_date = Calendar.getInstance();
 			task1_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			task1.setDate(task1_date);
+			task1.setDates(task1_date, task1_date, -1, -1, null);			//start date same as end date
 			task1.addTag("school");
 			task1.addTag("CS2101");
 			task1.addTag("CS2103T");
@@ -608,20 +600,31 @@ public class StorageJUnitTest {
 			Calendar task1_test_end_date = Calendar.getInstance();
 			task1_test_end_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 01);
 
+			//Task name check
 			test(task1.getTaskName(), "Submit Developer Guide");
+			//Tags check
 			test(task1.getTags().size(), 3);
-			test(task1.getTags().get(0), "school");
-			test(task1.getTags().get(1), "CS2101");
-			test(task1.getTags().get(2), "CS2103T");
+			test(task1.getTags().get(0), "CS2101");
+			test(task1.getTags().get(1), "CS2103T");
+			test(task1.getTags().get(2), "school");
+			test(task1.getTagsAsString(), "CS2101, CS2103T, school");
+			//dates check
 			test(task1.getStartDate(), task1_date);
 			test(task1.getEndDate(), task1_date);
 			test(task1.getDate(), task1_date);
+			test(task1.getDateAsString(), "Wed 26-Nov-14 13:00 PM");
+			test(task1.getDateCompleted(), null);
+			//boolean checks
+			test(task1.isFloating(), false);
+			test(task1.isOverdue(), false);
+			test(task1.isCompleted(), false);
+			test(task1.isRecur(), false);
 			test(task1.withinDateRange(task1_test_start_date,
 					task1_test_end_date), true);
 			task1_test_start_date.set(2014, Calendar.NOVEMBER, 26, 13, 00, 00);
-			test(task1.withinDateRange(task1_test_start_date,
+			test(task1.withinDateRange(task1_test_start_date,					//Observation: This returns false at times. Waiting a while and testing it again returns true. May be a time sensitive issue
 					task1_test_end_date), true);
-			test(task1.withinDateRange(null, null), true);
+			test(task1.withinDateRange(null, null), true);						//Empty search date
 
 			// Task 2: Task with interval
 			Task task2 = new Task();
@@ -630,7 +633,7 @@ public class StorageJUnitTest {
 			task2_start_date.set(2014, Calendar.NOVEMBER, 27, 13, 00, 00);
 			Calendar task2_end_date = Calendar.getInstance();
 			task2_end_date.set(2014, Calendar.NOVEMBER, 27, 15, 00, 00);
-			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order
+			task2.setDates(task2_end_date, task2_start_date);					//insert in wrong order. Task should automatically right it
 			task2.addTag("school");
 			task2.addTag("MA3110");
 			task2.addTag("exams");
@@ -651,7 +654,6 @@ public class StorageJUnitTest {
 			task2_test_end_date.set(2014, Calendar.NOVEMBER, 27, 14, 30, 00);
 			test(task2.withinDateRange(task2_test_start_date,
 					task2_test_end_date), true);
-			test(task2.isFloating(), false);
 
 			// Task 3: Overdue Task
 			// Note: Overdue check generates an instance of the current date. Test
@@ -682,7 +684,7 @@ public class StorageJUnitTest {
 			test(task4.isFloating(), true);
 			
 			/*
-			 * No tests here. All recurring is only activated during Storage insertion
+			 * All recurring is only activated during Storage insertion
 			 * Due to sensitivity of Calendar fields, tests will check all
 			 * fields that can be recurred (YEAR, MONTH, WEEK, DAY)
 			 */
@@ -697,9 +699,10 @@ public class StorageJUnitTest {
 			task5_start_date.set(2014, Calendar.SEPTEMBER, 29, 00, 00, 00);
 			Calendar task5_end_date = Calendar.getInstance();
 			task5_end_date.set(2014, Calendar.SEPTEMBER, 29, 23, 59, 59);
-			task5.setDates(task5_start_date, task5_end_date);
-			task5.setRecur(Calendar.YEAR, 1);
+			task5.setDates(task5_start_date, task5_end_date, Calendar.YEAR, 1, null);
 			task5.setCompleted();
+			test(task5.isRecur(), true);
+			test(task5.isCompleted(), true);
 
 			// Task 6: Recurring Task (MONTH)
 			//contains a limit
@@ -709,9 +712,7 @@ public class StorageJUnitTest {
 			task6_date.set(2016, Calendar.JANUARY, 1, 00, 00, 00);
 			Calendar task6_limit = Calendar.getInstance();
 			task6_limit.set(2017, Calendar.DECEMBER, 30, 00, 00, 00);
-			task6.setDate(task6_date);
-			task6.setRecur(Calendar.MONTH, 1);
-			task6.setRecurLimit(task6_limit);
+			task6.setDates(task6_date, task6_date, Calendar.MONTH, 1, task6_limit);
 
 			// Task 7: Recurring Task (WEEK)
 
@@ -737,22 +738,13 @@ public class StorageJUnitTest {
 			task8.setRecur(Calendar.DAY_OF_YEAR, 1);
 			task8.setRecurLimit(task8_limit);
 
-			// Visual check to see if dates are sorted correctly
-
-			/*
-			LinkedList<String> task1_sorted_dates = task1.getTaskDatesSorted();
-			for (String date : task1_sorted_dates) {
-				System.out.println(date);
-			}
-			*/
-
 			// completed tasks
 			
 			task3.setDateCompleted(Calendar.getInstance());
 			test(task3.isCompleted(), true);
 			test(task3.isOverdue(), false);
 			test(task3.isFloating(), false);
-			task3.setDateCompleted(null);
+			task3.setIncomplete();
 			test(task3.isCompleted(), false);
 			test(task3.isOverdue(), true);
 			
@@ -760,11 +752,37 @@ public class StorageJUnitTest {
 			test(task4.isFloating(), false);
 			test(task4.isCompleted(), true);
 			task4.setDateCompleted(null);
+			test(task4.isFloating(), true);
+			test(task4.isCompleted(), false);
 			
 			
 			// TaskComparator test
 			
+			/*
+			 * NOTE: In the Storage and the overall software, floating, overdue,
+			 * completed and normal tasks are supposed to be separate from each other.
+			 */
 			
+			ArrayList<Task> sorted_list = new ArrayList<Task>();
+			sorted_list.add(task1);
+			sorted_list.add(task2);
+			sorted_list.add(task3);
+			sorted_list.add(task4);
+			sorted_list.add(task5);
+			sorted_list.add(task6);
+			sorted_list.add(task7);
+			sorted_list.add(task8);
+			
+			Collections.sort(sorted_list, new TaskComparator());
+			
+			test(sorted_list.get(0).getTaskName(), task3.getTaskName());
+			test(sorted_list.get(1).getTaskName(), task4.getTaskName());
+			test(sorted_list.get(2).getTaskName(), task1.getTaskName());
+			test(sorted_list.get(3).getTaskName(), task2.getTaskName());
+			test(sorted_list.get(4).getTaskName(), task7.getTaskName());
+			test(sorted_list.get(5).getTaskName(), task8.getTaskName());
+			test(sorted_list.get(6).getTaskName(), task6.getTaskName());
+			test(sorted_list.get(7).getTaskName(), task5.getTaskName());
 
 			// Storage
 			// tests*********************************************************************
@@ -966,19 +984,20 @@ public class StorageJUnitTest {
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\StorageJUnitTest.java
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\StorageJUnitTest.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Task.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\Task.java
 	 */
 
+package speed.task;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
+
 import java.text.SimpleDateFormat;
 
 /*
@@ -1001,12 +1020,12 @@ public class Task {
 	private Integer id;
 	private String taskName;
 	private String displayId;
-	private Calendar start_date;
-	private Calendar end_date;
+	private Calendar startDate;
+	private Calendar endDate;
 	private Calendar dateCompleted;
-	private Integer recur_pattern;
-	private Integer recur_period;
-	private Calendar recur_limit;								//NOT USED as of V0.4. Always null
+	private Integer recurPattern;
+	private Integer recurPeriod;
+	private Calendar recurLimit;								//NOT USED as of V0.4. Always null
 	private ArrayList<String> tags;
 
 	//Constructors******************************************************************************
@@ -1027,12 +1046,12 @@ public class Task {
 		this.id = taskId;
 		this.displayId = displayId;
 		this.taskName = taskName;
-		this.start_date = taskStartDate;
-		this.end_date = taskEndDate;
+		this.startDate = taskStartDate;
+		this.endDate = taskEndDate;
 		this.dateCompleted = taskDateCompleted;
-		this.recur_pattern = recur;
-		this.recur_period = recurPeriod;
-		this.recur_limit = recurLimit;
+		this.recurPattern = recur;
+		this.recurPeriod = recurPeriod;
+		this.recurLimit = recurLimit;
 		this.tags = taskTag;
 	}
 
@@ -1054,7 +1073,7 @@ public class Task {
 		return this.id;
 	}
 
-	public boolean hasNoID() {
+	public boolean hasNoId() {
 		return id == null || id < 0;
 	}
 
@@ -1142,11 +1161,11 @@ public class Task {
 			startdate = (Calendar) enddate.clone();
 		}
 		
-		this.start_date = startdate;
-		this.end_date = enddate;
-		this.recur_pattern = recurpattern;
-		this.recur_period = recurperiod;
-		this.recur_limit = recurlimit;
+		this.startDate = startdate;
+		this.endDate = enddate;
+		this.recurPattern = recurpattern;
+		this.recurPeriod = recurperiod;
+		this.recurLimit = recurlimit;
 	}
 
 	/*
@@ -1184,20 +1203,20 @@ public class Task {
 	 * WARNING: Can lead to potential abuse. Use with caution.
 	 */
 	private void setStartDate(Calendar startdate) {
-		this.start_date = startdate;
+		this.startDate = startdate;
 	}
 
 	private void setEndDate(Calendar enddate) {
-		this.end_date = enddate;
+		this.endDate = enddate;
 	}
 	
 	public void setRecur(Integer pattern, Integer period) {
-		this.recur_pattern = pattern;
-		this.recur_period = period;
+		this.recurPattern = pattern;
+		this.recurPeriod = period;
 	}
 
 	public void setRecurLimit(Calendar limit) {
-		this.recur_limit = limit;
+		this.recurLimit = limit;
 	}
 
 	/*
@@ -1205,11 +1224,11 @@ public class Task {
 	 */
 	
 	public Calendar getStartDate() {
-		return this.start_date;
+		return this.startDate;
 	}
 
 	public Calendar getEndDate() {
-		return this.end_date;
+		return this.endDate;
 	}
 	
 	/*
@@ -1217,19 +1236,19 @@ public class Task {
 	 * NOT USED as of V0.4.
 	 */
 	public Calendar getDate() {
-		return this.end_date;
+		return this.endDate;
 	}
 	
 	public Integer getRecurPattern() {
-		return this.recur_pattern;
+		return this.recurPattern;
 	}
 	
 	public Integer getRecurPeriod() {
-		return this.recur_period;
+		return this.recurPeriod;
 	}
 
 	public Calendar getRecurLimit() {
-		return this.recur_limit;
+		return this.recurLimit;
 	}
 	
 	/*
@@ -1239,9 +1258,9 @@ public class Task {
 	 * Non-null start and end dates (not floating)
 	 */
 	public boolean isRecur() {
-		return this.recur_pattern != RECUR_PATTERN_INVALID &&
-				this.recur_period >= RECUR_PERIOD_VALID_MINIMUM &&
-				this.start_date != null && this.end_date != null;
+		return this.recurPattern != RECUR_PATTERN_INVALID &&
+				this.recurPeriod >= RECUR_PERIOD_VALID_MINIMUM &&
+				this.startDate != null && this.endDate != null;
 	}
 
 	/*
@@ -1251,34 +1270,61 @@ public class Task {
 	 */
 
 	public String getStartDateAsString() {
-		if (this.start_date == null) {
+		if (this.startDate == null) {
 			return "";
 		}
-		return sdf.format(start_date.getTime());
+		return sdf.format(startDate.getTime());
 	}
 
 	public String getEndDateAsString() {
-		if (this.end_date == null) {
+		if (this.endDate == null) {
 			return "";
 		}
-		return sdf.format(end_date.getTime());
+		return sdf.format(endDate.getTime());
 	}
 
 	public String getDateAsString() {
-		if (isFloating()) {
+		if (this.startDate == null && this.endDate == null) {
 			return "";
 		}
-		if (this.start_date == null) {
-			return sdf.format(end_date.getTime());
+		if (this.startDate == null) {
+			return sdf.format(endDate.getTime());
 		}
-		if (this.end_date == null) {
-			return sdf.format(start_date.getTime());
+		if (this.endDate == null) {
+			return sdf.format(startDate.getTime());
 		}
-		if (this.start_date.equals(this.end_date)) {
-			return sdf.format(end_date.getTime());
+		if (this.startDate.equals(this.endDate)) {
+			return sdf.format(endDate.getTime());
 		}
-		return sdf.format(start_date.getTime()) + " -\n"
-				+ sdf.format(end_date.getTime());
+		return sdf.format(startDate.getTime()) + " -\n"
+				+ sdf.format(endDate.getTime());
+	}
+	
+	public String getRecurAsString() {
+		String result = "every ";
+		if (recurPeriod > 1) {
+			result += recurPeriod + " ";
+		}
+		switch (this.recurPattern) {
+			case Calendar.YEAR:
+				result += "year";
+				break;
+			case Calendar.MONTH:
+				result += "month";
+				break;
+			case Calendar.WEEK_OF_YEAR:
+				result += "week";
+				break;
+			case Calendar.DAY_OF_YEAR:
+				result += "day";
+				break;
+			default:
+				return "";
+		}
+		if (recurPeriod > 1) {
+			result += "s";
+		}
+		return result;
 	}
 
 	// Task Completed******************************************************************
@@ -1299,11 +1345,15 @@ public class Task {
 	 */
 	public void setCompleted() {
 		Calendar dateCompleted = Calendar.getInstance();
-		if (this.end_date != null) {
-			dateCompleted = (Calendar) this.end_date.clone();
+		if (this.endDate != null) {
+			dateCompleted = (Calendar) this.endDate.clone();
 			dateCompleted.add(Calendar.SECOND, 1);
 		}
 		setDateCompleted(dateCompleted);
+	}
+	
+	public void setIncomplete() {
+		setDateCompleted(null);
 	}
 
 	public Calendar getDateCompleted() {
@@ -1314,10 +1364,10 @@ public class Task {
 		if (this.dateCompleted == null) {
 			return false;
 		}
-		if (this.end_date == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
+		if (this.endDate == null && this.dateCompleted != null) {		//assumption that start_date.equals == null and start_date <= end_date
 			return true;
 		}
-		return this.dateCompleted.after(this.end_date);					//assumption that start_date.equals(end_date)
+		return this.dateCompleted.after(this.endDate);					//assumption that start_date.equals(end_date)
 	}
 
 	/*
@@ -1339,7 +1389,7 @@ public class Task {
 	 * ASSUMPTION: start_date == null iff end_date == null.
 	 */
 	public boolean isFloating() {
-		return this.start_date == null && this.end_date == null
+		return this.startDate == null && this.endDate == null
 				&& this.dateCompleted == null;
 	}
 
@@ -1357,10 +1407,10 @@ public class Task {
 			return false;
 		}
 
-		assert end_date != null;
+		assert endDate != null;
 		Calendar now = Calendar.getInstance();
 		
-		if (this.end_date.before(now)) {
+		if (this.endDate.before(now)) {
 			return true;
 		}
 
@@ -1378,10 +1428,10 @@ public class Task {
 		if (isOverdue()) {
 			return true;
 		}
-		if (start_date == null || start_date.before(this.end_date)
-				|| start_date.equals(this.end_date)) {
-			if (end_date == null || end_date.after(this.start_date)
-					|| end_date.equals(this.start_date)) {
+		if (start_date == null || start_date.before(this.endDate)
+				|| start_date.equals(this.endDate)) {
+			if (end_date == null || end_date.after(this.startDate)
+					|| end_date.equals(this.startDate)) {
 				return true;
 			}
 		}
@@ -1391,6 +1441,7 @@ public class Task {
 	// Task Tags**********************************************************************
 	public void addTag(String tag) {
 		this.tags.add(tag);
+		this.tags.sort(null);
 	}
 	
 	public void removeTag(String tag) {
@@ -1439,18 +1490,18 @@ public class Task {
 		Task task = new Task();
 		task.setId(this.id);
 		task.setTaskName(this.taskName);
-		if (this.start_date != null) {
-			task.setStartDate((Calendar) this.start_date.clone());
+		if (this.startDate != null) {
+			task.setStartDate((Calendar) this.startDate.clone());
 		}
-		if (this.end_date != null) {
-			task.setEndDate((Calendar) this.end_date.clone());
+		if (this.endDate != null) {
+			task.setEndDate((Calendar) this.endDate.clone());
 		}
 		if (this.dateCompleted != null) {
 			task.setDateCompleted((Calendar) this.dateCompleted.clone());
 		}
-		task.setRecur(this.recur_pattern, this.recur_period);
-		if (this.recur_limit != null) {
-			task.setRecurLimit((Calendar) this.recur_limit.clone());
+		task.setRecur(this.recurPattern, this.recurPeriod);
+		if (this.recurLimit != null) {
+			task.setRecurLimit((Calendar) this.recurLimit.clone());
 		}
 		for (String tag : tags) {
 			task.addTag(tag);
@@ -1459,8 +1510,29 @@ public class Task {
 	}
 }
 
-class TaskComparator implements Comparator<Task> {
-	public int compare(Task a, Task b) {
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\Task.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\TaskComparator.java
+	 */
+
+package speed.task;
+
+import java.util.Comparator;
+
+ public class TaskComparator implements Comparator<Task> {
+	 public int compare(Task a, Task b) {
+		if (!a.isCompleted() && b.isCompleted()) {
+			return -1;
+		}
+		if (a.isCompleted() && !b.isCompleted()) {
+			return 1;
+		}
 		if (a.isOverdue() && !b.isOverdue()) {
 			return -1;
 		}
@@ -1485,7 +1557,7 @@ class TaskComparator implements Comparator<Task> {
 		return 1;
 	}
 }
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Task.java
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\task\TaskComparator.java
 
 
 

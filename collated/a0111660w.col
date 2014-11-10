@@ -3,7 +3,144 @@
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Storage.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\MainController.java
+	 */
+
+	// System
+	// Test****************************************************************************
+
+	// Test variables********************************************************
+	// placed below for the ease of collating
+
+	private static final String TEST_TASK_FILENAME = "systestt.txt";
+	private static final String TEST_FLOATING_TASK_FILENAME = "systestf.txt";
+	private static final String TEST_OVERDUE_TASK_FILENAME = "systesto.txt";
+	private static final String TEST_COMPLETED_TASK_FILENAME = "systestc.txt";
+
+	private static final String TEST_INPUT_FILENAME = "systestinput.txt";
+	private static final String TEST_EXPECTED_FILENAME = "systestexpected.txt";
+
+	private static final int TEST_SEARCH_LIMIT = 30;
+	private static final String EMPTY_SPACE = " ";
+
+	private ArrayList<Task> t_searchResults;
+	private Parser t_parser;
+	private TreeMap<String, Task> t_taskIDmap;
+	private Storage t_storage;
+	private LogicHandler t_logic;
+	private SearchHandler t_searcher;
+
+	/*
+	 * Runs a system test by initialising test variables and running a series of
+	 * commands from an input file(sytestinput.txt). After that checks the
+	 * displayed tasks' tasknames against an expected output
+	 * file(systextexpected.txt). A message stating success or failure (where it
+	 * failed) is returned.
+	 * 
+	 * WARNING: Due to time sensitivity, the test expected file must be changed
+	 * on a weekly basis. E.g. adding of test from Wed - Fri as the dates will change with time.
+	 */
+
+	private String runSystemTest() {
+		try {
+			t_parser = new Parser();
+			t_storage = new Storage(TEST_TASK_FILENAME,
+					TEST_FLOATING_TASK_FILENAME, TEST_OVERDUE_TASK_FILENAME,
+					TEST_COMPLETED_TASK_FILENAME);
+			t_storage.clearAll();
+			t_logic = new LogicHandler(t_storage);
+			t_searcher = new SearchHandler(t_storage);
+
+			t_searchResults = t_searcher.viewDefault();
+			t_taskIDmap = new TreeMap<String, Task>();
+			createTestTaskIDmap();
+
+			BufferedReader t_reader = new BufferedReader(new FileReader(
+					new File(TEST_INPUT_FILENAME)));
+			BufferedReader e_reader = new BufferedReader(new FileReader(
+					new File(TEST_EXPECTED_FILENAME)));
+
+			String input = null;
+			int line = 0;
+			while ((input = t_reader.readLine()) != null) {
+				line++;
+				Command t_command = t_parser.parseCommand(input);
+				assert t_command.getCommandType() != Command.COMMAND_TYPE.TEST;
+				if (isLogic(t_command)) {
+					t_logic.executeCommand(t_taskIDmap, t_command);
+					t_searchResults = t_searcher.repeatLastSearch();
+					createTestTaskIDmap();
+				} else {
+					t_searchResults = t_searcher.proceedCommand(t_command);
+					createTestTaskIDmap();
+				}
+				int search_limit;
+				if (t_searchResults.size() < TEST_SEARCH_LIMIT) {
+					search_limit = t_searchResults.size();
+				} else {
+					search_limit = TEST_SEARCH_LIMIT;
+				}
+				for (int i = 0; i < search_limit; i++) {
+					String taskName = t_searchResults.get(i).getTaskName();
+					String date = t_searchResults.get(i).getStartDateAsString()
+							+ EMPTY_SPACE + t_searchResults.get(i).getEndDateAsString();
+					String tags = t_searchResults.get(i).getTagsAsString();
+					String testInputLine = taskName + EMPTY_SPACE + tags + EMPTY_SPACE + date;
+					testOneLine(testInputLine, e_reader.readLine(), line);
+				}
+			}
+
+			// delete the created test files
+			t_storage.clearAll();
+			File t_file = new File(TEST_TASK_FILENAME);
+			t_file.delete();
+			t_file = new File(TEST_FLOATING_TASK_FILENAME);
+			t_file.delete();
+			t_file = new File(TEST_OVERDUE_TASK_FILENAME);
+			t_file.delete();
+			t_file = new File(TEST_COMPLETED_TASK_FILENAME);
+			t_file.delete();
+			t_reader.close();
+			e_reader.close();
+			return "Tests successful!";
+		} catch (Exception e) {
+			return e.getMessage();
+		}
+	}
+
+	private void testOneLine(String actual, String expected, int i)
+			throws Exception {
+		if (!actual.equals(expected)) {
+			System.out.println("MISMATCH: Line " + i + EMPTY_SPACE + actual + EMPTY_SPACE
+					+ expected);
+			throw new Exception("MISMATCH: Line " + i + EMPTY_SPACE + actual + EMPTY_SPACE
+					+ expected);
+
+		}
+	}
+
+	private void createTestTaskIDmap() {
+		t_taskIDmap = new TreeMap<String, Task>();
+		int index_number = 1;
+
+		for (int i = 0; i < t_searchResults.size(); i++) {
+			Task task = t_searchResults.get(i);
+			String key = getChar(task) + Integer.toString(index_number);
+			t_taskIDmap.put(key, task);
+			task.setDisplayId(key);
+			index_number++;
+		}
+	}
+
+}
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\controller\MainController.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
 	 */
 
 	//File Operations********************************************************
@@ -13,7 +150,7 @@
 	 * priority queues to files given by the input filenames.
 	 */
 	
-	class FileHandler {
+	class TaskFileReader {
 		
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
@@ -24,7 +161,7 @@
 		
 		// Constructor******************************************************
 		
-		public FileHandler(String t_fn, String f_fn, String o_fn, String c_fn) {
+		public TaskFileReader(String t_fn, String f_fn, String o_fn, String c_fn) {
 			this.task_filename = t_fn;
 			this.floating_task_filename = f_fn;
 			this.overdue_task_filename = o_fn;
@@ -70,13 +207,13 @@
 		// Interfaces with the textFiles(databases)*************************
 		private String determineFileName(PriorityQueue<Task> fileToWrite) {
 			String filename = "";
-			if (fileToWrite == al_task) {
+			if (fileToWrite == list_task) {
 				filename = task_filename;
-			} else if (fileToWrite == al_task_floating) {
+			} else if (fileToWrite == list_floating) {
 				filename = floating_task_filename;
-			} else if (fileToWrite == al_task_completed) {
+			} else if (fileToWrite == list_completed) {
 				filename = completed_task_filename;
-			} else if (fileToWrite == al_task_overdue) {
+			} else if (fileToWrite == list_overdue) {
 				filename = overdue_task_filename;
 			} else {
 				throw new Error("Invalid file to write to");
@@ -87,170 +224,595 @@
 	
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\Storage.java
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\storage\Storage.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UI.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UI.java
 	 */
 
+package speed.view;
+
 import java.util.ArrayList;
-
-import javafx.collections.ListChangeListener;
-
-import org.controlsfx.control.NotificationPane;
-
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import speed.task.Task;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableColumn.CellDataFeatures;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.util.Callback;
-
 
 public class UI extends FlowPane {
 	private ArrayList<UIObserver> uiObserver;
+	private UIKeyEventHandler uiKeyEventHandler;
+	private UITaskDetailsView uiTaskDetailsView;
+	private UITaskTableView uiTaskTableView;
+	private Task taskUserSelected = null;
 
-	// topmost Container
-	private VBox taskView;
-
-	// component 1 of taskView
+	private VBox root;
 	private HBox split;
 
-	// view 1 of split
-	private VBox taskTableView;
-	private TableView<Task> taskTable;
-	// End view 1 of split
-
-	// view 2 of split
-	private VBox taskDetailsView;
-
-	private ObservableList<Task> dataToDisplay;
-	private ArrayList<Task> displayTasks = new ArrayList<Task>();
-
-	private final Label taskIDLbl = new Label("Task ID: ");
-	private final TextField taskIDtf = new TextField();
-	private final Label taskNameLbl = new Label("Task Name: ");
-	private final TextArea taskNameta = new TextArea();
-	private final Label taskStartDtesLbl = new Label("Task Dates: ");
-	private final TextArea taskStartDtesta = new TextArea();
-	private final Label taskTagsLbl = new Label("Task Tags: ");
-	private final TextArea taskTagsta = new TextArea();
-	private Task taskUserSelected = null;
-	// End view 2 of split
-
-	// rest of components of taskView
-	private TextField userCommands;
-	private ArrayList<String> userCommandsHistory;
-	private int userCommandsHistoryCounter;
-	private NotificationPane notificationPane;
+	protected TextField userCommands;
+	protected ArrayList<String> userCommandsHistory;
+	protected int userCommandsHistoryCounter;
 
 	// Dimensions
-	private static final double WIDTH_OF_PROGRAM = 950;
-	private static final double WIDTH_OF_TASKVIEW_INSET_SPACING = 20;
-
-	private static final double WIDTH_OF_TASKTABLE = 580;
-	private static final double HEIGHT_OF_TASKTABLE = 500;
-	private static final double WIDTH_OF_TASKLBLCOL = 40;
-	private static final double WIDTH_OF_TASKNAMECOL = 300;
-	private static final double WIDTH_OF_TASKSTARTENDDATECOL = 200;
-
-	private static final double WIDTH_OF_SPLIT2 = 350;
-	private static final double HEIGHT_OF_NOTIFICATIONPANE = 100;
-	private static final int HEIGHT_OF_TEXTAREAS = 60;
-
-	private static final double HEIGHT_OF_USERCOMMANDS = 10;
-	private static final double WIDTH_OF_USERCOMMANDS = WIDTH_OF_PROGRAM
-			- WIDTH_OF_TASKVIEW_INSET_SPACING - WIDTH_OF_TASKVIEW_INSET_SPACING
-			- WIDTH_OF_TASKLBLCOL;
+	protected static final double WIDTH_OF_PROGRAM = 960;
+	protected static final double WIDTH_OF_TASKVIEW_INSET_SPACING = 20;
+	protected static final double HEIGHT_OF_USERCOMMANDS = 10;
+	protected static final double WIDTH_OF_USERCOMMANDS = WIDTH_OF_PROGRAM - 2
+			* UITaskDetailsView.WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING - 3
+			* WIDTH_OF_TASKVIEW_INSET_SPACING
+			- UITaskTableView.WIDTH_OF_TASKLBLCOL; // for Alignment
 
 	// Program values
-	private static final int TIMEOUT = 4000;
 	private static final String PROGRAM_NAME = "SPEED";
 	private static final String EMPTY_STRING = "";
-	private static final String PREVIOUS_USER_COMMAND = "previous";
-	private static final String NEXT_USER_COMMAND = "next";
-	private static final String REGEX_NUMBERS_ONLY = "^[0-9]*$";
-	private static final String ADDBLANKNEXTLINE = "\n";
 
 	// CSS
 	private static final String CSS_MAIN_TASKVIEW = "myStyles.css";
 	private static final String CSS_USERCOMMANDS = "inputText";
-	private static final String CSS_TASKIDCOL = "task-id-column";
-	private static final String CSS_VIEW2COMPONENTS = "view2Split";
-	private static final String CSS_TEXTAREA = "textarea";
-	private static final String CSS_NOTIFICATIONPANE = "notificationpane";
-
-	// Errors
-	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
-	private static final String ERROR_USERCOMMAND_HOTKEY = "Unrecognized User Command Hot Key";
-	private static final String ERROR_RETRIEVECOMMANDHISTORY = "There should not be any other commands.";
-	private static final String ERROR_SIZEOUTOFBOUNDS = "Size should not be out of bounds";
-
-	enum HotKey {
-		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID, TASKTABLE_DELETE, TASKTABLE_INVALID, TASKTABLE_EDIT
-	};
 
 	public UI() {
-		initTaskView(); // topmost Container(root)
+		initRoot();
 		initUserCommandsHistory();
-		initNotificationPane();
-
-		initSplit(); // Split: HBox containing 2 views
-
-		// taskTableView: contains taskTable. View 1 of
-		// Split.*************************
-		initTaskTable();
+		initSplit();
+		initUIKeyEventHandler();
 		initTaskTableView();
-
-		// View 2 of split
 		initTaskDetailsView();
-
-		// adding Views to Split
-		doSplitAddViews();
-
 		initUserCommands();
-
-		// Add Views to taskView(main view)
-		doTaskViewAddViews();
-
-		doDefaultUserCommands();
 		initObservers();
+
+		doSplitAddViews();
+		doRootAddViews();
+		doDefaultUserCommands();
+
 	}
 
-	private void initTaskView() {
-		taskView = new VBox();
-		taskView.setPrefWidth(WIDTH_OF_PROGRAM);
-		taskView.setPadding(new Insets(WIDTH_OF_TASKVIEW_INSET_SPACING,
+	// Initiate all Views and Default actions for the start up of UI.
+	private void initRoot() {
+		root = new VBox();
+		root.setPrefWidth(WIDTH_OF_PROGRAM);
+		root.setPadding(new Insets(WIDTH_OF_TASKVIEW_INSET_SPACING,
 				WIDTH_OF_TASKVIEW_INSET_SPACING,
 				WIDTH_OF_TASKVIEW_INSET_SPACING,
 				WIDTH_OF_TASKVIEW_INSET_SPACING));
-		taskView.setSpacing(WIDTH_OF_TASKVIEW_INSET_SPACING);
+		root.setSpacing(WIDTH_OF_TASKVIEW_INSET_SPACING);
 	}
 
 	private void initUserCommandsHistory() {
 		userCommandsHistory = new ArrayList<String>();
 	}
 
+	private void initSplit() {
+		split = new HBox();
+		split.setSpacing(WIDTH_OF_TASKVIEW_INSET_SPACING);
+	}
+
+	private void initUIKeyEventHandler() {
+		this.uiKeyEventHandler = new UIKeyEventHandler(this);
+	}
+
+	private void initTaskTableView() {
+		this.uiTaskTableView = new UITaskTableView(this);
+	}
+
+	private void initTaskDetailsView() {
+		this.uiTaskDetailsView = new UITaskDetailsView();
+	}
+
+	private void initUserCommands() {
+		userCommands = new TextField(EMPTY_STRING);
+		userCommands.setId(CSS_USERCOMMANDS);
+		userCommands.setMaxWidth(WIDTH_OF_USERCOMMANDS);
+		userCommands.setTranslateX(UITaskTableView.WIDTH_OF_TASKLBLCOL + 2
+				* UITaskDetailsView.WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING
+				+ WIDTH_OF_TASKVIEW_INSET_SPACING); // alignment
+
+		userCommands.setPrefHeight(HEIGHT_OF_USERCOMMANDS);
+
+		userCommands.setOnKeyPressed(new EventHandler<KeyEvent>() {
+			@Override
+			public void handle(KeyEvent ke) {
+				uiKeyEventHandler.doRequestedUserCommandsKeyEvent(ke);
+			}
+		});
+	}
+
+	private void initObservers() {
+		uiObserver = new ArrayList<UIObserver>();
+	}
+
+	private void doSplitAddViews() {
+		split.getChildren().addAll(uiTaskTableView, uiTaskDetailsView);
+	}
+
+	private void doRootAddViews() {
+		root.getChildren().addAll(split, userCommands);
+	}
+
+	protected void doDefaultUserCommands() {
+		userCommands.setText(EMPTY_STRING);
+		userCommands.requestFocus();
+	}
+
+	// *********************************ACCESSORS WITHIN UI PACKAGE**********************************************
+	protected void setTaskUserSelected(Task task) {
+		this.taskUserSelected = task;
+	}
+
+	protected Task getTaskUserSelected() {
+		return this.taskUserSelected;
+	}
+
+	protected UITaskTableView getUITaskTableView() {
+		if (this.uiTaskTableView == null) {
+			this.uiTaskTableView = new UITaskTableView(this);
+		}
+		return this.uiTaskTableView;
+	}
+
+	protected UITaskDetailsView getUITaskDetailsView() {
+		if (this.uiTaskDetailsView == null) {
+			this.uiTaskDetailsView = new UITaskDetailsView();
+		}
+		return this.uiTaskDetailsView;
+	}
+
+	protected UIKeyEventHandler getUIKeyEventHandler() {
+		if (this.uiKeyEventHandler == null) {
+			this.uiKeyEventHandler = new UIKeyEventHandler(this);
+		}
+		return this.uiKeyEventHandler;
+	}
+
+	protected String getUserCommands() {
+		return this.userCommands.getText();
+	}
+
+	protected void setUserCommands(String text) {
+		this.userCommands.setText(text);
+	}
+	
+
+	protected void notifyObservers() {
+		for (UIObserver observer : uiObserver) {
+			observer.update();
+		}
+	}
+
+	// *********************************END - ACCESSORS WITHIN UI PACKAGE**********************************************
+	
+	//******************** ACCESSORS CREATED FOR OTHER PACKAGES*********************************************************
+	public void addUIObserver(UIObserver observer) {
+		uiObserver.add(observer);
+	}
+	
+	public String getUserInput() {
+		return getUserCommands();
+	}
+
+	public void setNotificationToUser(String msg) {
+		getUITaskDetailsView().setNotificationToUser(msg);
+	}
+
+	public void displayTasks(ArrayList<Task> taskAL) {
+		getUITaskTableView().displayTasks(taskAL);
+		doDefaultUserCommands();
+	}
+
+	public void showStage(Stage primaryStage) {
+		Scene scene = new Scene(this.root);
+		scene.getStylesheets().add(CSS_MAIN_TASKVIEW);
+		primaryStage.setTitle(PROGRAM_NAME);
+		primaryStage.setScene(scene);
+		primaryStage.show();
+		primaryStage.setResizable(false);
+	}
+	//******************** END - ACCESSORS CREATED FOR OTHER PACKAGES*********************************************************
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UI.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UIKeyEventHandler.java
+	 */
+
+package speed.view;
+
+import java.util.ArrayList;
+import speed.task.Task;
+import javafx.scene.control.TableView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
+
+/* Description : 
+ * This class mainly reacts to the key events on two components of the 
+ * UI: userCommands:TextField and taskTable:Table and reacts accordingly.
+ * It is responsible for Creation and reaction of all Hot Keys of the UI.
+ */
+
+class UIKeyEventHandler {
+	private UI ui = null;
+
+	// Class values
+	private static final String PREVIOUS_USER_COMMAND = "previous";
+	private static final String NEXT_USER_COMMAND = "next";
+	private static final String REGEX_NUMBERS_ONLY = "^[0-9]*$";
+	private static final String EMPTY_STRING = "";
+
+	// Errors
+	private static final String ERROR_USERCOMMAND_HOTKEY = "Unrecognized User Command Hot Key";
+	private static final String ERROR_TASKTABLE_HOTKEY = "Unrecognized Task Table Hot Key";
+	private static final String ERROR_RETRIEVECOMMANDHISTORY = "There should not be any other commands.";
+	
+	enum HotKeys {
+		USERCOMMAND_ENTER, USERCOMMAND_PREVIOUSCOMMAND, USERCOMMAND_NEXTCOMMAND, 
+		USERCOMMAND_UNDO, USERCOMMAND_REDO, USERCOMMAND_INVALID, TASKTABLE_DELETE, 
+		TASKTABLE_INVALID, TASKTABLE_EDIT, TASKTABLE_UNDO, TASKTABLE_REDO
+	};
+
+	protected UIKeyEventHandler(UI ui) {
+		this.ui = ui;
+	}
+	
+	//****************************** Methods Accessible to UI PACKAGE***************************
+	protected void doRequestedUserCommandsKeyEvent(KeyEvent ke) {
+		HotKeys hotKey = determineHotKeyUserCommands(ke);
+
+		switch (hotKey) {
+		case USERCOMMAND_ENTER:
+			doUserCommand();
+			break;
+		case USERCOMMAND_PREVIOUSCOMMAND:
+			doRetrieveCommandHistory(PREVIOUS_USER_COMMAND);
+			break;
+		case USERCOMMAND_NEXTCOMMAND:
+			doRetrieveCommandHistory(NEXT_USER_COMMAND);
+			break;
+		case USERCOMMAND_UNDO:
+			doUndo();
+			break;
+		case USERCOMMAND_REDO:
+			doRedo();
+			break;
+		case USERCOMMAND_INVALID:
+			break;
+		default:
+			throw new Error(ERROR_USERCOMMAND_HOTKEY);
+		}
+	}
+	
+	protected void doRequestedTaskTableKeyEvent(KeyEvent ke) {
+		HotKeys hotKey = determineHotKeyTaskTable(ke);
+
+		switch (hotKey) {
+		case TASKTABLE_DELETE:
+			doTaskTableDelete();
+			break;
+		case TASKTABLE_EDIT:
+			doDisplayQuickEditToUserCommand();
+			break;
+		case TASKTABLE_UNDO:
+			doUndo();
+			break;
+		case TASKTABLE_REDO:
+			doRedo();
+			break;
+		case TASKTABLE_INVALID:
+			break;
+		default:
+			throw new Error(ERROR_TASKTABLE_HOTKEY);
+
+		}
+	}
+	//****************************** END - Methods Accessible to UI PACKAGE***************************
+	
+	private HotKeys determineHotKeyUserCommands(KeyEvent keyEvent) {
+
+		assert (keyEvent != null);
+		KeyCode keyCode = keyEvent.getCode();
+
+		if (keyCode.equals(KeyCode.ENTER)) {
+			return HotKeys.USERCOMMAND_ENTER;
+		} else if (keyCode.equals(KeyCode.UP)
+				&& !ui.userCommandsHistory.isEmpty()) {
+			return HotKeys.USERCOMMAND_PREVIOUSCOMMAND;
+		} else if (keyCode.equals(KeyCode.DOWN)
+				&& !ui.userCommandsHistory.isEmpty()) {
+			return HotKeys.USERCOMMAND_NEXTCOMMAND;
+		} else if (keyEvent.isControlDown()) {
+			if (keyCode.equals(KeyCode.Z)) {
+				return HotKeys.USERCOMMAND_UNDO;
+			} else if (keyCode.equals(KeyCode.Y)) {
+				return HotKeys.USERCOMMAND_REDO;
+			} else {
+				return HotKeys.USERCOMMAND_INVALID;
+			}
+		} else {
+			return HotKeys.USERCOMMAND_INVALID;
+		}
+	}
+	
+
+	private HotKeys determineHotKeyTaskTable(KeyEvent keyEvent) {
+
+		assert (keyEvent != null);
+		KeyCode keyCode = keyEvent.getCode();
+
+		if (keyCode.equals(KeyCode.DELETE)) {
+			return HotKeys.TASKTABLE_DELETE;
+		} else if (keyEvent.isControlDown()) {
+			if (keyCode.equals(KeyCode.E)) {
+				return HotKeys.TASKTABLE_EDIT;
+			} else if (keyCode.equals(KeyCode.Z)) {
+				return HotKeys.TASKTABLE_UNDO;
+			} else if (keyCode.equals(KeyCode.Y)) {
+				return HotKeys.TASKTABLE_REDO;
+			} else {
+				return HotKeys.TASKTABLE_INVALID;
+			}
+		} else {
+			return HotKeys.TASKTABLE_INVALID;
+		}
+	}
+
+	private void doUserCommand() {
+		String userInput = ui.getUserCommands();
+
+		if (userInput.equals(EMPTY_STRING)) {// ignore invalid command
+			return;
+		}
+
+		ui.userCommandsHistory.add(userInput);
+		ui.userCommandsHistoryCounter = sizeToIndex(ui.userCommandsHistory
+				.size());
+
+		if (userInput.matches(REGEX_NUMBERS_ONLY)) {
+			int taskNo = Integer.parseInt(userInput);
+			int index = taskNoToIndex(taskNo);
+
+			if (isValidIndex(index)) {
+				TableView<Task> uiTaskTable = this.ui.getUITaskTableView().getTaskTable();
+				uiTaskTable.requestFocus();
+				uiTaskTable.getSelectionModel().select(index);
+				uiTaskTable.getFocusModel().focus(index);
+			}
+			ui.setUserCommands(EMPTY_STRING);
+		} else {
+			ui.notifyObservers();
+			ui.doDefaultUserCommands();
+		}
+
+	}
+
+	private void doRetrieveCommandHistory(String command) {// updates the
+															// userCommands
+															// TextField for
+															// previously
+															// entered commands.
+		if (command.equals(PREVIOUS_USER_COMMAND)) {
+			if (isInvalidPreviousCommandExisted()) {
+				// Ignore
+			} else {
+				ui.userCommands.setText(ui.userCommandsHistory
+						.get(ui.userCommandsHistoryCounter));
+				ui.userCommandsHistoryCounter--;
+			}
+		} else if (command.equals(NEXT_USER_COMMAND)) {
+			if (isInvalidNextCommandExisted()) {
+				ui.setUserCommands(EMPTY_STRING);
+			} else {
+				ui.userCommandsHistoryCounter++;
+				ui.setUserCommands(ui.userCommandsHistory
+						.get(ui.userCommandsHistoryCounter));
+			}
+
+		} else {
+			throw new Error(ERROR_RETRIEVECOMMANDHISTORY);
+		}
+	}
+	
+	private void doUndo() {
+		ui.setUserCommands("undo");
+		ui.notifyObservers();
+	}
+
+	private void doRedo() {
+		ui.setUserCommands("redo");
+		ui.notifyObservers();
+	}
+	
+	private void doTaskTableDelete() {
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+		if (taskUserSelected != null) {
+			this.ui.setUserCommands("delete "
+					+ taskUserSelected.getDisplayId());
+			ui.notifyObservers();
+		}
+	}
+
+	private void doDisplayQuickEditToUserCommand() {
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		Task taskUserSelected = this.ui.getTaskUserSelected();
+				
+		if (!tasksList.isEmpty() || tasksList != null) {
+			String textToDisplay = "edit " + taskUserSelected.getDisplayId()
+					+ " " + taskUserSelected.getTaskName() + " ";
+			ui.doDefaultUserCommands();
+			this.ui.setUserCommands(textToDisplay);
+			ui.userCommands.positionCaret(textToDisplay.length());
+		}
+	}
+
+	
+	private int sizeToIndex(int size) {
+		if (size <= 0) {
+			//ignore
+		}
+		return size - 1;
+	}
+
+	private int taskNoToIndex(int taskNo) {
+		return taskNo - 1;
+	}
+
+	private boolean isValidIndex(int index) {
+		ArrayList<Task> tasksList = this.ui.getUITaskTableView().getTasksListForDisplay();
+		return index >= 0 && tasksList != null
+				&& !tasksList.isEmpty() && index < tasksList.size();
+	}
+
+	private boolean isInvalidPreviousCommandExisted() {
+		return ui.userCommandsHistoryCounter < 0;
+	}
+
+	private boolean isInvalidNextCommandExisted() {
+		return ui.userCommandsHistoryCounter >= ui.userCommandsHistory.size() - 1;
+	}
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UIKeyEventHandler.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UIObserver.java
+	 */
+
+package speed.view;
+
+public interface UIObserver {
+	public void update();
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UIObserver.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskDetailsView.java
+	 */
+
+package speed.view;
+
+import org.controlsfx.control.NotificationPane;
+import speed.task.Task;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+
+class UITaskDetailsView extends VBox {
+	private Label taskIDLbl;
+	private TextField taskIDtf;
+	private Label taskNameLbl;
+	private TextArea taskNameta;
+	private Label taskStartDtesLbl;
+	private TextArea taskStartDtesta;
+	private Label taskTagsLbl;
+	private TextArea taskTagsta;
+	private NotificationPane notificationPane;
+
+	// Dimensions
+	protected static final double HEIGHT_OF_TEXTAREAS = 60;
+	protected static final double HEIGHT_OF_TASKNAMETA = 110;
+	protected static final double WIDTH_OF_TASKDETAILSVIEW = 310;
+	protected static final double WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING = 10;
+	protected static final double HEIGHT_OF_NOTIFICATIONPANE = 50;
+
+	// CSS
+	private static final String CSS_VIEW2COMPONENTS = "view2Split";
+	private static final String CSS_TEXTAREA = "textarea";
+	private static final String CSS_NOTIFICATIONPANE = "notificationpane";
+
+	// Class Values
+	private static final int TIMEOUT = 4000;
+	private static final String EMPTY_STRING = "";
+
+	protected UITaskDetailsView() {
+		initTaskDetailsView();
+	}
+	
+	private void initTaskDetailsView() {
+		this.setPrefWidth(WIDTH_OF_TASKDETAILSVIEW);
+		this.setSpacing(WIDTH_OF_TASKDETAILSVIEW_INSET_SPACING);
+		initNotificationPane();
+
+		taskIDLbl = new Label("Task ID: ");
+
+		taskIDtf = new TextField();
+		taskIDtf.getStyleClass().add(CSS_VIEW2COMPONENTS);
+		taskIDtf.setDisable(true);
+
+		taskNameLbl = new Label("Task Name: ");
+		
+		taskNameta = new TextArea();
+		taskNameta.getStyleClass().add(CSS_TEXTAREA);
+		taskNameta.getStyleClass().add(CSS_VIEW2COMPONENTS);
+		taskNameta.setPrefHeight(HEIGHT_OF_TASKNAMETA);
+		taskNameta.setWrapText(true);
+		taskNameta.setDisable(true);
+
+		taskStartDtesLbl = new Label("Task Dates: ");
+		
+		taskStartDtesta = new TextArea();
+		taskStartDtesta.getStyleClass().add(CSS_TEXTAREA);
+		taskStartDtesta.getStyleClass().add(CSS_VIEW2COMPONENTS);
+		taskStartDtesta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
+		taskStartDtesta.setWrapText(true);
+		taskStartDtesta.setDisable(true);
+
+		taskTagsLbl = new Label("Task Tags: ");
+		
+		taskTagsta = new TextArea();
+		taskTagsta.getStyleClass().add(CSS_TEXTAREA);
+		taskTagsta.getStyleClass().add(CSS_VIEW2COMPONENTS);
+		taskTagsta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
+		taskTagsta.setWrapText(true);
+		taskTagsta.setDisable(true);
+
+		this.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl, taskNameta,
+				taskStartDtesLbl, taskStartDtesta, taskTagsLbl, taskTagsta,
+				notificationPane);
+
+	}
+	
 	private void initNotificationPane() {
 		notificationPane = new NotificationPane(new FlowPane());
 		notificationPane.getStyleClass().removeAll(
@@ -258,13 +820,127 @@ public class UI extends FlowPane {
 		notificationPane.getStyleClass().add(CSS_NOTIFICATIONPANE);
 		notificationPane.setShowFromTop(false);
 		notificationPane.setDisable(true);
-		notificationPane
-				.setMinSize(WIDTH_OF_SPLIT2, HEIGHT_OF_NOTIFICATIONPANE);
+		notificationPane.setMinSize(WIDTH_OF_TASKDETAILSVIEW,
+				HEIGHT_OF_NOTIFICATIONPANE);
+	}
+	
+	//***************************ACCESSORS for UI PACKAGE *********************************************
+	protected void blankTaskDetails() {
+		taskIDtf.setDisable(false);
+		taskIDtf.setText(EMPTY_STRING);
+		taskIDtf.setDisable(true);
+
+		taskNameta.setDisable(false);
+		taskNameta.setText(EMPTY_STRING);
+		taskNameta.setDisable(true);
+
+		taskStartDtesta.setDisable(false);
+		taskStartDtesta.setText(EMPTY_STRING);
+		taskStartDtesta.setDisable(true);
+
+		taskTagsta.setDisable(false);
+		taskTagsta.setText(EMPTY_STRING);
+		taskTagsta.setDisable(true);
 	}
 
-	private void initSplit() {
-		split = new HBox();
-		split.setSpacing(WIDTH_OF_TASKVIEW_INSET_SPACING);
+	protected void bindTaskDetails(Task task) {
+		if (task != null) {
+			taskIDtf.setDisable(false);
+			taskIDtf.setText(task.getDisplayId());
+			taskIDtf.setDisable(true);
+
+			taskNameta.setDisable(false);
+			taskNameta.setText(task.getTaskName());
+			taskNameta.setDisable(true);
+
+			taskStartDtesta.setDisable(false);
+			taskStartDtesta.setText(task.getDateAsString() + " "
+					+task.getRecurAsString());
+			taskStartDtesta.setDisable(true);
+
+			taskTagsta.setDisable(false);
+			taskTagsta.setText(task.getTagsAsString());
+			taskTagsta.setDisable(true);
+		}
+	}
+
+	protected void setNotificationToUser(String msg) {
+		notificationPane.setDisable(false);
+		notificationPane.show(msg);
+		hideNotificationAfter(TIMEOUT);
+		notificationPane.setDisable(true);
+
+	}
+	
+	//***************************END - ACCESSORS for UI PACKAGE *********************************************
+
+	private void hideNotificationAfter(int ms) {
+		new java.util.Timer().schedule(new java.util.TimerTask() {
+			@Override
+			public void run() {
+				notificationPane.hide();
+			}
+		}, ms);
+	}
+
+}
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskDetailsView.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskTableView.java
+	 */
+
+package speed.view;
+
+import java.util.ArrayList;
+import speed.task.Task;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn.CellDataFeatures;
+import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import javafx.util.Callback;
+
+class UITaskTableView extends VBox {
+	private UI ui;
+	private TableView<Task> taskTable;
+	private ObservableList<Task> dataToDisplay;
+	private ArrayList<Task> tasksListForDisplay = new ArrayList<Task>();
+
+	// Dimensions
+	protected static final double WIDTH_OF_TASKTABLE = 590;
+	protected static final double HEIGHT_OF_TASKTABLE = 500;
+	protected static final double WIDTH_OF_TASKLBLCOL = 40;
+	protected static final double WIDTH_OF_TASKNAMECOL = 300;
+	protected static final double WIDTH_OF_TASKSTARTENDDATECOL = 200;
+
+	// CSS
+	private static final String CSS_TASKIDCOL = "task-id-column";
+
+	// Class Values
+	private static final String ADDBLANKNEXTLINE = "\n";
+
+	protected UITaskTableView(UI ui) {
+		this.ui = ui;
+		initTaskTable();
+		setContent();
+	}
+	
+	private void setContent(){
+		this.getChildren().addAll(this.taskTable);
 	}
 
 	private void initTaskTable() {
@@ -279,10 +955,10 @@ public class UI extends FlowPane {
 					public void changed(ObservableValue<? extends Task> arg0,
 							Task arg1, Task arg2) {
 						try {
-							if (taskTable.getSelectionModel().getSelectedItem() != null) {
-								taskUserSelected = taskTable
-										.getSelectionModel().getSelectedItem();
-								bindTaskDetails(taskUserSelected);
+							Task taskUserSelected = taskTable
+									.getSelectionModel().getSelectedItem();
+							if (taskUserSelected != null) {
+								doSetTaskUserSelected(taskUserSelected);
 							}
 						} catch (Exception e) {
 							System.out.println("UI table changed Listener: "
@@ -295,20 +971,7 @@ public class UI extends FlowPane {
 		taskTable.setOnKeyPressed(new EventHandler<KeyEvent>() {
 			@Override
 			public void handle(KeyEvent ke) {
-				HotKey hotKey = determineHotKeyTaskTable(ke);
-
-				switch (hotKey) {
-				case TASKTABLE_DELETE:
-					doTaskTableDelete();
-					break;
-				case TASKTABLE_EDIT:
-					doDisplayQuickEditToUserCommand();
-				case TASKTABLE_INVALID:
-					break;
-				default:
-					throw new Error(ERROR_TASKTABLE_HOTKEY);
-
-				}
+				doRequestUIKeyEventHandler(ke);
 			}
 		});
 	}
@@ -318,7 +981,7 @@ public class UI extends FlowPane {
 
 		TableColumn<Task, String> taskLblCol = new TableColumn<Task, String>(
 				"ID");
-		taskLblCol.setPrefWidth(WIDTH_OF_TASKLBLCOL);
+		taskLblCol.setMinWidth(WIDTH_OF_TASKLBLCOL);
 		taskLblCol.setResizable(false);
 		taskLblCol.setSortable(false);
 		taskLblCol.getStyleClass().add(CSS_TASKIDCOL);
@@ -327,8 +990,8 @@ public class UI extends FlowPane {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
-						return new SimpleStringProperty((p.getValue()
+							CellDataFeatures<Task, String> row) {
+						return new SimpleStringProperty((row.getValue()
 								.getDisplayId()));
 					}
 				});
@@ -337,7 +1000,7 @@ public class UI extends FlowPane {
 				.setCellFactory(new Callback<TableColumn<Task, String>, TableCell<Task, String>>() {
 					@Override
 					public TableCell<Task, String> call(
-							TableColumn<Task, String> arg0) {
+							TableColumn<Task, String> row) {
 						return new TaskLblColTableCell();
 					}
 				});
@@ -350,10 +1013,10 @@ public class UI extends FlowPane {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
-						String taskName = p.getValue().getTaskName();
+							CellDataFeatures<Task, String> row) {
+						String taskName = row.getValue().getTaskName();
 						String taskTags = ADDBLANKNEXTLINE + ADDBLANKNEXTLINE
-								+ p.getValue().getTagsAsString();
+								+ row.getValue().getTagsAsString();
 
 						return new SimpleStringProperty((taskName + taskTags));
 					}
@@ -367,9 +1030,9 @@ public class UI extends FlowPane {
 				.setCellValueFactory(new Callback<CellDataFeatures<Task, String>, ObservableValue<String>>() {
 					@Override
 					public ObservableValue<String> call(
-							CellDataFeatures<Task, String> p) {
+							CellDataFeatures<Task, String> row) {
 
-						return new SimpleStringProperty((p.getValue()
+						return new SimpleStringProperty((row.getValue()
 								.getDateAsString()));
 					}
 				});
@@ -395,447 +1058,993 @@ public class UI extends FlowPane {
 
 	}
 
-	private void initTaskTableView() {
-		taskTableView = new VBox();
-		taskTableView.getChildren().add(taskTable);
+	private void doSetTaskUserSelected(Task task) {
+		assert (task != null);
+		this.ui.setTaskUserSelected(task);
+		this.ui.getUITaskDetailsView().bindTaskDetails(task);
 	}
 
-	// Displays view 2 of split.
-	private void initTaskDetailsView() {
-		taskDetailsView = new VBox();
-		taskDetailsView.setPrefWidth(WIDTH_OF_SPLIT2);
-		taskDetailsView.setSpacing(10);
-
-		taskIDtf.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskIDtf.setDisable(true);
-
-		taskNameta.getStyleClass().add(CSS_TEXTAREA);
-		taskNameta.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskNameta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
-		taskNameta.setWrapText(true);
-		taskNameta.setDisable(true);
-
-		taskStartDtesta.getStyleClass().add(CSS_TEXTAREA);
-		taskStartDtesta.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskStartDtesta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
-		taskStartDtesta.setWrapText(true);
-		taskStartDtesta.setDisable(true);
-
-		taskTagsta.getStyleClass().add(CSS_TEXTAREA);
-		taskTagsta.getStyleClass().add(CSS_VIEW2COMPONENTS);
-		taskTagsta.setPrefHeight(HEIGHT_OF_TEXTAREAS);
-		taskTagsta.setWrapText(true);
-		taskTagsta.setDisable(true);
-
-		taskDetailsView.getChildren().addAll(taskIDLbl, taskIDtf, taskNameLbl,
-				taskNameta, taskStartDtesLbl, taskStartDtesta, taskTagsLbl,
-				taskTagsta, notificationPane);
+	private void doRequestUIKeyEventHandler(KeyEvent ke) {
+		this.ui.getUIKeyEventHandler().doRequestedTaskTableKeyEvent(ke);
 	}
 
-	private void blankTaskDetails() {
-		taskIDtf.setDisable(false);
-		taskIDtf.setText(EMPTY_STRING);
-		taskIDtf.setDisable(true);
-
-		taskNameta.setDisable(false);
-		taskNameta.setText(EMPTY_STRING);
-		taskNameta.setDisable(true);
-
-		taskStartDtesta.setDisable(false);
-		taskStartDtesta.setText(EMPTY_STRING);
-		taskStartDtesta.setDisable(true);
-
-		taskTagsta.setDisable(false);
-		taskTagsta.setText(EMPTY_STRING);
-		taskTagsta.setDisable(true);
-	}
-
-	private void bindTaskDetails(Task task) {
-		taskIDtf.setDisable(false);
-		taskIDtf.setText(taskUserSelected.getDisplayId());
-		taskIDtf.setDisable(true);
-
-		taskNameta.setDisable(false);
-		taskNameta.setText(taskUserSelected.getTaskName());
-		taskNameta.setDisable(true);
-
-		taskStartDtesta.setDisable(false);
-		taskStartDtesta.setText(taskUserSelected.getDateAsString());
-		taskStartDtesta.setDisable(true);
-
-		taskTagsta.setDisable(false);
-		taskTagsta.setText(taskUserSelected.getTagsAsString());
-		taskTagsta.setDisable(true);
-
-	}
-
-	private void doSplitAddViews() {
-		split.getChildren().addAll(taskTableView, taskDetailsView);
-	}
-
-	private void initUserCommands() {
-		userCommands = new TextField(EMPTY_STRING);
-		userCommands.setId(CSS_USERCOMMANDS);
-		userCommands.setMaxWidth(WIDTH_OF_USERCOMMANDS);
-		userCommands.setTranslateX(WIDTH_OF_TASKLBLCOL);// to align the
-														// userCommands and
-														// taskTable.
-
-		userCommands.setPrefHeight(HEIGHT_OF_USERCOMMANDS);
-
-		userCommands.setOnKeyPressed(new EventHandler<KeyEvent>() {
-			@Override
-			public void handle(KeyEvent ke) {
-				HotKey hotKey = determineHotKeyUserCommands(ke);
-
-				switch (hotKey) {
-				case USERCOMMAND_ENTER:
-					doUserCommand();
-					break;
-				case USERCOMMAND_PREVIOUSCOMMAND:
-					doRetrieveCommandHistory(PREVIOUS_USER_COMMAND);
-					break;
-				case USERCOMMAND_NEXTCOMMAND:
-					doRetrieveCommandHistory(NEXT_USER_COMMAND);
-					break;
-				case USERCOMMAND_UNDO:
-					doUndo();
-					break;
-				case USERCOMMAND_REDO:
-					doRedo();
-					break;
-				case USERCOMMAND_INVALID:
-					break;
-				default:
-					throw new Error(ERROR_USERCOMMAND_HOTKEY);
-				}
-			}
-		});
-	}
-
-	private void doTaskViewAddViews() {
-		taskView.getChildren().addAll(split, userCommands);
-	}
-
-	private void doDefaultUserCommands() {
-		userCommands.setText(EMPTY_STRING);
-		userCommands.requestFocus();
-	}
-
-	// These methods allow the controller to observe the UI for updates to user
-	// input
-	private void initObservers() {
-		uiObserver = new ArrayList<UIObserver>();
-	}
-
-	public void addUIObserver(UIObserver observer) {
-		uiObserver.add(observer);
-	}
-
-	private void notifyObservers() {
-		for (UIObserver observer : uiObserver) {
-			observer.update();
-		}
-	}
-
-	// ******************************************************************
-
-	// Functions from userCommandsKeyListener
-	private HotKey determineHotKeyUserCommands(KeyEvent keyEvent) {
-		assert (keyEvent != null);
-		KeyCode keyCode = keyEvent.getCode();
-
-		if (keyCode.equals(KeyCode.ENTER)) {
-			return HotKey.USERCOMMAND_ENTER;
-		} else if (keyCode.equals(KeyCode.UP) && !userCommandsHistory.isEmpty()) {
-			return HotKey.USERCOMMAND_PREVIOUSCOMMAND;
-		} else if (keyCode.equals(KeyCode.DOWN)
-				&& !userCommandsHistory.isEmpty()) {
-			return HotKey.USERCOMMAND_NEXTCOMMAND;
-		} else if (keyEvent.isControlDown()) {
-			if (keyCode.equals(KeyCode.Z)) {
-				return HotKey.USERCOMMAND_UNDO;
-			} else if (keyCode.equals(KeyCode.Y)) {
-				return HotKey.USERCOMMAND_REDO;
-			} else {
-				return HotKey.USERCOMMAND_INVALID;
-			}
-		} else {
-			return HotKey.USERCOMMAND_INVALID;
-		}
-	}
-
-	private void doUserCommand() {
-		String userCommand = userCommands.getText();
-
-		if (userCommand.equals(EMPTY_STRING)) {// ignore as it is an invalid
-												// command
-			return;
-		}
-
-		userCommandsHistory.add(userCommand);
-		userCommandsHistoryCounter = sizeToIndex(userCommandsHistory.size());
-
-		if (userCommand.matches(REGEX_NUMBERS_ONLY)) {
-			int taskNo = Integer.parseInt(userCommand);
-			int index = taskNoToIndex(taskNo);
-
-			if (isValidIndex(index)) {
-				taskTable.requestFocus();
-				taskTable.getSelectionModel().select(index);
-				taskTable.getFocusModel().focus(index);
-			}
-			userCommands.setText(EMPTY_STRING);
-		} else {
-			notifyObservers();
-			doDefaultUserCommands();
-		}
-
-	}
-
-	private void doRetrieveCommandHistory(String command) {// updates the
-															// userCommands
-															// TextField for
-															// previously
-															// entered commands.
-		if (command.equals(PREVIOUS_USER_COMMAND)) {
-			if (isInvalidPreviousCommandExisted()) {
-				// Ignore
-			} else {
-				userCommands.setText(userCommandsHistory
-						.get(userCommandsHistoryCounter));
-				userCommandsHistoryCounter--;
-			}
-		} else if (command.equals(NEXT_USER_COMMAND)) {
-			if (isInvalidNextCommandExisted()) {
-				userCommands.setText(EMPTY_STRING);
-			} else {
-				userCommandsHistoryCounter++;
-				userCommands.setText(userCommandsHistory
-						.get(userCommandsHistoryCounter));
-			}
-
-		} else {
-			throw new Error(ERROR_RETRIEVECOMMANDHISTORY);
-		}
-	}
-
-	private void doUndo() {
-		userCommands.setText("undo");
-		notifyObservers();
-	}
-
-	private void doRedo() {
-		userCommands.setText("redo");
-		notifyObservers();
-	}
-
-	private int sizeToIndex(int size) {
-		if (size <= 0) {
-			throw new Error(ERROR_SIZEOUTOFBOUNDS);
-		}
-		return size - 1;
-	}
-
-	private int taskNoToIndex(int taskNo) {
-		return taskNo - 1;
-	}
-
-	private boolean isValidIndex(int index) {
-		return index >= 0 && displayTasks != null && !displayTasks.isEmpty()
-				&& index < displayTasks.size();
-	}
-
-	private boolean isInvalidPreviousCommandExisted() {
-		return userCommandsHistoryCounter < 0;
-	}
-
-	private boolean isInvalidNextCommandExisted() {
-		return userCommandsHistoryCounter >= userCommandsHistory.size() - 1;
-	}
-
-	// END - Functions from
-	// userCommandsKeyListener*********************************
-
-	// Functions from taskTable KeyListener
-	private HotKey determineHotKeyTaskTable(KeyEvent keyEvent) {
-		assert (keyEvent != null);
-		KeyCode keyCode = keyEvent.getCode();
-
-		if (keyCode.equals(KeyCode.DELETE)) {
-			return HotKey.TASKTABLE_DELETE;
-		} else if (keyEvent.isControlDown()) {
-			if (keyCode.equals(KeyCode.E)) {
-				return HotKey.TASKTABLE_EDIT;
-			} else {
-				return HotKey.TASKTABLE_INVALID;
-			}
-		} else {
-			return HotKey.TASKTABLE_INVALID;
-		}
-	}
-
-	private void doTaskTableDelete() {
-		if(taskUserSelected == null){
-			return;
-		}
-		userCommands.setText("delete " + taskUserSelected.getDisplayId());
-		notifyObservers();
-	}
-
-	private void doDisplayQuickEditToUserCommand() {
-		String textToDisplay = "edit " + taskIDtf.getText() + " "
-				+ taskNameta.getText() + " ";
-		doDefaultUserCommands();
-		userCommands.setText(textToDisplay);
-		
-	}
-
-	// END - Functions from taskTable
-	// KeyListener***************************************
-
-	// Functions that deal with displaying notifications to user and retrieving
-	// user notifications
-	public String getUserInput() {
-		return userCommands.getText();
-	}
-
-	public void setNotificationToUser(String msg) {
-		notificationPane.setDisable(false);
-		notificationPane.show(msg);
-		hideNotificationAfter(TIMEOUT);
-		notificationPane.setDisable(true);
-
-	}
-
-	private void hideNotificationAfter(int ms) {
-		new java.util.Timer().schedule(new java.util.TimerTask() {
-			@Override
-			public void run() {
-				notificationPane.hide();
-			}
-		}, ms);
-	}
-
-	// END - Functions that deal with displaying notifications to user and
-	// retrieving
-	// user notifications******************
-
-	public void displayTasks(ArrayList<Task> taskAL) {
-		this.displayTasks.removeAll(displayTasks);
-		this.displayTasks = taskAL;
+	//******************** ACCESSORS FOR UI PACKAGE ***************************************
+	protected void displayTasks(ArrayList<Task> taskAL) {
+		this.tasksListForDisplay.removeAll(tasksListForDisplay);
+		this.tasksListForDisplay.addAll(taskAL);
 		if (dataToDisplay != null) {
 			dataToDisplay.removeAll(dataToDisplay);
 		}
-		dataToDisplay = FXCollections.observableArrayList(displayTasks);
+		dataToDisplay = FXCollections.observableArrayList(tasksListForDisplay);
 		taskTable.setItems(dataToDisplay);
 
-		if (!dataToDisplay.isEmpty()) {
-			this.taskUserSelected = dataToDisplay.get(0);
-			bindTaskDetails(taskUserSelected);
-
-		} else {
-			blankTaskDetails();
+		if (dataToDisplay.isEmpty()) {
+			this.ui.getUITaskDetailsView().blankTaskDetails();
 		}
 
-		doDefaultUserCommands();
-
 	}
-
-	// Allows Controller to pass stage for this UI to display Scene.
-	public void showStage(Stage primaryStage) {
-		Scene scene = new Scene(this.taskView);
-		scene.getStylesheets().add(CSS_MAIN_TASKVIEW);
-		primaryStage.setTitle(PROGRAM_NAME);
-		primaryStage.setScene(scene);
-		primaryStage.show();
-		primaryStage.setResizable(false);
+	
+	protected ArrayList<Task> getTasksListForDisplay(){
+		return this.tasksListForDisplay;
 	}
-
-	// *****************************************************************
-
-}
-
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UI.java
+	
+	protected TableView<Task> getTaskTable(){
+		return this.taskTable;
+	}
+	//******************** END - ACCESSORS FOR UI PACKAGE ***************************************
+	
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskTableView.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UI.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskTableView.java
 	 */
 
-class TaskLblColTableCell extends TableCell<Task, String> {
-	// CSS
-	private static final String CSS_FLOATINGTASKROW = "floatingTaskRow";
-	private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
-	private static final String CSS_NORMALTASKROW = "normalTaskRow";
+	class TaskLblColTableCell extends TableCell<Task, String> {
 		
-	//Errors
-	private static final String ERROR_NO_OTHER_TASKTYPE = "There are no other task types!";
-		
-	//Program Variables
-	private static final String EMPTY_STRING = "";
-	private static final String INVALID = null;
-	private static final String FLOATING_TASK = "F";
-	private static final String OVERDUE_TASK = "O";
-	private static final String NORMAL_TASK = "T";
-	
-	@Override
-	protected void updateItem(final String item, final boolean empty) {
-		super.updateItem(item, empty);
+		// CSS
+		private static final String CSS_REMINDERTASKROW = "reminderTaskRow";
+		private static final String CSS_OVERDUETASKROW = "overdueTaskRow";
+		private static final String CSS_NORMALTASKROW = "normalTaskRow";
+		private static final String CSS_COMPLETEDTASKROW = "completedTaskRow";
+				
+		// Program Variables
+		private static final String EMPTY_STRING = "";
+		private final String INVALID = null;
+		private static final String FLOATING_TASK = "R";
+		private static final String OVERDUE_TASK = "O";
+		private static final String NORMAL_TASK = "T";
+		private static final String COMPLETED_TASK = "C";
 
-		setText(empty ? EMPTY_STRING : item);
-		getStyleClass().removeAll(CSS_FLOATINGTASKROW, CSS_OVERDUETASKROW,
-				CSS_NORMALTASKROW);
-		updateStyles(empty ? INVALID : item);
-	}
+		@Override
+		protected void updateItem(final String item, final boolean empty) {
+			super.updateItem(item, empty);
 
-	private void updateStyles(String item) {
-		if (item == INVALID) {
-			return;
+			setText(empty ? EMPTY_STRING : item);
+			getStyleClass().removeAll(CSS_REMINDERTASKROW, CSS_OVERDUETASKROW,
+					CSS_NORMALTASKROW,CSS_COMPLETEDTASKROW);
+			updateStyles(empty ? INVALID : item);
 		}
 
-		if (isFloating(item)) {
-			getStyleClass().addAll(CSS_FLOATINGTASKROW);
-		} else if (isOverdue(item)) {
-			getStyleClass().add(CSS_OVERDUETASKROW);
-		} else if (isNormalTask(item)) {
-			getStyleClass().add(CSS_NORMALTASKROW);
-		} else{
-			throw new Error(ERROR_NO_OTHER_TASKTYPE);
+		private void updateStyles(String item) {
+			if (item == INVALID) {
+				return;
+			}
+
+			if (isFloating(item)) {
+				getStyleClass().addAll(CSS_REMINDERTASKROW);
+			} else if (isOverdue(item)) {
+				getStyleClass().add(CSS_OVERDUETASKROW);
+			} else if (isNormalTask(item)) {
+				getStyleClass().add(CSS_NORMALTASKROW);
+			} else if (isCompletedTask(item)){
+				getStyleClass().add(CSS_COMPLETEDTASKROW);
+			}
+			else {
+				//ignore
+			}
 		}
-	}
-	
-	private boolean isFloating(String itemValue){
-		return itemValue.contains(FLOATING_TASK);
-	}
-	
-	private boolean isOverdue(String itemValue){
-		return itemValue.contains(OVERDUE_TASK);
-	}
-	
-	private boolean isNormalTask(String itemValue){
-		return itemValue.contains(NORMAL_TASK);
+
+		private boolean isFloating(String itemValue) {
+			return itemValue.contains(FLOATING_TASK);
+		}
+
+		private boolean isOverdue(String itemValue) {
+			return itemValue.contains(OVERDUE_TASK);
+		}
+
+		private boolean isNormalTask(String itemValue) {
+			return itemValue.contains(NORMAL_TASK);
+		}
+		
+		private boolean isCompletedTask(String itemValue){
+			return itemValue.contains(COMPLETED_TASK);
+		}
 	}
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UI.java
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\speed\view\UITaskTableView.java
 
 
 
 
 
 	/**
-	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UIObserver.java
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\Systestexpected_ForCollate.java
 	 */
 
-public interface UIObserver {
-public void update();
+
+package collateNonJavaFiles;
+
+public class Systestexpected_ForCollate{
+	
+}
+/*Description: This is the systestexpected.txt used for Integration testings
+ * 
+ * Limitations: This file must be changed weekly or testing will be affected due to time sensitivity.
+ */
+
+/*
+FLOAT   
+FLOAT   
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+FLOAT   
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+FLOAT   
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+FLOAT   
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+FLOAT   
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+FLOAT   
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+OVERDUE2010  Tue 1-Oct-13 23:59 PM Tue 1-Oct-13 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURMONTH  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURWEEK  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURWEEK  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURWEEK  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURYEAR  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+FLOAT   
+FLOATEDIT @tag, @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+FLOAT   
+FLOATTAG @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+FLOAT   
+FLOATEDIT @tag, @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+FLOAT   
+FLOATEDIT @tag, @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+FLOATEDIT @tag, @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURDAY  Thu 1-Oct-15 23:59 PM Thu 1-Oct-15 23:59 PM
+RECURDAY  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURDAY  Sat 3-Oct-15 23:59 PM Sat 3-Oct-15 23:59 PM
+RECURDAY  Sun 4-Oct-15 23:59 PM Sun 4-Oct-15 23:59 PM
+RECURDAY  Mon 5-Oct-15 23:59 PM Mon 5-Oct-15 23:59 PM
+RECURDAY  Tue 6-Oct-15 23:59 PM Tue 6-Oct-15 23:59 PM
+RECURDAY  Wed 7-Oct-15 23:59 PM Wed 7-Oct-15 23:59 PM
+RECURDAY  Thu 8-Oct-15 23:59 PM Thu 8-Oct-15 23:59 PM
+RECURDAY  Fri 9-Oct-15 23:59 PM Fri 9-Oct-15 23:59 PM
+RECURDAY  Sat 10-Oct-15 23:59 PM Sat 10-Oct-15 23:59 PM
+RECURDAY  Sun 11-Oct-15 23:59 PM Sun 11-Oct-15 23:59 PM
+RECURDAY  Mon 12-Oct-15 23:59 PM Mon 12-Oct-15 23:59 PM
+RECURDAY  Tue 13-Oct-15 23:59 PM Tue 13-Oct-15 23:59 PM
+RECURDAY  Wed 14-Oct-15 23:59 PM Wed 14-Oct-15 23:59 PM
+RECURDAY  Thu 15-Oct-15 23:59 PM Thu 15-Oct-15 23:59 PM
+RECURDAY  Fri 16-Oct-15 23:59 PM Fri 16-Oct-15 23:59 PM
+RECURDAY  Sat 17-Oct-15 23:59 PM Sat 17-Oct-15 23:59 PM
+RECURDAY  Sun 18-Oct-15 23:59 PM Sun 18-Oct-15 23:59 PM
+RECURDAY  Mon 19-Oct-15 23:59 PM Mon 19-Oct-15 23:59 PM
+RECURDAY  Tue 20-Oct-15 23:59 PM Tue 20-Oct-15 23:59 PM
+RECURDAY  Wed 21-Oct-15 23:59 PM Wed 21-Oct-15 23:59 PM
+RECURDAY  Thu 22-Oct-15 23:59 PM Thu 22-Oct-15 23:59 PM
+RECURDAY  Fri 23-Oct-15 23:59 PM Fri 23-Oct-15 23:59 PM
+RECURDAY  Sat 24-Oct-15 23:59 PM Sat 24-Oct-15 23:59 PM
+RECURDAY  Sun 25-Oct-15 23:59 PM Sun 25-Oct-15 23:59 PM
+RECURDAY  Mon 26-Oct-15 23:59 PM Mon 26-Oct-15 23:59 PM
+FLOATEDIT @tag, @tag  
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+RECURYEAREDIT  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
+RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+RECURYEAREDIT  Fri 2-Oct-15 23:59 PM Fri 2-Oct-15 23:59 PM
+RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
+RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
+RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL5  Wed 30-Sep-15 23:59 PM Wed 30-Sep-15 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+FLOATEDIT @tag, @tag  
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL6  Wed 12-Nov-14 23:59 PM Wed 12-Nov-14 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMALTAG @tag Tue 1-Dec-15 23:59 PM Tue 1-Dec-15 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL1  Sun 1-Nov-15 1:00 AM Sun 1-Nov-15 1:00 AM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
+RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+NORMAL7  Wed 12-Nov-14 0:00 AM Fri 14-Nov-14 23:59 PM
+NORMAL2  Sun 1-Nov-15 2:00 AM Sun 1-Nov-15 2:00 AM
+NORMAL3  Sun 1-Nov-15 3:00 AM Sun 1-Nov-15 3:00 AM
+NORMAL4  Sun 1-Nov-15 4:00 AM Sun 1-Nov-15 17:00 PM
+RECURYEAREDIT  Sun 2-Oct-16 23:59 PM Sun 2-Oct-16 23:59 PM
+RECURYEAREDIT  Mon 2-Oct-17 23:59 PM Mon 2-Oct-17 23:59 PM
+*/
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\Systestexpected_ForCollate.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\Systestinputtxt_ForCollate.java
+	 */
+
+package collateNonJavaFiles;
+
+public class Systestinputtxt_ForCollate{
+	
+}
+/*Description: This is the systestinput.txt for Integration testing.
+ * 
+ */
+
+/*
+add FLOAT
+add NORMAL1 1 November 2015 1am
+insert NORMAL2 0200 1st nov 2015
+add NORMAL3 nOv 1 2015 03:00
+add NORMAL4 from 1 nov 15 0400 to 1 nov 2015 5pm
+add NORMAL5 30 sep
+add NORMAL6 Wednesday
+add NORMAL7 Wednesday to Friday
+add OVERDUE2010, 1 october 2013
+RECURDAY 1 oct 2015 everyday
+RECURWEEK 1 oct 2015 weekly
+RECURMONTH 1 oct 2015 monthly
+RECURYEAR 1 oct 2015 every year
+FLOATTAG @tag
+NORMALTAG @tag 1 dec 2015
+delete R3
+undo
+delete O1
+redo
+destroy t7
+del t7
+del R4
+del O2
+remove T7
+edit R2 FLOATEDIT @tag
+und
+red
+update o1
+del 1
+modify T6 RECURYEAREDIT 2 Oct 2015 yearly
+search RECUR
+complete T1
+find normal
+done 3
+search @tag
+completed R1
+search from 1 Nov 2014 to 1 Oct 2015
+del T2 T3
+search normal @tag from 1 Nov 2014 to 1 Jan 2016
+fin T1
+list
+del t2
+*/
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\Systestinputtxt_ForCollate.java
+
+
+
+
+
+	/**
+	 * origin: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\UICssForCollate.java
+	 */
+
+package collateNonJavaFiles;
+
+public class UICssForCollate{}
+/*
+	@CHARSET "ISO-8859-1";
+@font-face {
+	font-family: Raleway;
+	src: url("Raleway-Regular.otf") format("opentype");
 }
 
-	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\UIObserver.java
+.root{
+	-fx-background-color: #2c3e50;
+	-fx-font: 15px Raleway;
+}
+
+#inputText {
+	-fx-font: 20px Raleway;
+	-fx-font-weight: bold;
+}
+
+.label {
+	-fx-text-fill: White;
+	-fx-font-weight : bold;
+
+}
+
+.view2Split {
+	-fx-background-color: #2c3e50;
+	-fx-text-fill: #3498db;
+	-fx-opacity: 1.0;
+	-fx-font-weight: bold;
+}
+
+.textarea {
+	-fx-text-fill: Black;
+}
+
+.task-id-column {
+	-fx-alignment: CENTER;
+	-fx-background-color: #2c3e50;
+}
+
+.reminderTaskRow{
+	-fx-text-fill: #00FFFF;
+	-fx-font-weight: bold;
+}
+
+.overdueTaskRow{
+	-fx-text-fill: #e07279;
+	-fx-font-weight: bold;
+}
+
+.normalTaskRow{
+	-fx-text-fill: #27ae60;
+	-fx-font-weight: bold;
+}
+
+.completedTaskRow{
+	-fx-text-fill: #8e44ad;
+	-fx-font-weight: bold;
+}
+
+.table-view {
+	-fx-base: #2c3e50;
+	-fx-control-inner-background: #ecf0f1;
+	-fx-background-color: #2c3e50;
+	-fx-table-cell-border-color: transparent;
+}
+
+.table-row-cell:empty {
+    -fx-background-color: #ecf0f1;
+}
+
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+
+.notificationpane{
+	-fx-background-color:#2c3e50;
+	-fx-text-fill: White;
+	-fx-font-weight : bold;
+}
+
+*/
+
+	// End of segment: C:\Users\Leow Wei Xiang\Desktop\Work\Semester 5\CS2103T\SPEED\src\collateNonJavaFiles\UICssForCollate.java
 
 
 
