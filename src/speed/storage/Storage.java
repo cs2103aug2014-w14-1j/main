@@ -2,12 +2,15 @@
 package speed.storage;
 
 import com.google.gson.Gson;
-import org.json.JSONException;
+
 import speed.task.Task;
 import speed.task.TaskComparator;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /*
  * This class acts as the storage for the task manager software. It keeps track of lists of tasks
@@ -26,15 +29,18 @@ import java.util.*;
  * then insert it back. This is to ensure the Task is kept in the right list.
  * 
  * Exceptions thrown by the Storage: IOException
+ * All exceptions are always thrown out. Whoever is using the Storage needs to know and handle it
  */
 
 public class Storage {
 	
 	private static final int RECUR_YEAR_LIMIT = 3;				//the default limit for recurring tasks
 	private static final int ID_COUNTER_INCREASE = 1;
+	private static final String STORAGE_LOG = "storagelog.txt";
 	
-	private FileHandler filehandler;
-	
+	private Logger storage_logger;
+	private FileHandler log_writer;
+	private TaskFileReader taskFileReader;
 	private PriorityQueue<Task> list_task;
 	private PriorityQueue<Task> list_floating;
 	private PriorityQueue<Task> list_overdue;
@@ -44,12 +50,11 @@ public class Storage {
 	
 	//Constructor***************************************************************************
 
-	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException, JSONException {
-		list_task = new PriorityQueue<Task>(new TaskComparator());
-		list_floating = new PriorityQueue<Task>(new TaskComparator());
-		list_overdue = new PriorityQueue<Task>(new TaskComparator());
-		list_completed = new PriorityQueue<Task>(new TaskComparator());
-		filehandler = new FileHandler(task_fn, float_fn, o_fn, c_fn);
+	public Storage(String task_fn, String float_fn, String o_fn, String c_fn) throws IOException {
+		storage_logger = Logger.getLogger(Storage.class.getName());
+		log_writer = new FileHandler(STORAGE_LOG);
+		storage_logger.addHandler(log_writer);
+		taskFileReader = new TaskFileReader(task_fn, float_fn, o_fn, c_fn);
 		initFiles();
 		maintainListIntegrity();
 		updateRecurringTasks();
@@ -67,6 +72,7 @@ public class Storage {
 	 */
 	
 	public void insert(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Insert operation");
 		checkForOverdueTasks();
 		if (task.hasNoId()) {								//for new tasks with no ID
 			assignID(task);
@@ -85,16 +91,17 @@ public class Storage {
 	}
 	
 	private void assignID(Task task) {
+		storage_logger.log(Level.FINE, "New task, no ID, assigning ID");
 		id_counter += ID_COUNTER_INCREASE;
 		task.setId(id_counter);
 	}
 
 	private void insert(Task task, PriorityQueue<Task> list) {
-		
 		assert !task.hasNoId();
-		
 		list.add(task);
 		if (task.getId() >= id_table.size()) {
+			assert task.getId() == id_table.size() + 1;
+			storage_logger.log(Level.FINE, "New task index" + task.getId() + "Creating new index in table");
 			id_table.add(new LinkedList<Task>());
 		}
 		id_table.get(task.getId()).add(task);
@@ -110,6 +117,7 @@ public class Storage {
 	 */
 	private ArrayList<Task> generateRecurringTasks(Task task) {
 		assert task.isRecur();
+		storage_logger.log(Level.FINE, "Recurring task, generating recurring copies");
 		
 		ArrayList<Task> task_recur_chain = new ArrayList<Task>();
 		
@@ -124,9 +132,9 @@ public class Storage {
 			
 			Calendar start = task.getStartDate();
 			start.add(task.getRecurPattern(), task.getRecurPeriod());
-			
 			Calendar end = task.getEndDate();
 			end.add(task.getRecurPattern(), task.getRecurPeriod());
+			
 			if (end.after(limit)) {
 				break;
 			}
@@ -134,6 +142,7 @@ public class Storage {
 			task.setDates(start, end, task.getRecurPattern(), task.getRecurPeriod(), task.getRecurLimit());
 			task_recur_chain.add(task);
 		}
+		storage_logger.log(Level.FINE, task_recur_chain.size() + " tasks generated");
 		return task_recur_chain;
 	}
 	
@@ -159,6 +168,7 @@ public class Storage {
 	 * same ID if the deleted task is recurring
 	 */
 	public void delete(Task task) throws IOException {
+		storage_logger.log(Level.FINE, "Delete operation");
 		checkForOverdueTasks();
 		
 		assert !task.hasNoId();
@@ -167,6 +177,7 @@ public class Storage {
 		for (Task other_task : recur_chain) {
 			delete(other_task, retrieveTaskList(other_task));
 		}
+		storage_logger.log(Level.FINE, "Removed " + recur_chain.size() + " tasks");
 		recur_chain.clear();
 		save();
 	}
@@ -184,23 +195,17 @@ public class Storage {
 	 * 
 	 * Assumption: Does not search within completed task list. No reason to look for completed tasks
 	 */
-	private LinkedList<Task> searchTaskByID(Integer id){
-		
-		if (id == null || id < 0) {
-			return new LinkedList<Task>();								//every task in storage should have a nonnegative ID
-		}
-		
+	private LinkedList<Task> searchTaskByID(int id){
+		assert id >= 0;
+		storage_logger.log(Level.FINE, "Retrieving tasks with id " + id);
 		return id_table.get(id);
 	}
 		
 	public Task getParentTask(Task task) {
-		
 		if (task == null) {
 			return null;
 		}
-		
 		assert !task.hasNoId();
-		
 		return searchTaskByID(task.getId()).get(0);
 	}
 	
@@ -241,8 +246,9 @@ public class Storage {
 	 */
 	public ArrayList<Task> search(ArrayList<String> keywords, ArrayList<String> tags, Calendar start_date, Calendar end_date) 
 			throws IOException {
+		storage_logger.log(Level.FINE, "Search operation");
 		checkForOverdueTasks();
-		if (end_date!=null && start_date != null) {
+		if (end_date!=null && start_date != null) {					//make sure end date is later than start date
 			if (end_date.before(start_date)) {
 				Calendar temp = start_date;
 				start_date = end_date;
@@ -250,7 +256,6 @@ public class Storage {
 			}
 		}
 		ArrayList<Task> search_results = new ArrayList<Task>();
-				
 		searchList(search_results, list_overdue, keywords, tags, start_date, end_date);
 		searchList(search_results, list_floating, keywords, tags, start_date, end_date);
 		searchList(search_results, list_task, keywords, tags, start_date, end_date);
@@ -277,12 +282,14 @@ public class Storage {
 	//Clear methods**************************************************************
 	
 	public void clearAll() throws IOException {
+		storage_logger.log(Level.WARNING, "Clearing everything in the storage");
 		clear(list_task);
 		clear(list_floating);
 		clear(list_overdue);
 		clear(list_completed);
+		buildIDTable();				//should result in empty table and id_counter == 0
+		assert id_counter == 0;
 		save();
-		id_counter = 0;			//after save, in case there is an IOException
 	}
 	
 	private void clear(PriorityQueue<Task> tasklist) {
@@ -292,10 +299,10 @@ public class Storage {
 	//Save methods***************************************************************
 	
 	private void save() throws IOException {
-		filehandler.writeFile(list_task);
-		filehandler.writeFile(list_floating);
-		filehandler.writeFile(list_overdue);
-		filehandler.writeFile(list_completed);
+		taskFileReader.writeFile(list_task);
+		taskFileReader.writeFile(list_floating);
+		taskFileReader.writeFile(list_overdue);
+		taskFileReader.writeFile(list_completed);
 	}
 	
 	//Miscellaneous methods******************************************************
@@ -305,10 +312,15 @@ public class Storage {
 	 * Initialises the task lists by reading from the text files.
 	 */
 	private void initFiles() throws IOException {
-		filehandler.readFile(list_task);
-		filehandler.readFile(list_floating);
-		filehandler.readFile(list_completed);
-		filehandler.readFile(list_overdue);
+		storage_logger.log(Level.FINE, "Initialising tasklists");
+		list_task = new PriorityQueue<Task>(new TaskComparator());
+		list_floating = new PriorityQueue<Task>(new TaskComparator());
+		list_overdue = new PriorityQueue<Task>(new TaskComparator());
+		list_completed = new PriorityQueue<Task>(new TaskComparator());
+		taskFileReader.readFile(list_task);
+		taskFileReader.readFile(list_floating);
+		taskFileReader.readFile(list_completed);
+		taskFileReader.readFile(list_overdue);
 	}
 
 	/*
@@ -370,6 +382,7 @@ public class Storage {
 	 * Does not include completed tasks.
 	 */
 	private void buildIDTable() {
+		storage_logger.log(Level.FINE, "Building ID Table");
 		id_table = new ArrayList<LinkedList<Task>>();
 		id_counter = getLatestID();
 		for (int i = 0; i <= id_counter; i++) {
@@ -399,6 +412,7 @@ public class Storage {
 	 * Note: Expensive operation
 	 */
 	private void compactIndex() {
+		storage_logger.log(Level.FINE, "Compacting indexes");
 		int holes = 0;
 		for (int i = 1; i < id_table.size(); i++) {
 			LinkedList<Task> task_family = searchTaskByID(i);
@@ -417,6 +431,8 @@ public class Storage {
 			}
 		}
 		id_counter = getLatestID();
+		storage_logger.log(Level.FINE, "id_counter = " + id_counter + ", id_table.size() = "
+												+ id_table.size());
 	}
 	
 	private int getLatestID() {
@@ -446,7 +462,8 @@ public class Storage {
 	 * Tasks with no ids are always destroyed as they cannot fit in the ID table.
 	 * Tasks in the wrong lists are resorted
 	 */
-	public void maintainListIntegrity() {
+	public void maintainListIntegrity() throws IOException {
+		storage_logger.log(Level.FINE, "Checking list integrity");
 		LinkedList<Task> no_id_tasks = new LinkedList<Task>();
 		LinkedList<Task> wrong_tasks = new LinkedList<Task>();
 		
@@ -481,6 +498,14 @@ public class Storage {
 			}
 		}
 		
+		if (no_id_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks with no IDs");
+		}
+		
+		if (wrong_tasks.size() > 0) {
+			storage_logger.log(Level.WARNING, "There are tasks in the wrong files");
+		}
+		
 		list_floating.removeAll(no_id_tasks);
 		list_overdue.removeAll(no_id_tasks);
 		list_task.removeAll(no_id_tasks);
@@ -496,6 +521,7 @@ public class Storage {
 		}
 		buildIDTable();
 		compactIndex();
+		save();
 	}
 	
 	//@author A0111660W
@@ -506,7 +532,7 @@ public class Storage {
 	 * priority queues to files given by the input filenames.
 	 */
 	
-	class FileHandler {
+	class TaskFileReader {
 		
 		private BufferedReader bufferedReader;
 		private PrintWriter printWriter;
@@ -517,7 +543,7 @@ public class Storage {
 		
 		// Constructor******************************************************
 		
-		public FileHandler(String t_fn, String f_fn, String o_fn, String c_fn) {
+		public TaskFileReader(String t_fn, String f_fn, String o_fn, String c_fn) {
 			this.task_filename = t_fn;
 			this.floating_task_filename = f_fn;
 			this.overdue_task_filename = o_fn;
